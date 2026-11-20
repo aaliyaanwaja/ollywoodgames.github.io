@@ -1,0 +1,4 @@
+Fonts in this folder are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org).
+Anton: Copyright 2020 The Anton Project Authors (https://github.com/googlefonts/AntonFont)
+Barlow and Barlow Condensed: Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
+Files come unmodified from the @fontsource npm packages (latin subset, woff2).
