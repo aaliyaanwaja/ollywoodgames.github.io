@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F2EAD8">
+<title>One-Man Team: Training Ground (prototype)</title>
+<link rel="stylesheet" href="../../one-man-team/css/style.css">
+<style>
+  #home { overflow-y: auto; padding: calc(16px + var(--st, 0px)) 16px 28px; -webkit-overflow-scrolling: touch; }
+  .mast { display: flex; justify-content: space-between; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 6px 0;
+    font: 600 12px/1 var(--label); letter-spacing: .12em; text-transform: uppercase; }
+  .t-title { font: 400 44px/0.95 var(--display); text-transform: uppercase; margin: 16px 0 8px; color: var(--ink); text-shadow: 3px 3px 0 var(--tomato); }
+  .t-lede { font: 500 15px/1.4 var(--body, "Barlow", sans-serif); color: var(--ink); margin: 0 0 18px; max-width: 34em; }
+  .drill { display: flex; width: 100%; cursor: pointer; box-sizing: border-box; text-align: left; padding: 0; margin: 0 0 14px; background: var(--chalk); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px;
+    box-shadow: 4px 4px 0 var(--ink); font: inherit; overflow: hidden; }
+  .drill:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  .drill .no { flex: none; width: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--paper-shade); border-right: 2px dashed var(--ink);
+    font: 400 30px/1 var(--display); }
+  .drill .no small { font: 600 10px/1 var(--label); letter-spacing: .14em; margin-bottom: 4px; }
+  .drill .bd { flex: 1; min-width: 0; padding: 11px 12px 12px; }
+  .drill .kd { font: 600 11px/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  .drill h2 { font: 400 26px/1 var(--display); text-transform: uppercase; margin: 5px 0 6px; }
+  .drill p { font: 500 14px/1.35 var(--body, "Barlow", sans-serif); margin: 0; }
+  .drill .best { display: inline-block; margin-top: 8px; padding: 3px 7px; background: var(--mustard); border: 2px solid var(--ink); border-radius: 4px; font: 700 12px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; }
+  .drill .best.none { background: none; border-style: dashed; color: var(--ink-soft); }
+  .proto { margin-top: 6px; font: 500 13px/1.4 var(--body, "Barlow", sans-serif); color: var(--ink-soft); }
+
+  #thud { flex: none; display: flex; align-items: center; gap: 10px; padding: calc(8px + var(--st, 0px)) 12px 8px; border-bottom: 2px solid var(--ink); background: var(--paper); }
+  #tback { flex: none; width: 46px; height: 46px; border: 2px solid var(--ink); border-radius: 6px; background: var(--chalk); box-shadow: 3px 3px 0 var(--ink); color: var(--ink); padding: 0; }
+  #tback svg { width: 22px; height: 22px; }
+  #tname { flex: 1; min-width: 0; }
+  #tname b { display: block; font: 400 22px/1 var(--display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tname span { display: block; margin-top: 4px; font: 600 12px/1.1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tscore { flex: none; text-align: right; }
+  #tscore b { display: block; font: 400 34px/0.9 var(--display); font-variant-numeric: tabular-nums; }
+  #tscore span { font: 600 11px/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  #tbar { height: 6px; background: var(--paper-shade); border-bottom: 2px solid var(--ink); }
+  #tbar i { display: block; height: 100%; width: 0; background: var(--tomato); }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #thint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 7px 12px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 4px; box-shadow: 3px 3px 0 var(--ink);
+    font: 700 13px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; pointer-events: none; }
+  #thint.off { display: none; }
+  #dots { position: absolute; left: 10px; top: 10px; display: flex; gap: 4px; pointer-events: none; }
+  #dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); background: var(--chalk); }
+  #dots i.g1 { background: var(--mustard); } #dots i.g2 { background: var(--tomato); } #dots i.g0 { background: var(--ink-soft); }
+
+  #tov { position: fixed; inset: 0; z-index: 30; display: none; align-items: flex-end; justify-content: center; padding: 12px 12px calc(12px + var(--sb, 0px)); background: rgba(20, 33, 61, .28); }
+  #tov.on { display: flex; }
+  #tov.mid { align-items: center; }
+  #tcard { width: 100%; max-width: 440px; max-height: 100%; overflow: auto; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 5px 5px 0 var(--ink); padding: 16px; color: var(--ink); }
+  #tcard .kd { font: 600 12px/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  #tcard h2 { font: 400 34px/1 var(--display); text-transform: uppercase; margin: 6px 0 4px; }
+  #tcard .big { font: 400 56px/1 var(--display); margin: 6px 0 2px; }
+  #tcard p, #tcard li { font: 500 15px/1.4 var(--body, "Barlow", sans-serif); margin: 6px 0; }
+  #tcard ul { margin: 8px 0; padding-left: 18px; }
+  #tcard .nb { display: inline-block; padding: 4px 8px; background: var(--mustard); border: 2px solid var(--ink); border-radius: 4px; font: 700 13px/1 var(--label); letter-spacing: .1em; text-transform: uppercase; transform: rotate(-2deg); }
+  .tb { display: flex; gap: 10px; margin-top: 14px; }
+  .tb button { flex: 1; min-height: 50px; border: 2px solid var(--ink); border-radius: 6px; background: var(--chalk); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); font: 700 17px/1 var(--label); letter-spacing: .06em; text-transform: uppercase; }
+  .tb button.p { background: var(--tomato); }
+  .tb button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  .st svg { width: 34px; height: 34px; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="home" class="screen on"></section>
+  <section id="play" class="screen">
+    <header id="thud">
+      <button id="tback" aria-label="Back to drills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+      <div id="tname"><b></b><span></span></div>
+      <div id="tscore"><b>0</b><span></span></div>
+    </header>
+    <div id="tbar"><i></i></div>
+    <div id="stage">
+      <canvas id="cv"></canvas>
+      <canvas id="fx"></canvas>
+      <div id="dots"></div>
+      <div id="toast" role="status"></div>
+      <div id="thint">Move to start</div>
+    </div>
+    <div id="ctl">
+      <div id="pad" aria-hidden="true"><span>Drag anywhere<br>to run</span></div>
+      <div id="kickwrap"><span id="klabel">Press<br>drag to aim<br>release</span><button id="kick">PASS</button></div>
+    </div>
+  </section>
+</div>
+<div id="joy" class="stick" aria-hidden="true"><i></i></div>
+<div id="aim" class="stick" aria-hidden="true"><i></i></div>
+<div id="tov"><div id="tcard"></div></div>
+<script>window.OMT_LEVELS = [];</script>
+<script src="../../one-man-team/js/sim.js"></script>
+<script src="../../one-man-team/js/audio.js"></script>
+<script src="../../one-man-team/js/render.js"></script>
+<script src="drills.js"></script>
+<script>
+(function () {
+  const { TICK } = FB, $ = id => document.getElementById(id);
+  const sfx = (n, ...a) => { try { if (window.SFX && SFX[n]) SFX[n](...a); } catch (e) {} };
+  const KEY = 'omt.train.v1'; let best = {};
+  try { best = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  const saveBest = () => { try { localStorage.setItem(KEY, JSON.stringify(best)); } catch (e) {} };
+  const STAR = f => '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6L2.5 9.5l6.6-.8z" fill="' + (f ? '#F2B705' : 'none') + '" stroke="#14213D" stroke-width="2" stroke-linejoin="round"/></svg>';
+
+  let drill = null, D = null, state = 'home', endHold = 0, lastKick = -999, lastRecv = -999, lastNote = -999;
+  const inp = { mx: 0, my: 0, charging: false, release: false, aim: false, ax: 0, ay: -1, power: 0 };
+  let joy = null, aimP = null; const keys = {};
+  const cur = () => drill && drill.wrap ? D.S : D;
+
+  function fmtBest(d) { const b = best[d.id]; return b == null ? null : (d.unit === 'seconds' ? b.toFixed(2) + 's' : b + ' ' + d.unit); }
+  function home() {
+    state = 'home'; $('tov').className = '';
+    $('home').innerHTML = '<div class="mast"><span>Training ground</span><span>Prototype</span></div><h1 class="t-title">Training<br>ground</h1>' +
+      '<p class="t-lede">Four drills from a Tuesday night session. Short, repeatable, and each one sharpens something the matches ask of you.</p>' +
+      DRILLS.map((d, i) => '<div class="drill" role="button" tabindex="0" data-i="' + i + '"><div class="no"><small>DRILL</small>0' + (i + 1) + '</div><div class="bd"><div class="kd">' + d.kind + '</div><h2>' + d.name + '</h2><p>' + d.blurb + '</p>' +
+        '<span class="best' + (fmtBest(d) ? '' : ' none') + '">' + (fmtBest(d) ? 'Best ' + fmtBest(d) : 'No score yet') + '</span></div></div>').join('') +
+      '<p class="proto">Prototype build for review. Scores are kept on this device only.</p>';
+    document.querySelectorAll('.drill').forEach(b => b.onclick = () => { sfx('unlock'); sfx('tap'); brief(DRILLS[+b.dataset.i]); });
+    $('home').classList.add('on'); $('play').classList.remove('on');
+  }
+  function brief(d) {
+    drill = d; start(); state = 'brief';
+    card('<div class="kd">' + d.kind + '</div><h2>' + d.name + '</h2><p>' + d.blurb + '</p><ul>' + d.how.map(h => '<li>' + h + '</li>').join('') + '</ul>' +
+      '<div class="tb"><button id="b1">Drills</button><button class="p" id="b2">Start</button></div>', true, { b1: home, b2: () => { $('tov').className = ''; state = 'ready'; } });
+  }
+  function start() {
+    D = drill.init(); state = 'ready'; endHold = 0; lastKick = lastRecv = lastNote = -999;
+    inp.charging = inp.release = inp.aim = false; joy = null; aimP = null; $('joy').style.display = 'none'; $('aim').style.display = 'none';
+    $('tname').firstChild.textContent = drill.name; $('thint').className = '';
+    $('kick').textContent = drill.id === 'piggy' ? '—' : drill.id === 'rondo' ? 'PASS' : 'SHOOT';
+    $('kickwrap').style.opacity = drill.id === 'piggy' ? .35 : 1;
+    $('home').classList.remove('on'); $('play').classList.add('on'); $('tov').className = '';
+    Render.resize($('stage')); sizeFx();
+  }
+  function card(html, mid, h) {
+    $('tcard').innerHTML = html; $('tov').className = 'on' + (mid ? ' mid' : '');
+    Object.keys(h || {}).forEach(id => { const el = $(id); if (el) el.onclick = () => { sfx('tap'); h[id](); }; });
+  }
+  function finish() {
+    state = 'over';
+    const r = drill.result(D), old = best[drill.id]; let nb = false;
+    if (r.value != null && (drill.unit === 'seconds' || r.value > 0) && (old == null || drill.better(r.value, old))) { best[drill.id] = r.value; saveBest(); nb = true; }
+    const stars = r.stars != null ? '<div class="st">' + [0, 1, 2].map(i => STAR(i < r.stars)).join('') + '</div>' : '';
+    card('<div class="kd">' + drill.name + '</div><div class="big">' + (r.value == null ? '—' : drill.unit === 'seconds' ? r.value.toFixed(2) : r.value) + '</div>' + stars +
+      '<p><b>' + r.text + '.</b> ' + (r.why || '') + '</p>' + (nb ? '<span class="nb">New best</span>' : (fmtBest(drill) ? '<p>Best: ' + fmtBest(drill) + '</p>' : '')) +
+      '<div class="tb"><button id="b1">Drills</button><button class="p" id="b2">Again</button></div>', false, { b1: home, b2: () => { start(); } });
+    if (nb) sfx('stamp');
+  }
+
+  // ---------- input (same scheme as the game) ----------
+  const play = $('play'), joyEl = $('joy'), knob = joyEl.firstElementChild, kb = $('kick'), aimEl = $('aim'), aimKnob = aimEl.firstElementChild;
+  const live = () => state === 'ready' || state === 'play';
+  const go = () => { if (state === 'ready') { state = 'play'; $('thint').className = 'off'; sfx('unlock'); } };
+  play.addEventListener('pointerdown', e => {
+    if (e.target.closest('button') || joy || !live()) return;
+    joy = { id: e.pointerId, ox: e.clientX, oy: e.clientY, mx: 0, my: 0 };
+    joyEl.style.display = 'block'; joyEl.style.left = joy.ox + 'px'; joyEl.style.top = joy.oy + 'px'; knob.style.transform = ''; e.preventDefault();
+  });
+  window.addEventListener('pointermove', e => {
+    if (!joy || e.pointerId !== joy.id) return;
+    let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const R = 44, m = Math.hypot(dx, dy);
+    if (m > R) { dx *= R / m; dy *= R / m; }
+    joy.mx = dx / R; joy.my = dy / R; knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; if (m > 8) go();
+  });
+  const joyEnd = e => { if (joy && e.pointerId === joy.id) { joy = null; joyEl.style.display = 'none'; } };
+  window.addEventListener('pointerup', joyEnd); window.addEventListener('pointercancel', joyEnd);
+  function kickUp() { if (inp.charging) { inp.charging = false; inp.release = true; } aimP = null; aimEl.style.display = 'none'; }
+  kb.addEventListener('pointerdown', e => {
+    try { kb.setPointerCapture(e.pointerId); } catch (_) {}
+    if (!live() || drill.id === 'piggy') return;
+    go(); inp.aim = false; inp.charging = true;
+    aimP = { id: e.pointerId, ox: e.clientX, oy: e.clientY }; aimEl.style.display = 'block'; aimEl.style.left = aimP.ox + 'px'; aimEl.style.top = aimP.oy + 'px'; aimKnob.style.transform = ''; e.preventDefault();
+  });
+  kb.addEventListener('pointermove', e => {
+    if (!aimP || e.pointerId !== aimP.id) return;
+    const dx = e.clientX - aimP.ox, dy = e.clientY - aimP.oy, m = Math.hypot(dx, dy), DZ = 12, R = 62;
+    if (m > DZ) { inp.aim = true; inp.ax = dx / m; inp.ay = dy / m; inp.power = Math.min(1, (m - DZ) / (R - DZ)); } else if (inp.aim) inp.power = 0;
+    const c = m > R ? R / m : 1; aimKnob.style.transform = 'translate(' + dx * c + 'px,' + dy * c + 'px)';
+  });
+  kb.addEventListener('pointerup', kickUp); kb.addEventListener('pointercancel', kickUp); kb.addEventListener('contextmenu', e => e.preventDefault());
+  $('tback').onclick = () => { sfx('tap'); home(); };
+  const KM = { ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
+  window.addEventListener('keydown', e => {
+    if (KM[e.code]) { keys[KM[e.code]] = true; if (live()) go(); e.preventDefault(); }
+    else if (e.code === 'Space') { if (!e.repeat && live() && drill.id !== 'piggy') { go(); inp.aim = false; inp.charging = true; } e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e => { if (KM[e.code]) keys[KM[e.code]] = false; else if (e.code === 'Space') kickUp(); });
+
+  // ---------- overlay: cones, grids ----------
+  const fx = $('fx'), fc = fx.getContext('2d');
+  function sizeFx() { const st = $('stage'), dpr = Math.min(3, window.devicePixelRatio || 1); fx.width = st.clientWidth * dpr; fx.height = st.clientHeight * dpr; fx._dpr = dpr; }
+  window.addEventListener('resize', () => { if (state !== 'home') { Render.resize($('stage')); sizeFx(); } });
+  function drawFx(S) {
+    const v = Render.viewRect ? Render.viewRect() : null; fc.setTransform(1, 0, 0, 1, 0, 0); fc.clearRect(0, 0, fx.width, fx.height);
+    if (!v) return;
+    const k = v.scale * fx._dpr; fc.setTransform(k, 0, 0, k, -v.x0 * k, -v.y0 * k);
+    if (drill.id === 'rondo' || drill.id === 'piggy') {
+      fc.strokeStyle = 'rgba(251,248,240,.7)'; fc.lineWidth = 0.16; fc.setLineDash([0.9, 0.7]);
+      fc.beginPath(); fc.arc(25, 27, drill.id === 'rondo' ? 10.6 : 11, 0, 6.2832); fc.stroke(); fc.setLineDash([]);
+    }
+    if (drill.id === 'slalom') {
+      S.gates.forEach((g, i) => {
+        if (i === S.next) { fc.strokeStyle = '#F2B705'; fc.lineWidth = 0.3; fc.setLineDash([0.5, 0.4]); fc.beginPath(); fc.moveTo(g[0] - S.gw, g[1]); fc.lineTo(g[0] + S.gw, g[1]); fc.stroke(); fc.setLineDash([]); }
+        fc.fillStyle = i < S.next ? 'rgba(251,248,240,.45)' : '#FBF8F0'; fc.font = '700 1.5px "Barlow Condensed", sans-serif'; fc.textAlign = 'center'; fc.textBaseline = 'middle';
+        fc.fillText(String(i + 1), g[0], g[1] + 1.9);
+      });
+      for (const c of S.cones) {
+        fc.save(); fc.translate(c.x, c.y); if (c.hit) fc.rotate(1.1);
+        fc.fillStyle = 'rgba(20,33,61,.22)'; fc.beginPath(); fc.ellipse(0.12, 0.18, 0.62, 0.4, 0, 0, 6.2832); fc.fill();
+        fc.fillStyle = c.hit ? '#b8452a' : '#E4572E'; fc.strokeStyle = '#14213D'; fc.lineWidth = 0.13;
+        fc.beginPath(); fc.arc(0, 0, 0.6, 0, 6.2832); fc.fill(); fc.stroke();
+        fc.fillStyle = '#FBF8F0'; fc.beginPath(); fc.arc(0, 0, 0.36, 0, 6.2832); fc.fill(); fc.stroke();
+        fc.fillStyle = '#E4572E'; fc.beginPath(); fc.arc(0, 0, 0.16, 0, 6.2832); fc.fill();
+        fc.restore();
+      }
+    }
+  }
+
+  // ---------- loop ----------
+  let last = 0, acc = 0, toastT = 0;
+  function toast(t) { const el = $('toast'); el.textContent = t; el.className = 'on'; clearTimeout(toastT); toastT = setTimeout(() => el.className = '', 1100); }
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000 || 0); last = now; acc += dt; let n = 0;
+    while (acc >= TICK && n < 6) {
+      acc -= TICK; n++;
+      if (state === 'play') {
+        if (joy) { inp.mx = joy.mx || 0; inp.my = joy.my || 0; } else { inp.mx = (keys.r ? 1 : 0) - (keys.l ? 1 : 0); inp.my = (keys.d ? 1 : 0) - (keys.u ? 1 : 0); }
+        drill.step(D, inp); inp.release = false;
+        const S = cur(), b = S.ball;
+        if (b.kickTick !== lastKick && b.kickTick >= 0) { lastKick = b.kickTick; sfx('kick', Math.min(1, Math.hypot(b.vx, b.vy) / FB.C.kickMax)); }
+        if (b.recvTick !== lastRecv && b.recvTick > 0) { lastRecv = b.recvTick; sfx('touch'); }
+        if (D.noteTick !== lastNote) { lastNote = D.noteTick; if (D.note) toast(D.note); if (/GOAL|FIRST TIME/.test(D.note)) sfx('goal'); else if (/SAVED|WIDE|KEEPER|MISSED|SLOW|LOST|CONE/.test(D.note)) sfx('thud'); }
+        if (D.over) { state = 'ending'; endHold = 70; const st = cur().status; if (st === 'goal') sfx('goal'); else if (st === 'fail') sfx('thud'); else sfx('whistle'); }
+      } else if (state === 'ending') { if (--endHold <= 0) finish(); }
+    }
+    if (acc > 0.2) acc = 0;
+    if (D && state !== 'home') {
+      const S = cur(), h = drill.hud(D);
+      Render.draw(S, { now, inp, state: S.status === 'goal' ? 'goal' : 'play' }); drawFx(S);
+      $('tscore').firstChild.textContent = h.big; $('tscore').lastChild.textContent = h.label; $('tname').lastChild.textContent = h.sub;
+      $('tbar').firstChild.style.width = (h.clock != null ? Math.min(100, h.clock * 100) : 0) + '%';
+      $('dots').innerHTML = h.dots ? DRILL_SERVES.map((_, i) => '<i class="' + (i < h.dots.length ? 'g' + h.dots[i] : '') + '"></i>').join('') : '';
+    }
+    requestAnimationFrame(frame);
+  }
+  window.__tr = { start(id) { drill = DRILLS.find(d => d.id === id); start(); }, info: () => ({ state, id: drill && drill.id, hud: drill && D ? drill.hud(D) : null }), D: () => D };
+  home(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
