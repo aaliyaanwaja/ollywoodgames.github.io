@@ -306,7 +306,7 @@
     }).join('');
     const fixture = st
       ? '<div class="fx">' + (st.comp || st.match ? '<div class="lbl">' + [st.comp, st.match].filter(Boolean).map(esc).join(' · ') + '</div>' : '') +
-        '<div class="fx-row"><div class="fx-opp"><b>' + (st.opp ? '<i>v</i> ' + esc(st.opp) : esc(ch.name)) + '</b><span class="kits">' + base('', k.us, 'sm') + '<span>You</span>' + base('', k.them, 'sm') + '<span>Them</span></span></div>' +
+        '<div class="fx-row"><div class="fx-opp"><b>' + (st.opp ? '<i>v</i> ' + esc(st.opp) : esc(ch.name)) + '</b><span class="kits">' + base('', k.us, 'sm') + '<span>' + (st.us ? esc(st.us) : 'You') + '</span>' + base('', k.them, 'sm') + '<span>Them</span></span></div>' +
         (sc ? '<div class="board">' + sc + '</div>' : '') + '</div>' + (st.line ? '<p class="fx-line">' + esc(st.line) + '</p>' : '') + '</div>'
       : '';
     const first = li === 0 && !rec(0);

@@ -1,7 +1,46 @@
 {
-  "plugins": [
-    "expo-splash-screen",
-    "expo-status-bar",
-    "expo-web-browser"
-  ]
+  "expo": {
+    "name": "One-Man Team",
+    "slug": "one-man-team",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["android"],
+    "scheme": "onemanteam",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F2EAD8",
+    "android": {
+      "package": "com.ollywoodgames.onemanteam",
+      "versionCode": 1,
+      "allowBackup": true,
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "backgroundImage": "./assets/adaptive-background.png",
+        "monochromeImage": "./assets/adaptive-monochrome.png",
+        "backgroundColor": "#2F7D4F"
+      },
+      "permissions": ["android.permission.VIBRATE"],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F2EAD8",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain"
+        }
+      ],
+      ["expo-status-bar", { "style": "dark" }],
+      ["expo-navigation-bar", { "enforceContrast": false, "style": "light" }],
+      "expo-system-ui",
+      "expo-dev-client"
+    ]
+  }
 }
