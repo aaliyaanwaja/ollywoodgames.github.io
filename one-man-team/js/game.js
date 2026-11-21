@@ -71,7 +71,7 @@
   const parOf = (i, k) => { const b = LEVELS[i] && LEVELS[i].bot; return b ? Math.ceil(b * k * 10) / 10 : 0; };
   const starsFor = (i, t) => { const g = parOf(i, 1.2), p = parOf(i, 1.5); return !p ? 1 : t <= g ? 3 : t <= p ? 2 : 1; };
   // saves from before this rule were graded on retries: regrade them from the stored times
-  LEVELS.forEach((_, i) => { const r = save.done[LEVELS[i].name]; if (r && r.time) r.stars = starsFor(i, r.time); });
+  LEVELS.forEach((_, i) => { const r = save.done[LEVELS[i].name]; if (r && r.time) r.stars = Math.min(starsFor(i, r.time), r.slow ? 2 : 3); });
   const totalStars = () => LEVELS.reduce((a, _, i) => a + (rec(i) ? rec(i).stars : 0), 0);
   SFX.set(save.sound, save.haptics);
 
@@ -266,9 +266,11 @@
       toggle('oS', IC.sound, 'Sound', save.sound) + toggle('oH', IC.buzz, 'Vibration', save.haptics) +
       '<button class="rowbtn" id="oHow">' + IC.book + '<span>How to play</span>' + IC.next + '</button>' +
       '<button class="rowbtn" id="oPrac">' + IC.retry + '<span>Practice drills</span>' + IC.next + '</button>' +
-      (save.all ? toggle('oSlow', IC.book, 'Tester: slow time while aiming', !!save.slow) + '<button class="rowbtn" id="oLog">' + IC.list + '<span>Tester: play log</span>' + IC.next + '</button>' : '') +
+      toggle('oSlow', IC.clock || IC.book, 'Slow aim', !!save.slow) +
+      (save.all ? '<button class="rowbtn" id="oLog">' + IC.list + '<span>Tester: play log</span>' + IC.next + '</button>' : '') +
       '<a class="rowbtn" id="oPriv" href="' + (NATIVE ? 'https://ollywoodgames.github.io/privacy.html' : '../privacy.html') + '">' + IC.shield + '<span>Privacy policy</span>' + IC.next + '</a>' +
       '<button class="rowbtn danger" id="oReset">' + IC.bin + '<span>Reset progress</span>' + IC.next + '</button></div>' +
+      '<p class="fine"><b>Slow aim</b> slows time for a moment while you hold the aim button. It makes every move easier, so the third star needs it switched off.</p>' +
       '<p class="fine">Progress is kept on this device only. No account, no adverts, no tracking.</p>' +
       '<p class="fine colophon">' + esc(GAME_NAME) + ' · build ' + BUILD + '<br>Printed and published by ' + esc(STUDIO) + '</p></div>' +
       '<div class="pg-foot"><button class="btn p" id="x">Done</button></div>',
@@ -324,7 +326,7 @@
   }
   function beginRound() {
     seq++;
-    sim = FB.makeSim(L(), recs, liveIdx()); rsim = null; state = 'ready'; lastKick = -999; lastRecv = -999; tempo = 1; coachKey = null; aimLeft = 1.2;
+    sim = FB.makeSim(L(), recs, liveIdx()); rsim = null; state = 'ready'; lastKick = -999; lastRecv = -999; tempo = 1; coachKey = null; aimLeft = 1.5;
     inp.charging = false; inp.release = false; inp.done = false; inp.aim = false; aimP = null; joy = null;
     $('aim').style.display = 'none'; $('joy').style.display = 'none'; $('kick').classList.remove('down');
     hideOv(); stampOff(); hud();
@@ -396,8 +398,9 @@
     time: ['Out of time', 'The clock ran out before the move finished.', 'Go sooner and waste fewer steps.', 'whistle']
   };
   const MISS = { saved: 'Saved. Aim further from the keeper', smothered: 'Too close. Shoot a little earlier', wide: 'Wide. Aim inside the posts', out: 'Out of play. Go again', keeper: 'Too hard. Drag a shorter distance', time: 'Go again', early: 'Go again' };
+  let offerKey = '', failAgain = false;
   function showFail() {
-    logPlay(sim.reason);
+    if (!failAgain) logPlay(sim.reason);
     if (prac >= 0) return pracMiss(MISS[sim.reason] || 'Go again');
     state = 'failed'; fails++; SFX.crowd(0, 0.15);
     const lv = L(), f = FAIL[sim.reason] || ['Lost it', 'The move broke down.', 'Have another go.', 'thud'], live = liveIdx(), a = lv.att[live];
@@ -409,10 +412,13 @@
       if (li < 4 && !rec(li) && round === lv.order.length - 1) { what = 'You went early, so the defenders dropped back with you and cut out the pass.'; tryIt = 'Hold your run until the pass is hit, then go.'; }
     } else if (sim.reason === 'time' && round > 0) tryIt = 'If the earlier pass cannot be reached in time, redo the previous player.';
     const prevA = round > 0 ? lv.att[lv.order[round - 1]] : null;
+    const oKey = li + ':' + seq, offer = !save.slow && fails === 8 && (offerKey === oKey || (save.slowAsk || 0) < 3);
+    if (offer && offerKey !== oKey) { offerKey = oKey; save.slowAsk = (save.slowAsk || 0) + 1; persist(); }
     showOv('sheet', '<div class="sh-top"><span class="tab">' + IC.whistle + (sim.tick / 60).toFixed(1) + 's</span></div>' +
       '<h2>' + f[0] + '</h2>' + (what !== f[1] ? '<p>' + esc(what) + '</p>' : '') + '<p class="try"><b>Try</b> ' + esc(tryIt) + '</p>' +
+      (offer ? '<div class="offer"><p><b>Finding this one tough?</b> Slow aim slows time for a moment while you aim. You can switch it off in Options.</p><button class="btn" id="sl">Turn on slow aim</button></div>' : '') +
       '<div class="btns">' + (prevA ? '<button class="btn" id="pv">Redo the ' + esc(prevA.num) + '</button>' : '') + '<button class="btn p" id="re">Try again</button></div>',
-      { re: beginRound, pv: redoPrev });
+      { re: beginRound, pv: redoPrev, sl: () => { save.slow = true; persist(); toast('Slow aim on'); beginRound(); } });
   }
   function redoPrev() { if (round === 0) return; recs[liveIdx()] = null; round--; recs[liveIdx()] = null; beginRound(); }
   function onWon() {
@@ -435,8 +441,8 @@
   function showGoal() {
     if (prac >= 0) { seq++; return pracDone(); }
     state = 'goal'; seq++; rsim = FB.makeSim(L(), recs, -1); rhold = 0;
-    const lv = L(), t = sim.tick / 60, st = starsFor(li, t), old = rec(li), firstWin = !old;
-    if (!old || t < old.time) { save.done[lid(li)] = { stars: st, time: +t.toFixed(2), retries: fails }; persist(); }
+    const lv = L(), t = sim.tick / 60, st = Math.min(starsFor(li, t), save.slow ? 2 : 3), old = rec(li), firstWin = !old;
+    if (!old || st > old.stars || (st === old.stars && t < old.time)) { save.done[lid(li)] = { stars: st, time: +t.toFixed(2), retries: fails, slow: save.slow ? 1 : 0 }; persist(); }
     logPlay('goal');
     const best = rec(li), ch = chapterOf(li), last = li === LEVELS.length - 1;
     let seasonDone = li === ch.to; for (let i = ch.from; i <= ch.to && seasonDone; i++) if (!rec(i)) seasonDone = false;
@@ -449,7 +455,7 @@
     stampOff(); hudReplay();
     showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + '</span>' + (after ? '<span class="board sm">' + after + '</span>' : '') + '</div>' +
       '<div class="res">' + stars(st, 'big stampin') + '<dl class="stats"><div><dd>' + t.toFixed(1) + 's</dd><dt>' + (isBest ? 'New best' : 'Move') + '</dt></div><div><dd>' + (fails + 1) + '</dd><dt>' + (fails === 0 ? 'Take' : 'Takes') + '</dt></div></dl></div>' +
-      (st < 3 ? '<p class="verdict">A move of ' + parOf(li, st === 2 ? 1.2 : 1.5).toFixed(1) + 's or quicker earns the ' + (st === 2 ? 'third' : 'second') + ' star. Take as many goes as you like.</p>' : '') + (seasonDone || last ? nextRow : '') +
+      (st < 3 ? '<p class="verdict">' + (save.slow && starsFor(li, t) === 3 ? 'Quick enough for three. The third star needs slow aim switched off.' : 'A move of ' + parOf(li, st === 2 ? 1.2 : 1.5).toFixed(1) + 's or quicker earns the ' + (st === 2 ? 'third' : 'second') + ' star. Take as many goes as you like.') + '</p>' : '') + (seasonDone || last ? nextRow : '') +
       '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="nx">' + nxt + IC.next + '</button></div>',
       { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1) });
     if (reduced()) return;
@@ -501,7 +507,7 @@
     $('ov').dataset.pause = '1';
   }
   // re-open a sheet after pausing without counting the failure or the win twice
-  function showFailAgain() { fails--; const s = SFX.set; SFX.set(false, false); showFail(); s(save.sound, save.haptics); }
+  function showFailAgain() { fails--; failAgain = true; const s = SFX.set; SFX.set(false, false); showFail(); s(save.sound, save.haptics); failAgain = false; }
   function showGoalAgain() { const keep = rsim, s = SFX.set; SFX.set(false, false); showGoal(); s(save.sound, save.haptics); rsim = keep; }
 
   /* ---------- coach: short prompts tied to what the player has not done yet ---------- */
@@ -686,7 +692,7 @@
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000 || 0); last = now;
     const S0 = state === 'play' ? sim : state === 'goal' ? rsim : null, slow = !!S0 && decisive(S0);
-    const aimSlow = !!save.slow && state === 'play' && inp.charging && aimLeft > 0; if (aimSlow) aimLeft -= dt;
+    const aimSlow = !!save.slow && prac < 0 && state === 'play' && inp.charging && aimLeft > 0; if (aimSlow) aimLeft -= dt;
     tempo += ((slow ? 0.38 : aimSlow ? 0.35 : 1) - tempo) * Math.min(1, dt * 14);
     if (slow !== swell) { swell = slow; if (state === 'play') SFX.crowd(slow ? 0.075 : 0.016, slow ? 0.18 : 0.5); }
     acc += dt * tempo;
