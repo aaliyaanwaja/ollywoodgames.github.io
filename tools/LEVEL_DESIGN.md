@@ -227,3 +227,9 @@ top of `makeBot` in `tools/bots.js`. Pack 1 scripts are worked examples.
    characters, each `tip` under 120.
 7. The intended solution should be the natural one, and a lazy alternative (for example the first player simply passing
    straight to the last) should not be easier than the designed move. The chain order already forces every player to touch it.
+
+## Shooting (changed 21 Nov 2026)
+Any kick by the last player in the move is a shot: 17-34 m/s by power (a pass is 9-28) and it loses pace far more slowly
+(`C.shotFric` 0.28 against 0.8). The keeper's reach is 0.8 m (1.2 m at full dive) and he dives at 4.7 m/s. Measured with no
+defenders and the keeper set: at full power about 30% of the goal mouth scores from just outside the box, about 55% from
+14 m, about 67% from the penalty spot, and nothing from 26 m. `node /path/to/qa/shots.js`-style sweeps are the way to re-check.

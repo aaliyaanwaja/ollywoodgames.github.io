@@ -21,6 +21,8 @@
     runSpd: 7.6, ballSpd: 6.5, chargeSlow: 0.6, accel: 0.22,
     ctrlR: 1.35, ballOff: 0.75,
     kickMin: 9, kickMax: 28, chargeTime: 0.7, fric: 0.8, stopV: 1.2,
+    // a shot (any kick by the last player in the move) is struck, not rolled: faster off the boot and it holds its pace
+    shotMin: 17, shotMax: 34, shotFric: 0.28,
     bumpR: 0.85, passSettle: 54, touchShield: 20,
     // defenders: movement
     defMax: 5.8,          // hard cap on any defender's speed, whatever the level says
@@ -62,8 +64,8 @@
     // goalkeeper
     gkReact: 13,          // ticks before he moves for a shot (was 11)
     gkLate: 5,            // extra if he was still moving when it was hit: shoot before he sets
-    gkSpd: 3.6, gkClose: 4.4, gkRush: 5.4, gkDive: 5.6,
-    gkReach: 1.05, gkDiveExt: 0.45,
+    gkSpd: 3.6, gkClose: 4.4, gkRush: 5.4, gkDive: 4.7,
+    gkReach: 0.8, gkDiveExt: 0.4,
     gkOutMin: 1.2, gkOutMax: 3.0, gkOneK: 0.45, gkOneR: 18, gkOneMax: 5, gkSweepOneMax: 7, gkStandOff: 3.2,
     gkSmotherR: 2.6, gkPassReact: 10, gkMargin: 0.15
   };
@@ -163,9 +165,11 @@
   function doKick(S, i, kk, charge) {
     const a = S.att[i], b = S.ball;
     const dx = a.hasAim ? a.ax : a.fx, dy = a.hasAim ? a.ay : a.fy;
+    const isShot = S.chain[S.chain.length - 1] === i;
+    b.fric = isShot ? C.shotFric : C.fric;
     if (kk) { b.x = kk.bx; b.y = kk.by; b.vx = kk.vx; b.vy = kk.vy; }
     else {
-      const sp = C.kickMin + (C.kickMax - C.kickMin) * charge;
+      const sp = isShot ? C.shotMin + (C.shotMax - C.shotMin) * charge : C.kickMin + (C.kickMax - C.kickMin) * charge;
       b.x = a.x + dx * C.ballOff; b.y = a.y + dy * C.ballOff;
       b.vx = dx * sp; b.vy = dy * sp; a.hasAim = false;
       S.liveRec.kick = { tick: S.tick, bx: b.x, by: b.y, vx: b.vx, vy: b.vy };
@@ -186,9 +190,9 @@
   // Where the loose ball will be: PN samples, PDT apart (closed form of the friction model).
   function samplePath(S) {
     const b = S.ball, sp = hyp(b.vx, b.vy);
-    const tStop = sp > C.stopV ? Math.log(sp / C.stopV) / C.fric : 0;
+    const fr = b.fric || C.fric, tStop = sp > C.stopV ? Math.log(sp / C.stopV) / fr : 0;
     for (let s = 0; s <= PN; s++) {
-      const tt = Math.min(s * PDT, tStop), k = (1 - Math.exp(-C.fric * tt)) / C.fric;
+      const tt = Math.min(s * PDT, tStop), k = (1 - Math.exp(-fr * tt)) / fr;
       S.px[s] = b.x + b.vx * k; S.py[s] = b.y + b.vy * k;
     }
   }
@@ -509,7 +513,7 @@
     let shot = false;
     if (!carried && b.vy < -4 && b.y > 0) {
       const xg = b.x + b.vx * (b.y / -b.vy);
-      shot = Math.abs(xg - P.cx) < P.goalHalf + 1.2 && hyp(b.vx, b.vy) / C.fric > b.y * 0.9;
+      shot = Math.abs(xg - P.cx) < P.goalHalf + 1.2 && hyp(b.vx, b.vy) / (b.fric || C.fric) > b.y * 0.9;
     }
     if (shot) {
       if (g.react === 0) g.late = g.set ? 0 : C.gkLate;
@@ -637,7 +641,7 @@
       b.x = o.x + o.fx * C.ballOff; b.y = o.y + o.fy * C.ballOff; b.vx = o.vx; b.vy = o.vy;
     } else {
       b.x += b.vx * TICK; b.y += b.vy * TICK;
-      const f = Math.exp(-C.fric * TICK); b.vx *= f; b.vy *= f;
+      const f = Math.exp(-(b.fric || C.fric) * TICK); b.vx *= f; b.vy *= f;
       if (Math.hypot(b.vx, b.vy) < C.stopV) { b.vx = 0; b.vy = 0; }
       // pickup by the next player in the chain
       if (S.chainPos + 1 < S.chain.length && t - b.kickTick > 6) {

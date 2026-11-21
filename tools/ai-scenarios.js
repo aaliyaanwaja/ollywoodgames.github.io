@@ -362,9 +362,9 @@ scenario('keeper: finishing from 6-12 m into a corner scores', () => {
   return out;
 });
 
-scenario('keeper: a tame shot at him is saved, and so is a shot from 20 m', () => {
+scenario('keeper: a tame shot at him is saved, and so is a shot from 26 m or more', () => {
   const out = [];
-  for (const [x, y, tx, p] of [[25, 10, 25.3, 1], [22, 9, 24, 0.5], [27, 11, 26.5, 0.4], [25, 20, 21.6, 1], [20, 21, 28.3, 1], [30, 20, 21.8, 1], [25, 17, 28.3, 0.6]]) {
+  for (const [x, y, tx, p] of [[25, 10, 25.3, 1], [22, 9, 24, 0.5], [27, 11, 26.5, 0.4], [25, 27, 21.6, 1], [20, 28, 28.3, 1], [30, 27, 21.8, 1], [25, 17, 26.6, 0.3]]) {
     const S = shoot(x, y, tx, p);
     out.push(chk(S.status === 'fail' && S.reason === 'saved', `from (${x},${y}) to x=${tx} power ${p}: ${S.status} ${S.reason}`));
   }
@@ -379,8 +379,8 @@ scenario('keeper: human reaction, and a shot hit before he has set gives him les
     if (kt >= 0 && S.tick === kt + C.gkReact - 2) moved = Math.abs(S.gk.x - x0);
   } });
   // same strike from a moving run-up (no time to set): the keeper is still adjusting, so it is harder for him
-  const setShot = shoot(25, 15, 21.4, 1, 45);
-  const early = run(shotLvl(8, 24), (S, me, t) => me.x < 24.8 ? go(me, 25, 15.2) : kick(me, 21.4, 0, 1, t, S.k0 = (S.k0 || t + 2)), { ticks: 400 });
+  const setShot = shoot(25, 15, 23.2, 1, 45);
+  const early = run(shotLvl(8, 24), (S, me, t) => me.x < 24.8 ? go(me, 25, 15.2) : kick(me, 23.2, 0, 1, t, S.k0 = (S.k0 || t + 2)), { ticks: 400 });
   return [chk(moved < 0.05, `moved ${f(moved)} m during his reaction time`),
     chk(setShot.reason === 'saved', `set keeper, 15 m: ${setShot.status} ${setShot.reason}`),
     chk(early.status === 'goal', `same shot hit on the run before he sets: ${early.status} ${early.reason}`)];
@@ -388,7 +388,7 @@ scenario('keeper: human reaction, and a shot hit before he has set gives him les
 
 scenario('keeper: sweeps a through ball that dies in his area before a striker 15 m away; stays home if the striker is favourite', () => {
   const mk = (sx, sy, sweeper) => lvl([{ x: 25, y: 40 }, { x: sx, y: sy }], [], { gk: { sweeper } });
-  const hit = (S, me, t) => kick(me, 33, 8, 0.93, t, 20);
+  const hit = (S, me, t) => kick(me, 33, 8, 0.96, t, 20);
   const pass = L => FB.finalRec(run(L, hit, { live: 0 }));
   const far = mk(42, 23, true), near = mk(37, 15, true), home = mk(42, 23, false);
   const a = run(far, (S, me, t) => S.ball.owner === 1 ? {} : go(me, S.ball.x, S.ball.y), { live: 1, recs: [pass(far), null], ticks: 400 });

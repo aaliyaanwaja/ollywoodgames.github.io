@@ -147,7 +147,11 @@
   function mulberry(seed) { let a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   function turn(cur, target, f) { let d = target - cur; while (d > Math.PI) d -= TAU; while (d < -Math.PI) d += TAU; return cur + d * f; }
   function world() { ctx.setTransform(k, 0, 0, k, (punchX - vx0 * sc) * dpr, (punchY - vy0 * sc) * dpr); }
-  function local(x, y, ang) { const c = Math.cos(ang) * k, s = Math.sin(ang) * k; ctx.setTransform(c, s, -s, c, (punchX + (x - vx0) * sc) * dpr, (punchY + (y - vy0) * sc) * dpr); }
+  let figS = 1, figOX = 0, figOY = 0;   // a figure drawn at reduced size about (figOX, figOY): used for the keeper
+  function local(x, y, ang) {
+    if (figS !== 1) { x = figOX + x * figS; y = figOY + y * figS; }
+    const c = Math.cos(ang) * k * figS, s = Math.sin(ang) * k * figS; ctx.setTransform(c, s, -s, c, (punchX + (x - vx0) * sc) * dpr, (punchY + (y - vy0) * sc) * dpr);
+  }
   function pixels() { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
   const X = x => punchX + (x - vx0) * sc, Y = y => punchY + (y - vy0) * sc;
   function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); }
@@ -389,6 +393,7 @@
 
   /* kind: 0 ours, 1 theirs, 2 keeper. ext: forward slide of the figure off its base (lunge / dive / kick follow-through),
      rock: -1..1 wobble for an off-balance figure. */
+  const GK_SCALE = 0.8;
   function figure(x, y, ang, kind, num, tone, live, lx, ly, ext, rock, now) {
     const prim = kind === 0 ? kit.usP : kit.thP, sec = kind === 0 ? kit.usS : kit.thS;
     const fxu = Math.cos(ang), fyu = Math.sin(ang);
@@ -821,7 +826,10 @@
       gkAng = turn(gkAng, ta, Math.min(1, dt * 20));
       const rush = g.sweeping || g.intent === 'sweep' || g.intent === 'smother', lk = rush ? 0.06 : 0.03, lm = rush ? 0.4 : 0.2;
       if (g.offBalance > 0) pDown = Math.min(1, g.offBalance / 8);
-      figure(g.x, g.y, gkAng, 2, null, 0, false, clamp(gvx * lk, -lm, lm), clamp(gvy * lk, -lm, lm), gkDive * 0.95, 0, now);
+      ctx.save(); ctx.translate(g.x, g.y); ctx.scale(GK_SCALE, GK_SCALE);   // the keeper is drawn smaller than outfield figures, to match his reach
+      figS = GK_SCALE; figOX = g.x; figOY = g.y;
+      figure(0, 0, gkAng, 2, null, 0, false, clamp(gvx * lk, -lm, lm), clamp(gvy * lk, -lm, lm), gkDive * 0.95, 0, now);
+      figS = 1; ctx.restore(); world();
     }
     // our players: recorded first, the live one last so nothing ever covers him
     for (let pass = 0; pass < 2; pass++) for (let i = 0; i < S.att.length && i < MAXF; i++) {
@@ -862,7 +870,8 @@
     if (live >= 0 && S.role === 'ball' && S.liveKickTick < 0 && S.status === 'play') {
       const a = S.att[live];
       if (inp.charging || a.charge > 0) {
-        const spd = C.kickMin + (C.kickMax - C.kickMin) * a.charge, len = spd / C.fric;
+        const shotK = S.isLast;   // the finisher's kick is a shot: harder, and it holds its pace
+        const spd = shotK ? C.shotMin + (C.shotMax - C.shotMin) * a.charge : C.kickMin + (C.kickMax - C.kickMin) * a.charge, len = Math.min(spd / (shotK ? C.shotFric : C.fric), 60);
         const ux = a.hasAim ? a.ax : a.fx, uy = a.hasAim ? a.ay : a.fy;
         const bx = a.x + ux * C.ballOff, by = a.y + uy * C.ballOff, ex = bx + ux * len, ey = by + uy * len;
         const gap = 1.05, off = reduced ? 0.5 : (now / 380) % 1;
