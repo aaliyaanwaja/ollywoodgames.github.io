@@ -5,7 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "platforms": ["android"],
-    "scheme": "onemanteam",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F2EAD8",
@@ -33,12 +32,12 @@
         {
           "backgroundColor": "#F2EAD8",
           "image": "./assets/splash-icon.png",
-          "imageWidth": 220,
+          "imageWidth": 250,
           "resizeMode": "contain"
         }
       ],
       ["expo-status-bar", { "style": "dark" }],
-      ["expo-navigation-bar", { "enforceContrast": false, "style": "light" }],
+      ["expo-navigation-bar", { "enforceContrast": false, "style": "dark" }],
       "expo-system-ui",
       "expo-dev-client"
     ]

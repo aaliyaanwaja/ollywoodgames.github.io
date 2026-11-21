@@ -45,6 +45,25 @@
       ]
     },
     {
+      name: 'Play through the press', time: 10,
+      brief: 'Four players. Two hunters close the first two passes. Move it before they arrive, then break.',
+      att: [
+        { num: 4, name: 'Centre-back', x: 19, y: 55, role: 'ball', tip: 'The first hunter is on his way. Roll it across to the 6 at once.' },
+        { num: 6, name: 'Pivot', x: 32, y: 51, role: 'ball', tip: 'The second hunter wants you. Aim early and move it first time to the 8.' },
+        { num: 8, name: 'Link', x: 17, y: 42, role: 'ball', tip: 'You are past the press. Drive at the back line and slide the 9 through.' },
+        { num: 9, name: 'Striker', x: 28, y: 30, role: 'ball', tip: 'Stay level with the last man until the 8 plays it, then run on and finish.' }
+      ],
+      order: [0, 1, 2, 3],
+      def: [
+        { t: 'press', x: 20, y: 46, spd: 5.5 },
+        { t: 'press', x: 36, y: 43, spd: 5.5 },
+        { t: 'line', x: 9, y: 27, spd: 5.2 },
+        { t: 'line', x: 20, y: 27, spd: 5.2 },
+        { t: 'line', x: 30, y: 27, spd: 5.2 },
+        { t: 'line', x: 41, y: 27, spd: 5.2 }
+      ]
+    },
+    {
       name: 'Sweeper-keeper', time: 12,
       brief: 'Four players. Their keeper sweeps up anything long. Get close, then slip one short pass in.',
       att: [
@@ -64,25 +83,6 @@
       ],
       gk: { sweeper: true },
       lines: { 0: { floor: 19 } }
-    },
-    {
-      name: 'Play through the press', time: 10,
-      brief: 'Four players. Two hunters close the first two passes. Move it before they arrive, then break.',
-      att: [
-        { num: 4, name: 'Centre-back', x: 19, y: 55, role: 'ball', tip: 'The first hunter is on his way. Roll it across to the 6 at once.' },
-        { num: 6, name: 'Pivot', x: 32, y: 51, role: 'ball', tip: 'The second hunter wants you. Aim early and move it first time to the 8.' },
-        { num: 8, name: 'Link', x: 17, y: 42, role: 'ball', tip: 'You are past the press. Drive at the back line and slide the 9 through.' },
-        { num: 9, name: 'Striker', x: 28, y: 30, role: 'ball', tip: 'Stay level with the last man until the 8 plays it, then run on and finish.' }
-      ],
-      order: [0, 1, 2, 3],
-      def: [
-        { t: 'press', x: 20, y: 46, spd: 5.5 },
-        { t: 'press', x: 36, y: 43, spd: 5.5 },
-        { t: 'line', x: 9, y: 27, spd: 5.2 },
-        { t: 'line', x: 20, y: 27, spd: 5.2 },
-        { t: 'line', x: 30, y: 27, spd: 5.2 },
-        { t: 'line', x: 41, y: 27, spd: 5.2 }
-      ]
     },
     {
       name: 'Far post', time: 11,
@@ -148,12 +148,12 @@
     },
     {
       name: 'Last-minute winner', time: 7,
-      brief: 'Seconds left and one chance. Four players, no spare touches. Everything first time.',
+      brief: 'Seconds left, one chance. Four players, no spare touches, and their keeper races you to the ball.',
       att: [
         { num: 8, name: 'Playmaker', x: 27, y: 50, role: 'ball', tip: 'No time to dwell. Play it into the 10 at once, before the hunter arrives.' },
         { num: 10, name: 'Creator', x: 19, y: 41, role: 'ball', tip: 'Come off your marker. Aim early and hit it first time down the middle.' },
-        { num: 9, name: 'Decoy', x: 27.3, y: 24, role: 'decoy', tip: 'No ball for you. Sprint out to the left so your centre-half leaves the middle. Then DONE.' },
-        { num: 7, name: 'Winger', x: 38, y: 33, role: 'ball', tip: 'Go as the 10 plays it. Cut inside your full-back, reach it first and finish.' }
+        { num: 9, name: 'Decoy', x: 27.3, y: 24, role: 'decoy', tip: 'No ball for you. Sprint out to the left so the last defender goes with you. Then DONE.' },
+        { num: 7, name: 'Winger', x: 38, y: 33, role: 'ball', tip: 'Go as the 10 plays it. Their keeper is coming for it: get there first and finish.' }
       ],
       order: [0, 1, 2, 3],
       def: [

@@ -113,7 +113,7 @@ def figure(cx, cy, R, kind='us', live=False, num=True, heading=-90, ghost=False,
     s = ''.join(o)
     return '<g opacity="%s">%s</g>' % (f(0.36 if not mono else 0.45), s) if ghost else s
 
-def chalk_ghost(cx, cy, R, heading=-90, body=1.1):
+def chalk_ghost(cx, cy, R, heading=-90, body=1.1, lift=0.63, num_y=0.40):
     """The same figure where he was a moment ago, drawn in chalk on the cloth: dashed ring, chalk silhouette, chalk number."""
     dash = 2 * math.pi * R / 14
     s = '<circle cx="%s" cy="%s" r="%s" fill="%s" fill-opacity=".13"/>' % (f(cx), f(cy), f(R), CHALK)
@@ -121,7 +121,7 @@ def chalk_ghost(cx, cy, R, heading=-90, body=1.1):
         f(cx), f(cy), f(R * 0.95), CHALK, f(R * 0.1), f(dash * 0.46), f(dash * 0.54))
     u = R / 1.6 * body
     sw, sd, hr = 0.54 * u, 0.34 * u, 0.36 * u
-    g = '<g transform="translate(%s %s) rotate(%s)" opacity=".62">' % (f(cx), f(cy - 0.63 * R / 1.6), f(heading))
+    g = '<g transform="translate(%s %s) rotate(%s)" opacity=".62">' % (f(cx), f(cy - lift * R / 1.6), f(heading))
     for side, k in ((-1, 1.05), (1, 0.6)):
         y = side * (sw + 0.02 * u)
         g += '<path d="M0 %s L%s %s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>' % (f(y), f(0.42 * u * k), f(y), CHALK, f(0.3 * u))
@@ -129,8 +129,8 @@ def chalk_ghost(cx, cy, R, heading=-90, body=1.1):
     g += '</g>'
     s += g
     s += '<g transform="translate(%s %s) rotate(%s)"><circle cx="%s" cy="0" r="%s" fill="%s" stroke="%s" stroke-width="%s"/></g>' % (
-        f(cx), f(cy - 0.63 * R / 1.6), f(heading), f(0.06 * u), f(hr), FELT, CHALK, f(0.11 * u))
-    s += numeral(cx, cy + R * 0.40, R * 0.52, CHALK, 0.9)
+        f(cx), f(cy - lift * R / 1.6), f(heading), f(0.06 * u), f(hr), FELT, CHALK, f(0.11 * u))
+    s += numeral(cx, cy + R * num_y, R * 0.52, CHALK, 0.9)
     return s
 
 def ghost_base(cx, cy, R, num=True):
@@ -262,15 +262,15 @@ def feature():
     # the pass: from where the same figure stood earlier, across the run, into his path
     q = (584, 128)
     s += '<path d="M%d %d L%d %d" fill="none" stroke="%s" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 14" opacity=".95"/>' % (q[0] + 44, q[1] + 20, p3[0] - 84, p3[1] - 40, MUSTARD)
-    s += chalk_ghost(q[0], q[1], R * 0.9, heading=20)
+    s += chalk_ghost(q[0], q[1], R * 0.9, heading=20, body=0.92, lift=0.74, num_y=0.46)
     # defenders in ink and sky: one holding the line, one turning the wrong way
     for (x, y, hd) in ((716, 118, 150), (884, 388, 205)):
         s += shadow(x, y, R * 0.94, 0.3) + figure(x, y, R * 0.94, kind='them', heading=hd, num=False, body=1.1)
     # keeper in mustard on his line
     s += shadow(962, 258, R * 0.86, 0.3)
     s += figure(962, 258, R * 0.86, kind='them', heading=190, num=False, body=1.1).replace(SKY, MUSTARD)
-    s += chalk_ghost(p1[0], p1[1], R * 0.9, heading=-14)
-    s += shadow(p2[0], p2[1], R, 0.2) + '<g opacity=".8">%s</g>' % figure(p2[0], p2[1], R, heading=-34, body=0.92, lift=0.72, num_y=0.46)
+    s += chalk_ghost(p1[0], p1[1], R * 0.9, heading=-14, body=0.92, lift=0.74, num_y=0.46)
+    s += shadow(p2[0], p2[1], R, 0.2) + '<circle cx="%d" cy="%d" r="%d" fill="%s"/>' % (p2[0], p2[1], R, FELT) + '<g opacity=".8">%s</g>' % figure(p2[0], p2[1], R, heading=-34, body=0.92, lift=0.72, num_y=0.46)
     s += shadow(p3[0], p3[1], R * 1.33, 0.34) + figure(p3[0], p3[1], R, live=True, heading=-30, body=0.92, lift=0.72, num_y=0.46)
     s += ball(p3[0] - 70, p3[1] - 36, 13)
     s += '<rect width="%d" height="%d" fill="url(#lamp)"/>' % (W, H)
