@@ -4,7 +4,7 @@
 (function (root) {
   const L = (root.OMT_LEVELS = root.OMT_LEVELS || []);
   L.push({
-      name: 'First pass', time: 12,
+      name: 'First pass', time: 15,
       brief: 'Pass it forward, then be the striker who runs onto it.',
       gk: { react: 22 },
       att: [
@@ -17,7 +17,7 @@
       ]
     },
     {
-      name: 'Through ball', time: 12,
+      name: 'Through ball', time: 15,
       brief: 'Two defenders hold a line. Go beyond it only once the pass is on its way.',
       gk: { react: 18 },
       att: [
@@ -30,7 +30,7 @@
       ]
     },
     {
-      name: 'Down the wing', time: 14,
+      name: 'Down the wing', time: 17,
       brief: 'Three players now. Out to the winger, pulled back, tapped in.',
       gk: { react: 16 },
       att: [
@@ -45,7 +45,7 @@
       ]
     },
     {
-      name: 'The decoy', time: 13,
+      name: 'The decoy', time: 16,
       brief: 'Your first player never touches the ball. His run drags a defender out of the way.',
       att: [
         { num: 10, name: 'Decoy', x: 25, y: 28, role: 'decoy', tip: 'Run wide. Your marker follows you. Then press DONE.' },

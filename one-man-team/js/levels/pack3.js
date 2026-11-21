@@ -4,7 +4,7 @@
   const L = (root.OMT_LEVELS = root.OMT_LEVELS || []);
   L.push(
     {
-      name: 'Beat the trap', time: 12,
+      name: 'Beat the trap', time: 15,
       brief: 'Four players. The back line steps up when the ball goes back. Time the last run or you are off.',
       att: [
         { num: 3, name: 'Left-back', x: 9, y: 44, role: 'ball', tip: 'You are being hunted. Roll it back inside to the 6 before he gets to you.' },
@@ -25,7 +25,7 @@
       lines: { 0: { gap: 8 } }
     },
     {
-      name: 'Clear the channel', time: 10,
+      name: 'Clear the channel', time: 12,
       brief: 'Five players. Two runs without the ball pull both centre-halves apart. Then go through the middle.',
       att: [
         { num: 9, name: 'Decoy', x: 24.5, y: 27.5, role: 'decoy', tip: 'No ball for you. Drag your centre-half out to the left touchline, then press DONE.' },
@@ -45,7 +45,7 @@
       ]
     },
     {
-      name: 'Play through the press', time: 10,
+      name: 'Play through the press', time: 12,
       brief: 'Four players. Two hunters close the first two passes. Move it before they arrive, then break.',
       att: [
         { num: 4, name: 'Centre-back', x: 19, y: 55, role: 'ball', tip: 'The first hunter is on his way. Roll it across to the 6 at once.' },
@@ -64,7 +64,7 @@
       ]
     },
     {
-      name: 'Sweeper-keeper', time: 12,
+      name: 'Sweeper-keeper', time: 15,
       brief: 'Four players. Their keeper sweeps up anything long. Get close, then slip one short pass in.',
       att: [
         { num: 4, name: 'Centre-back', x: 20, y: 55, role: 'ball', tip: 'Nothing over the top: the keeper is waiting for it. Find the 7 out wide.' },
@@ -85,7 +85,7 @@
       lines: { 0: { floor: 19 } }
     },
     {
-      name: 'Far post', time: 11,
+      name: 'Far post', time: 14,
       brief: 'Five players. The box is full. Two runs empty the near side, and the 11 arrives late at the far post.',
       att: [
         { num: 8, name: 'Playmaker', x: 31, y: 44, role: 'ball', tip: 'Slide it down the right touchline for the 7 to run on to.' },
@@ -105,7 +105,7 @@
       ]
     },
     {
-      name: 'False nine', time: 10,
+      name: 'False nine', time: 12,
       brief: 'Four players. The 9 drops deep and his centre-half follows. The 11 runs into the hole he leaves.',
       att: [
         { num: 5, name: 'Centre-back', x: 31, y: 55, role: 'ball', tip: 'Start it. Roll it across to the 8 on your left.' },
@@ -125,7 +125,7 @@
       ]
     },
     {
-      name: 'Five-man move', time: 12,
+      name: 'Five-man move', time: 15,
       brief: 'Five players, four passes, one finish. Every touch has to fit the ones before it.',
       att: [
         { num: 4, name: 'Centre-back', x: 19, y: 55, role: 'ball', tip: 'The hunter is coming. Roll it across to the 6 straight away.' },
@@ -147,7 +147,7 @@
       lines: { 0: { gap: 9 } }
     },
     {
-      name: 'Last-minute winner', time: 7,
+      name: 'Last-minute winner', time: 9,
       brief: 'Seconds left, one chance. Four players, no spare touches, and their keeper races you to the ball.',
       att: [
         { num: 8, name: 'Playmaker', x: 27, y: 50, role: 'ball', tip: 'No time to dwell. Play it into the 10 at once, before the hunter arrives.' },

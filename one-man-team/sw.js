@@ -1,8 +1,8 @@
 /* Offline support: cache the game shell, serve from cache first, refresh in the background. Bump VERSION on every release.
    Files are cached one by one so a level pack that is listed but not yet shipped cannot block the install. */
-const VERSION = 'omt-0.5.1';
+const VERSION = 'omt-0.6.0';
 const FILES = ['./', 'index.html', 'css/style.css', 'js/sim.js', 'js/audio.js', 'js/render.js', 'js/game.js',
-  'js/levels/pack1.js', 'js/levels/pack2.js', 'js/levels/pack3.js', 'js/levels/story.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'js/levels/pack1.js', 'js/levels/pack2.js', 'js/levels/pack3.js', 'js/levels/story.js', 'js/levels/pars.js', 'js/levels/practice.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'fonts/anton-latin-400-normal.woff2', 'fonts/barlow-latin-500-normal.woff2', 'fonts/barlow-latin-600-normal.woff2',
   'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });

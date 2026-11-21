@@ -29,7 +29,7 @@ Shorter, for captions and the icon's neighbour text: **Play the pass. Rewind. Ru
 
 1. **You are the passer and the runner.** Each level is one move built in rounds. Round one is the pass into space; the clock rewinds; round two is you arriving on it while the first player replays. Up to five players.
 2. **Defenders are live, not recorded.** A new run changes what the defence does, so it can open space or ruin a pass that worked two rounds earlier. Decoys who never touch the ball are a real job, and you can be offside against your own pass.
-3. **Five to fifteen seconds a level, retry in a breath.** Failure replays only the current player. Three stars for two retries or fewer (this is the rule in the current build).
+3. **Five to fifteen seconds a level, retry in a breath.** Failure replays only the current player. Retries are free; stars are for how quick the finished move is (this is the rule in the current build).
 4. **The replay is the reward.** After the goal the whole move plays back with every run drawn on the pitch. It is a finished, legible ten-second clip of something the player built alone.
 
 A fifth, for press and store art rather than the pitch: it has a look of its own (tabletop figures on felt, matchday-programme menus) and no licences to imitate.

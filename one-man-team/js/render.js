@@ -778,6 +778,13 @@
     ctx.drawImage(layer, Math.round((punchX - PAD) * dpr), Math.round((punchY - PAD) * dpr));
     world();
 
+    // practice target: a chalk circle to land the pass in
+    if (S.level.mark) {
+      const m = S.level.mark;
+      ctx.strokeStyle = 'rgba(251,248,240,.9)'; ctx.lineWidth = 0.22; ctx.setLineDash([0.9, 0.6]); disc(m.x, m.y, m.r); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(251,248,240,.10)'; disc(m.x, m.y, m.r); ctx.fill();
+    }
+
     // offside line, while the live player waits for his pass
     const waiting = live >= 0 && S.role === 'ball' && b.owner !== live && S.liveKickTick < 0 && S.chain[S.chainPos + 1] === live && b.owner >= 0;
     const offFail = failKind === 2 && failT > -1e8;

@@ -233,3 +233,13 @@ Any kick by the last player in the move is a shot: 17-34 m/s by power (a pass is
 (`C.shotFric` 0.28 against 0.8). The keeper's reach is 0.8 m (1.2 m at full dive) and he dives at 4.7 m/s. Measured with no
 defenders and the keeper set: at full power about 30% of the goal mouth scores from just outside the box, about 55% from
 14 m, about 67% from the penalty spot, and nothing from 26 m. `node /path/to/qa/shots.js`-style sweeps are the way to re-check.
+
+## Stars, clocks and practice (changed 21 Nov 2026, after playtest 1)
+- Stars grade the finished move, not the number of takes: one for scoring, two for a move time within 1.5x the bot's
+  time, three within 1.2x. The bot times are generated into `one-man-team/js/levels/pars.js` by `node tools/make-pars.js`;
+  rerun it after changing a level, a bot script or the engine.
+- Every level's `time` was raised by 20% (rounded up). When adding a level, set `time` to about 1.8x the bot's time.
+- `one-man-team/js/levels/practice.js` holds the four no-fail drills played before fixture 1.
+- Fixtures 1-4 ease shots towards the open corner (full, full, 60%, 30%); fixture 5 onwards has no help.
+- Tester mode (tap the masthead seven times): unlocks every fixture and adds a play log and a slow-time-while-aiming
+  switch to Options.

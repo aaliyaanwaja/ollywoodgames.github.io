@@ -46,12 +46,32 @@
     const s = JSON.parse(raw); if (s && typeof s === 'object') save = Object.assign(save, s);
     if (!save.done || typeof save.done !== 'object') save.done = {};
   } catch (e) {}
+  /* A plain record of every attempt, kept on this device, for playtests: which move, which player, how it ended, when in
+     the move. No identifiers. Shown and copied from Options in tester mode. */
+  function logPlay(outcome) {
+    try {
+      if (!save.log) save.log = [];
+      save.log.push([prac >= 0 ? 'P' + (prac + 1) : li + 1, round + 1, outcome, sim ? +(sim.tick / 60).toFixed(1) : 0]);
+      if (save.log.length > 1500) save.log.splice(0, save.log.length - 1500);
+      if (outcome === 'goal' || save.log.length % 10 === 0) persist();
+    } catch (e) {}
+  }
+  function logText() {
+    const by = {}; (save.log || []).forEach(e => { const k = e[0]; (by[k] = by[k] || { n: 0, goal: 0, why: {}, rounds: {} }); const b = by[k]; b.n++; if (e[2] === 'goal') b.goal++; else { b.why[e[2]] = (b.why[e[2]] || 0) + 1; b.rounds[e[1]] = (b.rounds[e[1]] || 0) + 1; } });
+    const rows = Object.keys(by).map(k => { const b = by[k]; return 'Move ' + k + ': ' + b.n + ' attempts, ' + b.goal + ' scored. Fails by player: ' + (Object.keys(b.rounds).map(r => 'P' + r + ' x' + b.rounds[r]).join(', ') || 'none') + '. Reasons: ' + (Object.keys(b.why).map(w => w + ' x' + b.why[w]).join(', ') || 'none'); });
+    return rows.join('\n') || 'Nothing played yet.';
+  }
   const persist = () => { const v = JSON.stringify(save); try { localStorage.setItem(KEY, v); } catch (e) {} toNative({ t: 'save', v }); };
   const lid = i => LEVELS[i].name;
   const rec = i => save.done[lid(i)];
   const unlocked = i => save.all || i === 0 || !!rec(i - 1);
   const nextLevel = () => { for (let i = 0; i < LEVELS.length; i++) if (!rec(i)) return i; return -1; };
-  const starsFor = r => r <= 2 ? 3 : r <= 6 ? 2 : 1;
+  /* Stars grade the finished move, never the number of takes: one for scoring, a second for beating par (the bot's time
+     x 1.5), a third for the gaffer's time (x 1.2). The bot times live in js/levels/pars.js. */
+  const parOf = (i, k) => { const b = LEVELS[i] && LEVELS[i].bot; return b ? Math.ceil(b * k * 10) / 10 : 0; };
+  const starsFor = (i, t) => { const g = parOf(i, 1.2), p = parOf(i, 1.5); return !p ? 1 : t <= g ? 3 : t <= p ? 2 : 1; };
+  // saves from before this rule were graded on retries: regrade them from the stored times
+  LEVELS.forEach((_, i) => { const r = save.done[LEVELS[i].name]; if (r && r.time) r.stars = starsFor(i, r.time); });
   const totalStars = () => LEVELS.reduce((a, _, i) => a + (rec(i) ? rec(i).stars : 0), 0);
   SFX.set(save.sound, save.haptics);
 
@@ -107,7 +127,9 @@
   function resize() { Render.resize($('stage')); }
   window.addEventListener('resize', resize);
 
-  const L = () => LEVELS[li];
+  const PRACTICE = window.OMT_PRACTICE || [];
+  let prac = -1, pracLv = null, pracRep = 0;   // practice drill being played, or -1
+  const L = () => prac >= 0 ? pracLv : LEVELS[li];
   const liveIdx = () => L().order[round];
   function screen(id) {
     seq++;
@@ -149,7 +171,7 @@
       '<p class="cv-note">Play the pass. Then go back and be the one who runs onto it.</p></div>' +
       '<div class="dock"><button class="cta" id="cta"><b>Kick off</b><small>The coach talks you through move one</small></button>' +
       '<p class="by">A game by ' + esc(STUDIO) + '</p></div>';
-    $('cta').onclick = () => { SFX.tap(); save.cover = true; persist(); startLevel(0); };
+    $('cta').onclick = () => { SFX.tap(); save.cover = true; persist(); if (save.practised) startLevel(0); else startPractice(0); };
     screen('home');
   }
 
@@ -220,7 +242,7 @@
     ['Right thumb kicks', 'Press the button and drag to aim. Drag further to hit it harder. Let go to kick.'],
     ['Pass, then be the receiver', 'Play it into space, then become the team-mate who runs onto it. Only the next name on the team sheet can collect the ball.'],
     ['Some runs are decoys', 'A decoy never touches the ball. Drag your marker out of the way, then press DONE.'],
-    ['If it breaks down', 'Lose the ball, stray offside, bump into an earlier you or run out of clock, and you replay that player. Two retries or fewer earns three stars, six or fewer earns two.']
+    ['If it breaks down', 'Lose the ball, stray offside, bump into an earlier you or run out of clock, and you replay that player. Take as many goes as you like: stars are for how quick the finished move is, not how many tries it took.']
   ];
   function showHow(back) {
     showOv('page', '<div class="pg"><div class="strip"><span>Laws of the game</span><span>Abridged</span></div><h1>How to play</h1><ol class="how">' +
@@ -231,16 +253,27 @@
   const toggle = (id, icon, label, on) => '<button class="rowbtn" id="' + id + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '">' + icon + '<span>' + label + '</span><i class="sw"><b>' + (on ? 'On' : 'Off') + '</b></i></button>';
   function flipSound() { save.sound = !save.sound; persist(); SFX.set(save.sound, save.haptics); SFX.tap(); }
   function flipBuzz() { save.haptics = !save.haptics; persist(); SFX.set(save.sound, save.haptics); if (save.haptics) SFX.buzz(20); }
+  function showLog() {
+    const txt = logText();
+    showOv('page', '<div class="pg"><div class="strip"><span>Tester</span><span>' + (save.log || []).length + ' attempts</span></div><h1>Play log</h1>' +
+      '<p class="fine">Kept on this device only. Nothing is sent anywhere unless you copy it.</p><pre class="log" id="logtxt">' + esc(txt) + '</pre></div>' +
+      '<div class="pg-foot"><button class="btn" id="cl">Clear</button><button class="btn" id="cp">Copy</button><button class="btn p" id="x">Done</button></div>',
+      { x: showOptions, cl: () => { save.log = []; persist(); showLog(); },
+        cp: () => { try { navigator.clipboard.writeText(txt).then(() => toast('Copied'), () => toast('Select the text to copy')); } catch (e) { toast('Select the text to copy'); } } });
+  }
   function showOptions() {
     showOv('page', '<div class="pg"><div class="strip"><span>Club office</span><span>Open all hours</span></div><h1>Options</h1><div class="rows">' +
       toggle('oS', IC.sound, 'Sound', save.sound) + toggle('oH', IC.buzz, 'Vibration', save.haptics) +
       '<button class="rowbtn" id="oHow">' + IC.book + '<span>How to play</span>' + IC.next + '</button>' +
+      '<button class="rowbtn" id="oPrac">' + IC.retry + '<span>Practice drills</span>' + IC.next + '</button>' +
+      (save.all ? toggle('oSlow', IC.book, 'Tester: slow time while aiming', !!save.slow) + '<button class="rowbtn" id="oLog">' + IC.list + '<span>Tester: play log</span>' + IC.next + '</button>' : '') +
       '<a class="rowbtn" id="oPriv" href="' + (NATIVE ? 'https://ollywoodgames.github.io/privacy.html' : '../privacy.html') + '">' + IC.shield + '<span>Privacy policy</span>' + IC.next + '</a>' +
       '<button class="rowbtn danger" id="oReset">' + IC.bin + '<span>Reset progress</span>' + IC.next + '</button></div>' +
       '<p class="fine">Progress is kept on this device only. No account, no adverts, no tracking.</p>' +
       '<p class="fine colophon">' + esc(GAME_NAME) + ' · build ' + BUILD + '<br>Printed and published by ' + esc(STUDIO) + '</p></div>' +
       '<div class="pg-foot"><button class="btn p" id="x">Done</button></div>',
-      { x: () => { hideOv(); }, oHow: () => showHow(showOptions), oReset: confirmReset });
+      { x: () => { hideOv(); }, oHow: () => showHow(showOptions), oReset: confirmReset, oPrac: () => startPractice(0), oLog: showLog });
+    if ($('oSlow')) $('oSlow').onclick = () => { save.slow = !save.slow; persist(); SFX.tap(); showOptions(); };
     $('oS').onclick = () => { flipSound(); showOptions(); };
     $('oH').onclick = () => { flipBuzz(); SFX.tap(); showOptions(); };
   }
@@ -252,18 +285,50 @@
   }
 
   /* ---------- level flow ---------- */
+  /* Practice drills: the real engine with nothing to lose. A miss restarts the drill at once. */
+  function feedRec(lv) {
+    const f = lv.feed, a = lv.att[0], dx = f.at[0] - a.x, dy = f.at[1] - a.y, d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
+    const r = { x: [], y: [], fx: [], fy: [], kick: null, len: 0 };
+    for (let t = 0; t <= f.k + 70; t++) { r.x.push(a.x); r.y.push(a.y); r.fx.push(ux); r.fy.push(uy); }
+    r.kick = { tick: f.k, bx: a.x + ux * FB.C.ballOff, by: a.y + uy * FB.C.ballOff, vx: ux * f.sp, vy: uy * f.sp }; r.len = r.x.length;
+    return r;
+  }
+  function startPractice(n, repN) {
+    if (!PRACTICE[n]) { save.practised = true; persist(); prac = -1; return startLevel(0); }
+    prac = n; pracRep = repN || 0; pracLv = JSON.parse(JSON.stringify(PRACTICE[n]));
+    if (pracLv.reps) { pracLv.att[0].x = pracLv.reps[pracRep][0]; pracLv.att[0].y = pracLv.reps[pracRep][1]; }
+    round = pracLv.feed ? 1 : 0; recs = pracLv.att.map(() => null); if (pracLv.feed) recs[0] = feedRec(pracLv);
+    fails = 0; rsim = null; sim = FB.makeSim(pracLv, recs, liveIdx());
+    stampOff(); $('ready').className = ''; screen('play'); hud();
+    if (pracRep > 0) return beginRound();
+    state = 'brief';
+    showOv('page', '<div class="pg brief lean"><div class="strip"><span>Practice</span><span>' + (n + 1) + ' of ' + PRACTICE.length + '</span></div>' +
+      '<h1>' + esc(pracLv.name) + '</h1><p class="lede">' + esc(pracLv.brief) + '</p><p class="lede soft">Nothing to lose here. Miss, and you simply go again.</p></div>' +
+      '<div class="pg-foot"><button class="btn" id="sk">Skip practice</button><button class="btn p" id="go">Start</button></div>',
+      { go: beginRound, sk: () => { save.practised = true; persist(); prac = -1; startLevel(0); } });
+  }
+  function pracMiss(msg) { state = 'failed'; SFX.thud(); toast(msg); const q = seq; later(() => { if (seq === q && prac >= 0) beginRound(); }, 900); }
+  function pracDone() {
+    if (pracLv.reps && pracRep + 1 < pracLv.reps.length) return startPractice(prac, pracRep + 1);
+    if (!pracLv.last) return startPractice(prac + 1);
+    save.practised = true; persist(); state = 'goal'; rsim = FB.makeSim(L(), recs, -1); rhold = 0; stampOff();
+    showOv('sheet', '<div class="sh-top"><span class="lbl soft">Practice complete</span></div><h2>That is the whole game</h2>' +
+      '<p>Every move is built like that: one player at a time, each one fitting around the ones you have already played.</p>' +
+      '<div class="btns"><button class="btn" id="ag">Practise again</button><button class="btn p" id="nx"><span>First fixture</span>' + IC.next + '</button></div>',
+      { ag: () => startPractice(0), nx: () => { prac = -1; startLevel(0); } });
+  }
   function startLevel(i) {
     if (!LEVELS[i]) return;
-    li = i; round = 0; recs = L().att.map(() => null); fails = 0; rsim = null; sim = FB.makeSim(L(), recs, liveIdx());
+    prac = -1; li = i; round = 0; recs = L().att.map(() => null); fails = 0; rsim = null; sim = FB.makeSim(L(), recs, liveIdx());
     stampOff(); $('ready').className = ''; screen('play'); hud(); showBrief();
   }
   function beginRound() {
     seq++;
-    sim = FB.makeSim(L(), recs, liveIdx()); rsim = null; state = 'ready'; lastKick = -999; lastRecv = -999; tempo = 1; coachKey = null;
+    sim = FB.makeSim(L(), recs, liveIdx()); rsim = null; state = 'ready'; lastKick = -999; lastRecv = -999; tempo = 1; coachKey = null; aimLeft = 1.2;
     inp.charging = false; inp.release = false; inp.done = false; inp.aim = false; aimP = null; joy = null;
     $('aim').style.display = 'none'; $('joy').style.display = 'none'; $('kick').classList.remove('down');
     hideOv(); stampOff(); hud();
-    auto = autoFactory ? autoFactory(li, round) : null; if (auto) kickoff();
+    auto = autoFactory ? autoFactory(prac >= 0 ? 'p' + prac : li, round) : null; if (auto) kickoff();
   }
   function kickoff() { if (state === 'ready') { state = 'play'; SFX.unlock(); SFX.crowd(0.016, 0.6); } }
   function freeze() { if (state === 'play') { state = 'ready'; joy = null; $('joy').style.display = 'none'; kickUp(true); SFX.crowd(0, 0.2); } }
@@ -272,7 +337,8 @@
     const lv = L(), a = lv.att[liveIdx()], k = kit(lv), decoy = a.role === 'decoy';
     $('who').innerHTML = '<div class="who-in">' + base(a.num, k.us, 'live') + '<span class="who-t"><small>Player ' + (round + 1) + ' of ' + lv.order.length + '</small><b>' + esc(a.name) + '</b></span></div>';
     fitTip(shortTip(a));
-    $('ctl').classList.toggle('quiet', !(li < 2 && !rec(li)));
+    $('ctl').classList.toggle('quiet', prac < 0 && !(li < 2 && !rec(li)));
+    $('play').classList.toggle('prac', prac >= 0);
     $('bPrev').disabled = round === 0; $('bRetry').disabled = false;
     const kb = $('kick'); kb.textContent = decoy ? 'DONE' : (sim && sim.isLast ? 'SHOOT' : 'PASS'); kb.classList.toggle('decoy', decoy);
     $('klabel').innerHTML = decoy ? 'Press when<br>your marker<br>has moved' : 'Press<br>drag to aim<br>release';
@@ -329,7 +395,10 @@
     bump: ['Collision', 'You ran into a team-mate. Awkwardly, he is also you.', 'Take a different line from the run you recorded.', 'thud'],
     time: ['Out of time', 'The clock ran out before the move finished.', 'Go sooner and waste fewer steps.', 'whistle']
   };
+  const MISS = { saved: 'Saved. Aim further from the keeper', smothered: 'Too close. Shoot a little earlier', wide: 'Wide. Aim inside the posts', out: 'Out of play. Go again', keeper: 'Too hard. Drag a shorter distance', time: 'Go again', early: 'Go again' };
   function showFail() {
+    logPlay(sim.reason);
+    if (prac >= 0) return pracMiss(MISS[sim.reason] || 'Go again');
     state = 'failed'; fails++; SFX.crowd(0, 0.15);
     const lv = L(), f = FAIL[sim.reason] || ['Lost it', 'The move broke down.', 'Have another go.', 'thud'], live = liveIdx(), a = lv.att[live];
     SFX[f[3]]();
@@ -348,6 +417,11 @@
   function redoPrev() { if (round === 0) return; recs[liveIdx()] = null; round--; recs[liveIdx()] = null; beginRound(); }
   function onWon() {
     const a = L().att[liveIdx()];
+    if (prac >= 0 && pracLv.mark) {             // the pass must come to rest inside the chalk circle
+      const k = sim.liveRec.kick, m = pracLv.mark, ex = k.bx + k.vx / FB.C.fric, ey = k.by + k.vy / FB.C.fric, off = Math.hypot(ex - m.x, ey - m.y);
+      if (off > m.r) return pracMiss(Math.abs(ex - m.x) > m.r ? 'Off line. Aim at the circle' : ey > m.y ? 'Short. Drag further' : 'Too long. Drag a shorter distance');
+      if (pracLv.passOnly) { SFX.lock(); toast('In the circle'); state = 'failed'; const q = seq; return later(() => { if (seq === q) pracDone(); }, 800); }
+    }
     if (a.role === 'decoy' && !save.seenDecoy) { save.seenDecoy = true; persist(); }
     recs[liveIdx()] = FB.finalRec(sim); SFX.lock(); toast('No. ' + a.num + ' recorded');
     round++; beginRound();
@@ -359,9 +433,11 @@
     if (after && parseScore(story(lv).score)) later(() => { const el = $('score'); el.innerHTML = after; el.className = 'on'; void el.offsetWidth; el.className = 'on tick'; SFX.tick(); }, 650);
   }
   function showGoal() {
+    if (prac >= 0) { seq++; return pracDone(); }
     state = 'goal'; seq++; rsim = FB.makeSim(L(), recs, -1); rhold = 0;
-    const lv = L(), st = starsFor(fails), t = sim.tick / 60, old = rec(li), firstWin = !old;
-    if (!old || st > old.stars || (st === old.stars && t < old.time)) { save.done[lid(li)] = { stars: st, time: +t.toFixed(2), retries: fails }; persist(); }
+    const lv = L(), t = sim.tick / 60, st = starsFor(li, t), old = rec(li), firstWin = !old;
+    if (!old || t < old.time) { save.done[lid(li)] = { stars: st, time: +t.toFixed(2), retries: fails }; persist(); }
+    logPlay('goal');
     const best = rec(li), ch = chapterOf(li), last = li === LEVELS.length - 1;
     let seasonDone = li === ch.to; for (let i = ch.from; i <= ch.to && seasonDone; i++) if (!rec(i)) seasonDone = false;
     const after = scoreHtml(lv, true), isBest = !firstWin && best.time === +t.toFixed(2) && old && t < old.time;
@@ -372,8 +448,8 @@
       : '<div class="upnext"><span class="lbl">Up next · No. ' + no(li + 1) + '</span><b>' + esc(LEVELS[li + 1].name) + '</b></div>';
     stampOff(); hudReplay();
     showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + '</span>' + (after ? '<span class="board sm">' + after + '</span>' : '') + '</div>' +
-      '<div class="res">' + stars(st, 'big stampin') + '<dl class="stats"><div><dd>' + t.toFixed(1) + 's</dd><dt>' + (isBest ? 'New best' : 'Move') + '</dt></div><div><dd>' + fails + '</dd><dt>' + (fails === 1 ? 'Retry' : 'Retries') + '</dt></div></dl></div>' +
-      (st < 3 ? '<p class="verdict">' + (st === 2 ? 'Two retries or fewer earns the third star.' : 'Six retries or fewer earns a second star.') + '</p>' : '') + (seasonDone || last ? nextRow : '') +
+      '<div class="res">' + stars(st, 'big stampin') + '<dl class="stats"><div><dd>' + t.toFixed(1) + 's</dd><dt>' + (isBest ? 'New best' : 'Move') + '</dt></div><div><dd>' + (fails + 1) + '</dd><dt>' + (fails === 0 ? 'Take' : 'Takes') + '</dt></div></dl></div>' +
+      (st < 3 ? '<p class="verdict">A move of ' + parOf(li, st === 2 ? 1.2 : 1.5).toFixed(1) + 's or quicker earns the ' + (st === 2 ? 'third' : 'second') + ' star. Take as many goes as you like.</p>' : '') + (seasonDone || last ? nextRow : '') +
       '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="nx">' + nxt + IC.next + '</button></div>',
       { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1) });
     if (reduced()) return;
@@ -419,7 +495,7 @@
       '<div class="btns"><button class="btn" id="rs">Restart move</button><button class="btn" id="mv">Fixtures</button></div>' +
       '<div class="rows tight">' + toggle('pS', IC.sound, 'Sound', save.sound) + toggle('pH', IC.buzz, 'Vibration', save.haptics) +
       '<button class="rowbtn" id="hw">' + IC.book + '<span>How to play</span>' + IC.next + '</button></div>',
-      { mv: showHome, rs: () => startLevel(li), ct: back, hw: () => showHow(showPause) });
+      { mv: showHome, rs: () => prac >= 0 ? startPractice(prac) : startLevel(li), ct: back, hw: () => showHow(showPause) });
     $('pS').onclick = () => { flipSound(); showPause(); };
     $('pH').onclick = () => { flipBuzz(); SFX.tap(); showPause(); };
     $('ov').dataset.pause = '1';
@@ -443,13 +519,13 @@
     d0: ['No ball for you this time. Drag to pull your marker away.', 'pad', 'top'],
     d1: ['When he has gone far enough, press <b>DONE</b>.', 'kick', 'top']
   };
-  const tutorial = () => li === 0 && !rec(0) && L().order.length === 2;
+  const tutorial = () => prac < 0 && li === 0 && !rec(0) && L().order.length === 2;
   /* Moves 2-4, first time through: one prompt per situation. r ready, w waiting for the pass, i pass on its way,
      h on the ball, a aiming, k played. Keyed by round within the move. */
   const TUT = {
     1: [
       { r: 'Two defenders this time. Drag to start.', h: 'Press <b>PASS</b> and drag at the gap between the two defenders.', a: 'Through the middle of them. Let go to play it.', k: 'Played. Now time the run.' },
-      { r: 'You are the 9. See the yellow line? That is offside.', w: 'Stay behind the yellow line until the pass is hit.', i: 'It is hit. Go now, run onto it.', h: 'Press <b>SHOOT</b> and drag at a corner.', a: 'Away from the keeper, then let go.' }
+      { r: 'You are the 9. See the yellow line? That is offside.', w: 'Stay behind the yellow line until the pass is hit.', i: 'It is hit. Go now, run onto it.', h: 'Carry it closer, then <b>SHOOT</b> at a corner.', a: 'Away from the keeper, then let go.' }
     ],
     2: [
       { r: 'Three players now. You start with the 6.', h: 'Pass down the right, into the space <b>ahead</b> of the 7.', a: 'Aim where he will be, not where he is. Let go.', k: 'Played. Now be the winger.' },
@@ -463,14 +539,14 @@
     ]
   };
   function tutKey(me, b) {
-    const t = TUT[li] && !rec(li) ? TUT[li][round] : null; if (!t) return null;
+    const t = prac >= 0 ? (pracLv.coach || [])[round] || {} : TUT[li] && !rec(li) ? TUT[li][round] : null; if (!t) return null;
     let ph;
     if (sim.liveKickTick >= 0) ph = sim.tick - sim.liveKickTick < 50 ? 'k' : '';
     else if (state === 'ready' && sim.tick === 0) ph = 'r';
     else if (b.owner === sim.live) ph = inp.charging ? 'a' : 'h';
     else ph = b.owner < 0 && b.lastKicker >= 0 ? 'i' : 'w';
     if (!ph || !t[ph]) return '';
-    const onBall = ph === 'h' || ph === 'a', top = !onBall || me.y > 30, key = 't' + li + round + ph + (top ? 'T' : 'B');
+    const onBall = ph === 'h' || ph === 'a' || (ph === 'r' && b.owner === sim.live), top = !(ph === 'h' || ph === 'a') || me.y > 30, key = (prac >= 0 ? 'p' + prac : 't' + li) + round + ph + (top ? 'T' : 'B');
     COACH[key] = [t[ph], onBall ? 'kick' : ph === 'k' ? '' : 'pad', top ? 'top' : ''];
     return key;
   }
@@ -594,11 +670,24 @@
     const xc = b.x + b.vx * (b.y / -b.vy);
     return Math.abs(xc - P.cx) < P.goalHalf + 3;
   }
-  let last = 0, acc = 0;
+  let last = 0, acc = 0, aimLeft = 1.2;
+  /* Shooting help on the practice drills and the first four fixtures: a shot aimed at the goal is eased towards the open
+     corner on the side the player chose. Full strength at first, gone by fixture 5. Applies to live input only. */
+  const HELP = [1, 1, 0.6, 0.3];
+  function assist(q) {
+    const k = prac >= 0 ? 1 : HELP[li] || 0;
+    if (!k || !q.aim || !q.charging || !sim.isLast || q.ay >= -0.05) return q;
+    const me = sim.att[sim.live], xg = me.x + q.ax * (me.y / -q.ay);
+    if (Math.abs(xg - 25) > 5.5) return q;
+    const g = sim.gk.x, corner = Math.abs(xg - g) < 0.6 ? (g <= 25 ? 27.9 : 22.1) : xg > g ? 27.9 : 22.1;
+    const tx = xg + (corner - xg) * 0.75 * k - me.x, ty = -me.y, d = Math.hypot(tx, ty);
+    return Object.assign({}, q, { ax: tx / d, ay: ty / d });
+  }
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000 || 0); last = now;
     const S0 = state === 'play' ? sim : state === 'goal' ? rsim : null, slow = !!S0 && decisive(S0);
-    tempo += ((slow ? 0.38 : 1) - tempo) * Math.min(1, dt * 14);
+    const aimSlow = !!save.slow && state === 'play' && inp.charging && aimLeft > 0; if (aimSlow) aimLeft -= dt;
+    tempo += ((slow ? 0.38 : aimSlow ? 0.35 : 1) - tempo) * Math.min(1, dt * 14);
     if (slow !== swell) { swell = slow; if (state === 'play') SFX.crowd(slow ? 0.075 : 0.016, slow ? 0.18 : 0.5); }
     acc += dt * tempo;
     let n = 0;
@@ -607,7 +696,7 @@
       if (state === 'play') {
         readMove();
         if (auto) { const q = auto(sim); inp.mx = q.mx || 0; inp.my = q.my || 0; inp.charging = !!q.charging; inp.release = !!q.release; inp.done = !!q.done; inp.aim = !!q.aim; inp.ax = q.ax || 0; inp.ay = q.ay || 0; inp.power = q.power || 0; }
-        FB.step(sim, inp); inp.release = false; inp.done = false; sounds(sim);
+        FB.step(sim, auto ? inp : assist(inp)); inp.release = false; inp.done = false; sounds(sim);
         if (sim.status === 'fail') { showFail(); break; }
         if (sim.status === 'won') { onWon(); break; }
         if (sim.status === 'goal') { onGoal(now); break; }

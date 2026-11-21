@@ -48,7 +48,7 @@ When the last player scores, the whole move plays back with every run drawn on t
 
 A CAREER OF MATCH MOMENTS
 • Around 20 moves at launch: through balls, cut-backs, overlaps, third-man runs, switches of play.
-• Three stars for two retries or fewer.
+• Retry as often as you like. Stars are for how quick the finished move is.
 • Short enough for a bus stop. Awkward enough to keep you there after the bus has gone.
 
 HOW IT LOOKS
@@ -69,7 +69,7 @@ Notes on the text:
 - "Football" appears 3 times, all in sentences that need it. No keyword block.
 - It names no other game. Google's guidance asks listings not to compare themselves with other apps.
 - "Around 20 moves" is stated openly. Update the number with each content release.
-- The "three stars for two retries or fewer" and "run into an earlier version of yourself" lines match the rules in the current build (one-man-team/js/game.js). Change the copy if the rules change.
+- The "stars are for how quick the finished move is" and "run into an earlier version of yourself" lines match the rules in the current build (one-man-team/js/game.js). Change the copy if the rules change.
 
 ### Lines to add once decisions are made
 
@@ -193,7 +193,7 @@ When the last player scores, the whole move plays back with every run drawn on t
 
 A CAREER OF MATCH MOMENTS
 • Around 20 moves at launch: through balls, cut-backs, overlaps, third-man runs, switches of play.
-• Three stars for two retries or fewer.
+• Retry as often as you like. Stars are for how quick the finished move is.
 • Short enough for a bus stop. Awkward enough to keep you there after the bus has gone.
 
 HOW IT LOOKS

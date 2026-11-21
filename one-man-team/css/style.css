@@ -371,3 +371,7 @@ canvas { display: block; }
 .order li.arr svg { width: 18px; height: 18px; }
 /* --- controls: the written reminders only appear on the first two moves --- */
 #ctl.quiet #klabel, #ctl.quiet #pad { visibility: hidden; }
+
+.lede.soft { color: var(--ink-soft); font-size: 15px; margin-top: 10px; }
+pre.log { margin: 12px 0 0; padding: 12px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; font: 500 13px/1.45 var(--text); white-space: pre-wrap; user-select: text; -webkit-user-select: text; }
+#play.prac #clock { visibility: hidden; }
