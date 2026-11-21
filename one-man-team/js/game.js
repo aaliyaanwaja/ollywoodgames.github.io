@@ -372,13 +372,14 @@
     const nxt = seasonDone ? '<span>' + (last ? 'Final whistle' : 'Season review') + '</span>' : '<span>Next fixture</span>';
     const nextRow = seasonDone
       ? '<div class="upnext done"><span class="lbl">Season ' + ch.n + '</span><b>' + esc(ch.name) + ' complete</b></div>'
+      : last ? '<div class="upnext done"><span class="lbl">Final fixture</span><b>Earlier fixtures still to win</b></div>'
       : '<div class="upnext"><span class="lbl">Up next · No. ' + no(li + 1) + '</span><b>' + esc(LEVELS[li + 1].name) + '</b></div>';
     stampOff(); hudReplay();
     showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + '</span>' + (after ? '<span class="board sm">' + after + '</span>' : '') + '</div>' +
       '<div class="res">' + stars(st, 'big stampin') + '<dl class="stats"><div><dd>' + t.toFixed(1) + 's</dd><dt>' + (isBest ? 'New best' : 'Move') + '</dt></div><div><dd>' + fails + '</dd><dt>' + (fails === 1 ? 'Retry' : 'Retries') + '</dt></div></dl></div>' +
       '<p class="verdict">' + (st === 3 ? (fails === 0 ? 'First time of asking. Frame it.' : 'Three stars. Nothing to add.') : st === 2 ? 'Two retries or fewer earns the third star.' : 'Six retries or fewer earns a second star.') + '</p>' + nextRow +
       '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="nx">' + nxt + IC.next + '</button></div>',
-      { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : startLevel(li + 1) });
+      { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1) });
     if (reduced()) return;
     for (let i = 0; i < st; i++) later(() => SFX.stamp(i), 260 + 300 * i);
   }
