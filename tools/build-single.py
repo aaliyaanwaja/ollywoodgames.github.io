@@ -5,6 +5,11 @@ import re, sys, os, glob
 root = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'one-man-team')
 html = open(os.path.join(root, 'index.html')).read()
 css = open(os.path.join(root, 'css', 'style.css')).read()
+import base64
+def font(m):
+    data = open(os.path.join(root, 'fonts', m.group(1)), 'rb').read()
+    return 'url("data:font/woff2;base64,' + base64.b64encode(data).decode() + '")'
+css = re.sub(r'url\("\.\./fonts/([^"]+)"\)', font, css)
 html = html.replace('<link rel="stylesheet" href="css/style.css">', '<style>\n' + css + '</style>')
 html = re.sub(r'<link rel="(manifest|icon|apple-touch-icon)"[^>]*>\n', '', html)
 def inline(m):

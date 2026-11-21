@@ -37,8 +37,16 @@
   /* ---------- saved progress ---------- */
   const KEY = 'omt.v1';
   let save = { done: {}, sound: true, haptics: true, seenHow: false, all: false, cover: false, seenDecoy: false };
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === 'object') save = Object.assign(save, s); if (!save.done || typeof save.done !== 'object') save.done = {}; } catch (e) {}
-  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} };
+  /* Inside the app shell the native side owns the save (see app/README.md): it injects window.__OMT_NATIVE__ = { save }
+     before this script runs and receives every change through postMessage. In a browser, localStorage is used. */
+  const NATIVE = window.__OMT_NATIVE__ || null;
+  const toNative = msg => { try { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg)); } catch (e) {} };
+  try {
+    const raw = NATIVE && typeof NATIVE.save === 'string' ? NATIVE.save : localStorage.getItem(KEY);
+    const s = JSON.parse(raw); if (s && typeof s === 'object') save = Object.assign(save, s);
+    if (!save.done || typeof save.done !== 'object') save.done = {};
+  } catch (e) {}
+  const persist = () => { const v = JSON.stringify(save); try { localStorage.setItem(KEY, v); } catch (e) {} toNative({ t: 'save', v }); };
   const lid = i => LEVELS[i].name;
   const rec = i => save.done[lid(i)];
   const unlocked = i => save.all || i === 0 || !!rec(i - 1);
@@ -223,12 +231,12 @@
   }
   const toggle = (id, icon, label, on) => '<button class="rowbtn" id="' + id + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '">' + icon + '<span>' + label + '</span><i class="sw"><b>' + (on ? 'On' : 'Off') + '</b></i></button>';
   function flipSound() { save.sound = !save.sound; persist(); SFX.set(save.sound, save.haptics); SFX.tap(); }
-  function flipBuzz() { save.haptics = !save.haptics; persist(); SFX.set(save.sound, save.haptics); if (save.haptics && navigator.vibrate) { try { navigator.vibrate(20); } catch (e) {} } }
+  function flipBuzz() { save.haptics = !save.haptics; persist(); SFX.set(save.sound, save.haptics); if (save.haptics) SFX.buzz(20); }
   function showOptions() {
     showOv('page', '<div class="pg"><div class="strip"><span>Club office</span><span>Open all hours</span></div><h1>Options</h1><div class="rows">' +
       toggle('oS', IC.sound, 'Sound', save.sound) + toggle('oH', IC.buzz, 'Vibration', save.haptics) +
       '<button class="rowbtn" id="oHow">' + IC.book + '<span>How to play</span>' + IC.next + '</button>' +
-      '<a class="rowbtn" id="oPriv" href="../privacy.html">' + IC.shield + '<span>Privacy policy</span>' + IC.next + '</a>' +
+      '<a class="rowbtn" id="oPriv" href="' + (NATIVE ? 'https://ollywoodgames.github.io/privacy.html' : '../privacy.html') + '">' + IC.shield + '<span>Privacy policy</span>' + IC.next + '</a>' +
       '<button class="rowbtn danger" id="oReset">' + IC.bin + '<span>Reset progress</span>' + IC.next + '</button></div>' +
       '<p class="fine">Progress is kept on this device only. No account, no adverts, no tracking.</p>' +
       '<p class="fine colophon">' + esc(GAME_NAME) + ' · build ' + BUILD + '<br>Printed and published by ' + esc(STUDIO) + '</p></div>' +
@@ -607,7 +615,14 @@
 
   window.__omt = {
     setAuto(f) { autoFactory = f; }, info: () => ({ state, li, round, fails, levels: LEVELS.length }), start: startLevel, unlockAll() { save.all = true; },
-    home: showHome, name: GAME_NAME
+    home: showHome, name: GAME_NAME,
+    /* Android back button (called by the app shell). Returns false when there is nothing left to go back to. */
+    back() {
+      const open = $('ov').classList.contains('on');
+      if (state === 'play' || state === 'ready') { if (open) hideOv(); else showPause(); return true; }
+      if (state === 'home' || state === 'cover') { if (open) { hideOv(); return true; } return false; }
+      showHome(); return true;
+    }
   };
   if ('serviceWorker' in navigator && location.protocol === 'https:' && !/claude/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
   showHome();

@@ -15,11 +15,16 @@
      level.kit = { us:[primary, secondary], them:[primary, secondary], gk: colour }
      level.frame = { x0, x1, y1 }           extra pitch area the fixed camera must include
      defender d.fx, d.fy                    facing (unit vector); derived from movement / the ball when absent
-     defender d.lunge                       0..1: below 0.3 is the wind-up (leans back), then the lunge out to full stretch
-     defender d.offBalance                  ticks remaining; the figure rocks on its base while > 0
-     S.gk.fx, .fy, .lunge, .offBalance      as for defenders
-     S.gk.dive                              0..1 phase (or true, or ticks > 1); S.gk.diveDir (-1 left, +1 right) or
-                                            S.gk.vx gives the side. Derived from the keeper's reaction when absent. */
+     defender d.lunge                       0..1 over the whole tackle. Up to lungeWind/(lungeWind+lungeStrike) (about 0.63)
+                                            is the plant, the only warning the player gets: a set stance, a chalk ring
+                                            closing on the base and a tomato lane on the cloth showing where the leg will go.
+                                            After that the leg is out.
+     defender d.footX, d.footY, d.striking  the tackling foot; the leg is drawn to it, the boot turns chalk while live
+     defender d.offBalance                  ticks remaining (34 after a missed lunge); he lies beaten on a tipped base and
+                                            gets up over the last few ticks
+     defender d.intent                      'jockey' turns him side-on and low; 'recover' / 'intercept' / 'press' at speed sprint
+     S.gk.dive (0..1), .vx, .vy, .fx, .fy, .intent, .sweeping, .offBalance   the dive goes the way he is moving
+     S.failBy                               index into S.def of the defender who won the ball, 'gk', or -1 */
 (function (root) {
   'use strict';
   const { P, C, TICK } = FB;
@@ -35,12 +40,13 @@
   const FONT = "'Barlow Condensed', 'Roboto Condensed', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif";
 
   // ---------- geometry ----------
-  const R = 1.6, RIM = 0.3;                      // figure base radius and rim width, metres
+  const R = 1.45, RIM = 0.28;                      // figure base radius and rim width, metres
   const BALL_R = 0.62;
   const GX0 = P.cx - P.goalHalf, GX1 = P.cx + P.goalHalf, NET_D = 2.3, NET_IN = 0.32;
   const CLOTH_X0 = -3, CLOTH_X1 = P.w + 3, CLOTH_Y0 = -5.1;
   const PAD = 10;                                 // css px of spare pitch layer around the canvas for the camera punch
   const MAXF = 24;
+  const TOP_CLEAR = 64;                           // css px at the top of the stage that overlays may cover
 
   // ---------- canvas / camera ----------
   let stage = null, W = 0, H = 0, dpr = 1, sc = 8, k = 8, vx0 = 0, vy0 = 0;
@@ -78,11 +84,17 @@
   let seenKick = -999, seenRecv = -999, seenStatus = 'play';
   const attAng = new Float32Array(MAXF), defAng = new Float32Array(MAXF);
   const attLx = new Float32Array(MAXF), attLy = new Float32Array(MAXF), defLx = new Float32Array(MAXF), defLy = new Float32Array(MAXF);
-  let gkAng = Math.PI / 2, gkPrevX = P.cx, gkVx = 0, gkDive = 0, gkDiveDir = 1;
+  let gkAng = Math.PI / 2, gkPrevX = P.cx, gkVx = 0, gkDive = 0, gkDiveAng = 0;
   let kickWho = -1, kickT = -1e9, kickDX = 0, kickDY = -1;
   let failT = -1e9, failX = 0, failY = 0, failKind = 0, failRing = -1, tackler = -1, keeperHold = false;
   let goalT = -1e9, gBX = 0, gBY = 0, gVX = 0, gVY = 0, ballDX = 0, ballDY = 0;
   let passLabel = '', passLabelNum = null;
+  // pose of the figure about to be drawn (set by the caller, reset by figure)
+  let pPlant = 0, pDown = 0, pSide = 0, pFoot = false, pFootX = 0, pFootY = 0, pStrike = false;
+  const obSeen = new Int16Array(MAXF);
+  const PLANT_END = (C.lungeWind || 12) / ((C.lungeWind || 12) + (C.lungeStrike || 7));
+  const COMMIT = (C.lungeCommit || 4) / ((C.lungeWind || 12) + (C.lungeStrike || 7));
+  const LANE = (C.lungeExt || 1.3) + (C.footR || 0.55) + 0.55;
   // ball: trail ring buffer and rolling orientation
   const TR = 10, trX = new Float32Array(TR), trY = new Float32Array(TR); let trN = 0, trH = 0;
   const BP = 12, bpx = new Float32Array(BP), bpy = new Float32Array(BP), bpz = new Float32Array(BP);
@@ -149,13 +161,16 @@
     for (const d of level.def) inc(d.x, d.y);
     const f = level.frame; if (f) { if (f.x0 != null) inc(f.x0, 0); if (f.x1 != null) inc(f.x1, 0); if (f.y1 != null) inc(P.cx, f.y1); }
     x0 = Math.max(-2.4, x0 - 5.5); x1 = Math.min(P.w + 2.4, x1 + 5.5); y1 = Math.min(P.h + 1.6, y1 + 5.5);
-    const y0 = CLOTH_Y0 - 1.3;
+    let y0 = CLOTH_Y0 - 1.3;
     sc = Math.max(2, Math.min(W / (x1 - x0), H / (y1 - y0)));
+    // UI overlays (coach bubble, toast) sit on the top ~60 css px of the stage: keep the net below them
+    const need = TOP_CLEAR / sc + NET_D;
+    if (need > -y0) { y0 = -need; sc = Math.max(2, Math.min(W / (x1 - x0), H / (y1 - y0))); y0 = -(TOP_CLEAR / sc + NET_D); }
     const vw = W / sc, vh = H / sc, full0 = CLOTH_X0 - 1.6, full1 = CLOTH_X1 + 1.6;
     vx0 = vw >= full1 - full0 ? P.cx - vw / 2 : clamp((x0 + x1) / 2 - vw / 2, full0, full1 - vw);
     vy0 = y0;
     k = sc * dpr;
-    numPx = Math.max(11.5, 1.34 * sc);
+    numPx = Math.max(11, 1.24 * sc);
     numFont = '700 ' + numPx.toFixed(1) + 'px ' + FONT;
     ghostFont = '700 ' + (numPx * 1.15).toFixed(1) + 'px ' + FONT;
     tagFont = '700 ' + clamp(sc * 1.05, 11, 13).toFixed(1) + 'px ' + FONT;
@@ -377,7 +392,7 @@
   function figure(x, y, ang, kind, num, tone, live, lx, ly, ext, rock, now) {
     const prim = kind === 0 ? kit.usP : kit.thP, sec = kind === 0 ? kit.usS : kit.thS;
     const fxu = Math.cos(ang), fyu = Math.sin(ang);
-    const tilt = Math.min(0.24, Math.abs(ext) * 0.2 + Math.abs(rock) * 0.16 + Math.hypot(lx, ly) * 0.25);
+    const tilt = Math.min(0.42, Math.abs(ext) * 0.2 + Math.abs(rock) * 0.16 + Math.hypot(lx, ly) * 0.25 + pDown * 0.4 + (pFoot ? 0.14 : 0));
     if (live) {                                                     // the live player's mustard ring
       const rr = R + 0.46 + (reduced ? 0 : 0.05 * Math.sin(now / 240));
       disc(x, y, rr + 0.09); ctx.fillStyle = INK; ctx.fill();
@@ -388,7 +403,7 @@
     ctx.beginPath(); ctx.ellipse(x, y, R * (1 - tilt), R, ang, 0, TAU);
     ctx.fillStyle = kind === 0 ? prim : sec; ctx.fill(); ctx.lineWidth = 0.11; ctx.strokeStyle = INK; ctx.stroke();
     ctx.beginPath(); ctx.ellipse(x - fxu * tilt * 0.3, y - fyu * tilt * 0.3, (R - RIM) * (1 - tilt), R - RIM, ang, 0, TAU);
-    ctx.fillStyle = kind === 0 ? sec : prim; ctx.fill();
+    ctx.fillStyle = kind === 0 ? sec : pPlant > 0 && kind === 1 && pSide === 0 ? TOMATO : prim; ctx.fill();
     if (kind === 1) {                                               // their base: a banded rim, so they never read as ours
       ctx.strokeStyle = prim; ctx.lineWidth = RIM - 0.06; ctx.setLineDash([0.48, 0.5]);
       ctx.beginPath(); ctx.ellipse(x, y, (R - RIM / 2) * (1 - tilt), R - RIM / 2, ang, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
@@ -397,19 +412,40 @@
     ctx.beginPath(); ctx.arc(x, y, R - RIM / 2, -2.75, -1.95); ctx.stroke(); ctx.lineCap = 'butt';
 
     // the figure: ours stands on the top half of the base so the number has the bottom half to itself
-    const big = kind !== 0, sw = big ? 0.72 : 0.54, sd = big ? 0.42 : 0.34, hr = big ? 0.43 : 0.36;
+    const big = kind !== 0, sw = (big ? 0.72 : 0.54) * (1 + 0.2 * pPlant), sd = big ? 0.42 : 0.34, hr = big ? 0.43 : 0.36;
     const px = -fyu, py = fxu, side = rock * 0.34;
-    const cx = x + lx + fxu * ext + px * side, cy = y + (big ? 0 : -0.58) + ly + fyu * ext + py * side;
+    const cx = x + lx + fxu * (ext + pDown * 0.55) + px * side, cy = y + (big ? 0 : -0.54) + ly + fyu * (ext + pDown * 0.55) + py * side;
     const shirt = kind === 2 ? kit.gk : kind === 1 ? sec : prim;
-    local(cx, cy, ang + rock * 0.45);
     ctx.lineCap = 'round';
-    if (ext > 0.25) {                                               // a leg thrown out in front, or the keeper's arms at full stretch
-      const l = (ext - 0.2) * 0.95, y0 = kind === 2 ? 0.5 : 0.22, y1 = kind === 2 ? 0.42 : 0.1;
+    if (pFoot) {                                                    // the tackling leg, out to where the foot really is
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.lineWidth = pass ? 0.28 : 0.5; ctx.strokeStyle = pass ? shirt : INK;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(pFootX, pFootY); ctx.stroke();
+      }
+      disc(pFootX, pFootY, 0.36); ctx.fillStyle = INK; ctx.fill();
+      disc(pFootX, pFootY, 0.25); ctx.fillStyle = pStrike ? CHALK : prim; ctx.fill();
+    }
+    local(cx, cy, ang + rock * 0.45 + pSide);
+    if (pDown > 0.5) {                                              // beaten: flat out on the cloth, arms thrown forward
+      for (let pass = 0; pass < 2; pass++) {
+        ctx.lineWidth = pass ? 0.26 : 0.44; ctx.strokeStyle = pass ? shirt : INK;
+        ctx.beginPath(); ctx.moveTo(0.5, -0.3); ctx.lineTo(1.25, -0.72); ctx.moveTo(0.5, 0.3); ctx.lineTo(1.3, 0.5); ctx.stroke();
+        ctx.lineWidth = pass ? 0.22 : 0.4; ctx.strokeStyle = pass ? prim : INK;
+        ctx.beginPath(); ctx.moveTo(-0.5, -0.2); ctx.lineTo(-1.25, -0.42); ctx.moveTo(-0.5, 0.2); ctx.lineTo(-1.2, 0.5); ctx.stroke();
+      }
+      ctx.fillStyle = SKIN[tone & 3]; disc(1.33, -0.76, 0.13); ctx.fill(); disc(1.38, 0.52, 0.13); ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = sd * 2 + 0.2; ctx.beginPath(); ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); ctx.stroke();
+      ctx.strokeStyle = shirt; ctx.lineWidth = sd * 2; ctx.beginPath(); ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); ctx.stroke();
+      ctx.lineCap = 'butt';
+      if (kind === 1) { ctx.strokeStyle = prim; ctx.lineWidth = 0.2; ctx.beginPath(); ctx.moveTo(-0.5, -0.14); ctx.lineTo(0.5, -0.14); ctx.moveTo(-0.5, 0.14); ctx.lineTo(0.5, 0.14); ctx.stroke(); }
+      ctx.strokeStyle = INK; ctx.lineWidth = 0.08;
+      disc(0.98, 0, hr); ctx.fillStyle = HAIR[(tone >> 2) & 3]; ctx.fill(); ctx.stroke();
+    } else {
+    if (ext > 0.25 && kind === 2) {                                 // the keeper's arms at full stretch
+      const l = (ext - 0.2) * 0.95;
       for (let pass = 0; pass < 2; pass++) {
         ctx.lineWidth = pass ? 0.2 : 0.38; ctx.strokeStyle = pass ? shirt : INK;
-        ctx.beginPath(); ctx.moveTo(0.1, y0); ctx.lineTo(0.3 + l, y1);
-        if (kind === 2) { ctx.moveTo(0.1, -y0); ctx.lineTo(0.3 + l, -y1); }
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0.1, 0.5); ctx.lineTo(0.3 + l, 0.42); ctx.moveTo(0.1, -0.5); ctx.lineTo(0.3 + l, -0.42); ctx.stroke();
       }
     }
     if (kind === 2) {                                               // gloves
@@ -417,15 +453,16 @@
       ctx.fillStyle = CHALK; ctx.strokeStyle = INK; ctx.lineWidth = 0.09;
       disc(gx, -0.62, 0.27); ctx.fill(); ctx.stroke(); disc(gx, 0.62, 0.27); ctx.fill(); ctx.stroke();
     }
-    // arms, swinging a little with the ground covered
+    // arms: swinging with the ground covered, spread wide and low when he sets himself
     if (kind !== 2) {
-      const sw2 = sw + 0.02, ph = reduced ? 0 : Math.sin((x + y) * 2.4) * Math.min(1, Math.hypot(lx, ly) * 9), a0 = 0.36 + 0.2 * ph, a1 = 0.36 - 0.2 * ph;
+      const sw2 = sw + 0.02, ph = reduced ? 0 : Math.sin((x + y) * 2.4) * Math.min(1, Math.hypot(lx, ly) * 9);
+      const a0 = 0.36 + 0.2 * ph - 0.1 * pPlant, a1 = 0.36 - 0.2 * ph - 0.1 * pPlant, out = 0.34 * pPlant;
       for (let pass = 0; pass < 2; pass++) {
         ctx.lineWidth = pass ? 0.26 : 0.44; ctx.strokeStyle = pass ? shirt : INK;
-        ctx.beginPath(); ctx.moveTo(0, -sw2); ctx.lineTo(a0, -sw2); ctx.moveTo(0, sw2); ctx.lineTo(a1, sw2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -sw2); ctx.lineTo(a0, -sw2 - out); ctx.moveTo(0, sw2); ctx.lineTo(a1, sw2 + out); ctx.stroke();
       }
       ctx.fillStyle = SKIN[tone & 3];
-      disc(a0 + 0.1, -sw2, 0.13); ctx.fill(); disc(a1 + 0.1, sw2, 0.13); ctx.fill();
+      disc(a0 + 0.1, -sw2 - out * 1.2, 0.13); ctx.fill(); disc(a1 + 0.1, sw2 + out * 1.2, 0.13); ctx.fill();
     }
     // shoulders: a capsule across the direction of travel
     ctx.strokeStyle = INK; ctx.lineWidth = sd * 2 + 0.2; ctx.beginPath(); ctx.moveTo(0, -sw); ctx.lineTo(0, sw); ctx.stroke();
@@ -439,9 +476,12 @@
     ctx.strokeStyle = INK; ctx.lineWidth = 0.08;
     disc(0.06, 0, hr); ctx.fillStyle = SKIN[tone & 3]; ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.arc(0.06, 0, hr - 0.02, Math.PI * 0.62, Math.PI * 1.38); ctx.closePath(); ctx.fillStyle = HAIR[(tone >> 2) & 3]; ctx.fill();
+    }
+    ctx.lineCap = 'butt';
+    pPlant = 0; pDown = 0; pSide = 0; pFoot = false; pStrike = false;
     if (num != null) {
       pixels(); ctx.font = numFont; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = kit.usNum;
-      ctx.fillText(num, X(x), Y(y + 0.74) + numPx * 0.36);
+      ctx.fillText(num, X(x), Y(y + 0.66) + numPx * 0.36);
     }
     world();
   }
@@ -513,7 +553,7 @@
     for (let i = 0; i < S.att.length && i < MAXF; i++) { attAng[i] = Math.atan2(S.att[i].fy, S.att[i].fx); attLx[i] = attLy[i] = 0; }
     for (let i = 0; i < S.def.length && i < MAXF; i++) { const d = S.def[i]; defAng[i] = Math.atan2(b.y - d.y, b.x - d.x); defLx[i] = defLy[i] = 0; }
     gkAng = Math.atan2(b.y - S.gk.y, b.x - S.gk.x); gkPrevX = S.gk.x; gkVx = 0; gkDive = 0;
-    kickWho = -1; kickT = -1e9; failT = -1e9; failRing = -1; tackler = -1; keeperHold = false; goalT = -1e9;
+    obSeen.fill(0); kickWho = -1; kickT = -1e9; failT = -1e9; failRing = -1; tackler = -1; keeperHold = false; goalT = -1e9;
     trN = 0; trH = 0; lead = b.owner >= 0 ? R + 0.12 - C.ballOff : 0; if (b.owner >= 0) { leadX = S.att[b.owner].fx; leadY = S.att[b.owner].fy; } rollX = b.x + leadX * lead; rollY = b.y + leadY * lead; ballDX = b.x; ballDY = b.y;
     pT = -1e9; clearFx();
     if (view.state !== 'goal' && view.state !== 'goalhold') clearConfetti();
@@ -539,12 +579,18 @@
         spawnConfetti(clamp(b.x, GX0 + 1, GX1 - 1)); punch(now, 0, -6);
       } else if (S.status === 'fail') {
         const r = S.reason; failT = now; failX = ballDX; failY = ballDY; failKind = 0; failRing = -1;
-        if (r === 'tackled' || r === 'intercepted') {
-          let best = 1e9; tackler = -1;
-          for (let i = 0; i < S.def.length; i++) { const d = S.def[i], q = Math.hypot(d.x - b.x, d.y - b.y); if (q < best) { best = q; tackler = i; } }
-          if (tackler >= 0) { const d = S.def[tackler]; failX = ballDX + (d.x - ballDX) * 0.25; failY = ballDY + (d.y - ballDY) * 0.25; }
+        const by = S.failBy;
+        if (by === 'gk' || (by === undefined && (r === 'smothered' || r === 'saved' || r === 'keeper'))) { keeperHold = true; failKind = 1; punch(now, 0, -4.5); }
+        else if (r === 'tackled' || r === 'intercepted' || (typeof by === 'number' && by >= 0)) {
+          tackler = -1;
+          if (typeof by === 'number') tackler = by >= 0 && by < S.def.length ? by : -1;
+          else { let best = 1e9; for (let i = 0; i < S.def.length; i++) { const d = S.def[i], q = Math.hypot(d.x - b.x, d.y - b.y); if (q < best) { best = q; tackler = i; } } }
+          if (tackler >= 0) {
+            const d = S.def[tackler], tx = d.lunge > 0 && d.footX !== undefined ? d.footX : d.x, ty = d.lunge > 0 && d.footY !== undefined ? d.footY : d.y;
+            failX = ballDX + (tx - ballDX) * 0.3; failY = ballDY + (ty - ballDY) * 0.3;
+          }
           failKind = 1; punch(now, 4.5, 2.5);
-        } else if (r === 'smothered' || r === 'saved' || r === 'keeper') { keeperHold = true; failKind = 1; punch(now, 0, -4.5); }
+        }
         else if (r === 'bump') {
           const o = S.att[S.failWho], me = S.att[S.live];
           if (o && me) { failX = (o.x + me.x) / 2; failY = (o.y + me.y) / 2; }
@@ -655,19 +701,52 @@
   }
 
   function drawDef(S, i, now, f) {
-    const d = S.def[i], b = S.ball, sp = Math.hypot(d.vx || 0, d.vy || 0);
+    const d = S.def[i], b = S.ball, sp = Math.hypot(d.vx || 0, d.vy || 0), it = d.intent;
+    const real = d.lunge > 0, down = d.offBalance > 0;
     let ta;
     if (d.fx !== undefined && d.fy !== undefined) ta = Math.atan2(d.fy, d.fx);
     else if (sp > 1.1) ta = Math.atan2(d.vy, d.vx);
     else ta = Math.atan2(b.y - d.y, b.x - d.x);
-    if (i === tackler) ta = Math.atan2(failY - d.y, failX - d.x);
-    defAng[i] = turn(defAng[i], ta, i === tackler ? 1 : f * 0.8);
-    defLx[i] += (clamp((d.vx || 0) * 0.035, -0.26, 0.26) - defLx[i]) * f; defLy[i] += (clamp((d.vy || 0) * 0.035, -0.26, 0.26) - defLy[i]) * f;
-    let ext = 0, rock = 0;
-    if (d.lunge > 0) { const l = Math.min(1, d.lunge), e = (l - 0.3) / 0.7; ext = l < 0.3 ? -0.24 * (l / 0.3) : -0.24 + 1.3 * (1 - (1 - e) * (1 - e)); }
-    else if (i === tackler) { const t = (now - failT) / 150; ext = reduced ? 0.7 : t < 1 ? 1.05 * (1 - (1 - t) * (1 - t)) : 0.7 + 0.35 * Math.max(0, 1 - (t - 1) / 2); }
-    if (d.offBalance > 0) { const a = Math.min(1, d.offBalance / 18); rock = reduced ? 0.7 * a : a * Math.sin(now * 0.021 + i * 2); }
-    figure(d.x, d.y, defAng[i], 1, null, i * 5 + 1, false, defLx[i], defLy[i], ext, rock, now);
+    if (i === tackler && !real) ta = Math.atan2(failY - d.y, failX - d.x);
+    if (!down) defAng[i] = turn(defAng[i], ta, (i === tackler || real) ? 1 : f * 0.8);
+    const sprint = (it === 'recover' || it === 'intercept' || it === 'press') && sp > 0.8 * (d.spd || 5), lk = sprint ? 0.06 : 0.035, lm = sprint ? 0.42 : 0.26;
+    defLx[i] += (clamp((d.vx || 0) * lk, -lm, lm) - defLx[i]) * f; defLy[i] += (clamp((d.vy || 0) * lk, -lm, lm) - defLy[i]) * f;
+    let ext = 0, lx = defLx[i], ly = defLy[i];
+    if (real) {
+      const l = Math.min(1, d.lunge);
+      if (l < PLANT_END) { pPlant = Math.min(1, l / (PLANT_END * 0.35)); ext = -0.26 * pPlant; lx = ly = 0; }
+      else {
+        ext = 0.3; lx = ly = 0;
+        if (d.footX !== undefined) { pFoot = true; pFootX = d.footX; pFootY = d.footY; pStrike = !!d.striking; }
+        else { pFoot = true; const e = (l - PLANT_END) / (1 - PLANT_END); pFootX = d.x + Math.cos(defAng[i]) * 1.3 * e; pFootY = d.y + Math.sin(defAng[i]) * 1.3 * e; pStrike = true; }
+      }
+    } else if (i === tackler) {                                     // won it with his body: a short step in
+      const t = (now - failT) / 150; ext = reduced ? 0.5 : t < 1 ? 0.8 * (1 - (1 - t) * (1 - t)) : 0.5 + 0.3 * Math.max(0, 1 - (t - 1) / 2);
+    }
+    if (down) { pDown = Math.min(1, d.offBalance / 8); lx *= 0.4; ly *= 0.4; }
+    else if (it === 'jockey' && !real) pSide = (i % 2 ? -1 : 1) * 0.85, pPlant = 0.35;
+    figure(d.x, d.y, defAng[i], 1, null, i * 5 + 1, false, lx, ly, ext, 0, now);
+  }
+
+  /* The tackle tell. It is drawn over our players, because a defender who is close enough to tackle is half hidden
+     behind the man he is tackling: a chalk ring closing on his base (it lands as the leg goes), his base turning
+     tomato, and from the moment he commits a tomato lane showing where the leg will go. */
+  function tackleTell(d) {
+    const l = Math.min(1, d.lunge), p = Math.min(1, l / PLANT_END), ux = d.fx || 0, uy = d.fy === undefined ? 1 : d.fy;
+    if (l > COMMIT) {
+      const qx = -uy, qy = ux, a = l < PLANT_END ? Math.min(1, (l - COMMIT) / 0.1) : 1, w0 = 0.4, w1 = 0.62, s0 = R * 0.7, s1 = LANE;
+      ctx.beginPath();
+      ctx.moveTo(d.x + ux * s0 + qx * w0, d.y + uy * s0 + qy * w0); ctx.lineTo(d.x + ux * s1 + qx * w1, d.y + uy * s1 + qy * w1);
+      ctx.arc(d.x + ux * s1, d.y + uy * s1, w1, Math.atan2(qy, qx), Math.atan2(-qy, -qx), true);
+      ctx.lineTo(d.x + ux * s0 - qx * w0, d.y + uy * s0 - qy * w0); ctx.closePath();
+      ctx.globalAlpha = 0.6 * a; ctx.fillStyle = TOMATO; ctx.fill();
+      ctx.globalAlpha = a; ctx.strokeStyle = INK; ctx.lineWidth = 0.11; ctx.lineJoin = 'round'; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    if (l < PLANT_END) {
+      const rr = R + 0.3 + (reduced ? 0.6 : 1.7 * (1 - p) * (1 - p));
+      disc(d.x, d.y, rr); ctx.strokeStyle = INK; ctx.lineWidth = 0.5; ctx.stroke();
+      disc(d.x, d.y, rr); ctx.strokeStyle = CHALK; ctx.lineWidth = 0.3; ctx.stroke();
+    }
   }
 
   function draw(S, view) {
@@ -714,6 +793,12 @@
     // chalk marks where the players still to come will stand
     for (let i = 0; i < S.att.length; i++) if (!S.att[i].active) ghost(S.att[i]);
 
+    for (let i = 0; i < S.def.length && i < MAXF; i++) {            // a puff of chalk where a beaten defender goes down
+      const d = S.def[i];
+      if (d.offBalance > 8 && obSeen[i] === 0) fx(1, d.x + (d.fx || 0) * 0.8, d.y + (d.fy || 0) * 0.8, now, 1);
+      obSeen[i] = d.offBalance > 0 ? 1 : 0;
+    }
+
     // contact shadows
     for (let i = 0; i < S.def.length; i++) shadow(S.def[i].x, S.def[i].y, R * 1.32);
     shadow(g.x, g.y, R * 1.32);
@@ -722,23 +807,21 @@
     drawGoal(now);
 
     // defenders (whoever just won the ball is drawn last, on top)
-    for (let i = 0; i < S.def.length && i < MAXF; i++) if (i !== tackler) drawDef(S, i, now, f);
+    for (let i = 0; i < S.def.length && i < MAXF; i++) if (i !== tackler && !(S.def[i].lunge > 0)) drawDef(S, i, now, f);
     // goalkeeper
     {
-      let dive = 0, dir = gkDiveDir;
-      if (g.dive !== undefined && g.dive !== false) {
-        dive = g.dive === true ? 1 : g.dive > 1 ? Math.min(1, g.dive / 12) : +g.dive || 0;
-        dir = g.diveDir || (g.vx ? Math.sign(g.vx) : 0) || (Math.abs(gkVx) > 0.3 ? Math.sign(gkVx) : dir);
-      } else if (S.status === 'play') {
-        if (g.react > C.gkReact && Math.abs(gkVx) > 2.2) { dive = 1; dir = Math.sign(gkVx); }
-      } else if (keeperHold && S.reason === 'saved') { dive = gkDive > 0.3 ? 1 : 0; }
-      if (g.lunge > 0) dive = Math.max(dive, Math.min(1, g.lunge));
-      gkDive += (dive - gkDive) * Math.min(1, dt * 16); gkDiveDir = dir || 1;
+      let dive = 0;
+      if (g.dive !== undefined && g.dive !== false) dive = g.dive === true ? 1 : clamp(+g.dive || 0, 0, 1);
+      else if (g.lunge > 0) dive = Math.min(1, g.lunge);
+      const gvx = g.vx !== undefined ? g.vx : gkVx, gvy = g.vy || 0, gs = Math.hypot(gvx, gvy);
+      gkDive += (dive - gkDive) * Math.min(1, dt * 20);
+      if (gs > 0.6 && S.status === 'play') gkDiveAng = Math.atan2(gvy, gvx);
       let ta = g.fx !== undefined && g.fy !== undefined ? Math.atan2(g.fy, g.fx) : Math.atan2(b.y - g.y, b.x - g.x);
-      if (gkDive > 0.15) ta = Math.atan2(0.25, gkDiveDir);
-      gkAng = turn(gkAng, ta, Math.min(1, dt * 18));
-      const rock = g.offBalance > 0 ? Math.min(1, g.offBalance / 18) * (reduced ? 0.7 : Math.sin(now * 0.021)) : 0;
-      figure(g.x, g.y, gkAng, 2, null, 0, false, clamp(gkVx * 0.03, -0.2, 0.2), 0, gkDive * 0.95, rock, now);
+      if (gkDive > 0.12) ta = gkDiveAng;
+      gkAng = turn(gkAng, ta, Math.min(1, dt * 20));
+      const rush = g.sweeping || g.intent === 'sweep' || g.intent === 'smother', lk = rush ? 0.06 : 0.03, lm = rush ? 0.4 : 0.2;
+      if (g.offBalance > 0) pDown = Math.min(1, g.offBalance / 8);
+      figure(g.x, g.y, gkAng, 2, null, 0, false, clamp(gvx * lk, -lm, lm), clamp(gvy * lk, -lm, lm), gkDive * 0.95, 0, now);
     }
     // our players: recorded first, the live one last so nothing ever covers him
     for (let pass = 0; pass < 2; pass++) for (let i = 0; i < S.att.length && i < MAXF; i++) {
@@ -752,7 +835,12 @@
       figure(a.x, a.y, ang, 0, a.num, i * 3 + a.num, i === live, attLx[i], attLy[i], ext, 0, now);
     }
 
-    if (tackler >= 0 && tackler < S.def.length) drawDef(S, tackler, now, f);
+    // defenders in a tackle go on top, with the tell, so the warning is never hidden behind the man on the ball
+    for (let i = 0; i < S.def.length && i < MAXF; i++) {
+      const d = S.def[i];
+      if (d.lunge > 0) { tackleTell(d); drawDef(S, i, now, f); }
+      else if (i === tackler) drawDef(S, i, now, f);
+    }
 
     // who the pass is for
     let passFor = -1;

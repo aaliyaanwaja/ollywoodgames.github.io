@@ -2,7 +2,7 @@
    Files are cached one by one so a level pack that is listed but not yet shipped cannot block the install. */
 const VERSION = 'omt-0.4.0';
 const FILES = ['./', 'index.html', 'css/style.css', 'js/sim.js', 'js/audio.js', 'js/render.js', 'js/game.js',
-  'js/levels/pack1.js', 'js/levels/pack2.js', 'js/levels/pack3.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'js/levels/pack1.js', 'js/levels/pack2.js', 'js/levels/pack3.js', 'js/levels/story.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'fonts/anton-latin-400-normal.woff2', 'fonts/barlow-latin-500-normal.woff2', 'fonts/barlow-latin-600-normal.woff2',
   'fonts/barlow-condensed-latin-600-normal.woff2', 'fonts/barlow-condensed-latin-700-normal.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });

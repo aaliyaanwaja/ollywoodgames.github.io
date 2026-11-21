@@ -40,7 +40,12 @@
     } else env(g, t, o.vol || 0.2, o.attack || 0.005, o.dur);
     s.connect(f).connect(g).connect(out); s.start(t, Math.random() * 1.5); s.stop(t + o.dur + 0.05);
   }
-  function buzz(p) { if (hap && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
+  function buzz(p) {
+    if (!hap) return;
+    // in the app shell, vibration goes through the native side; in a browser, the Vibration API where it exists
+    if (root.ReactNativeWebView) { try { root.ReactNativeWebView.postMessage(JSON.stringify({ t: 'haptic', p })); } catch (e) {} return; }
+    if (navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} }
+  }
 
   /* A quiet crowd under the play, which can swell. One looping noise source, started on first use. */
   function crowd(level, glide) {
@@ -61,6 +66,7 @@
   }
 
   const SFX = {
+    buzz,
     unlock() { if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {}); },
     set(sound, haptics) { on = !!sound; hap = !!haptics; if (!on) crowd(0, 0.03); },
     /* interface: paper and card, never beeps */

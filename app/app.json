@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    "expo-splash-screen",
+    "expo-status-bar",
+    "expo-web-browser"
+  ]
+}

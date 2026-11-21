@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# generated native folders (Continuous Native Generation: never edit by hand)
+/ios
+/android
+.kotlin/
+
+# signing material must never be committed (EAS keeps the keystore)
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.keystore
+google-service-account*.json
+
+# local builds downloaded from EAS
+*.apk
+*.aab
+
+# misc
+.metro-health-check*
+npm-debug.*
+*.tsbuildinfo
+.DS_Store
+.env*.local
