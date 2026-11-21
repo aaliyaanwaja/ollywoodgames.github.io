@@ -158,14 +158,13 @@
   function homeNote(t) { const el = $('note'); if (!el) return; el.textContent = t; el.classList.add('on'); clearTimeout(noteT); noteT = setTimeout(() => el.classList.remove('on'), 2200); }
   function ticketHtml(i, nx, side) {
     const lv = LEVELS[i], r = rec(i), open = unlocked(i), st = story(lv), isNext = i === nx;
-    const top = st && (st.comp || st.match) ? [st.comp, st.match].filter(Boolean).map(esc).join(' · ') : lv.order.length + ' players · ' + lv.time + ' seconds';
-    const sub = st && st.opp ? 'v ' + esc(st.opp) + (st.minute != null && st.minute !== '' ? ' · ' + esc(st.minute) + '′' : '') : '';
-    const end = !open ? IC.lock : r ? stars(r.stars) + '<small>' + (+r.time).toFixed(1) + 's</small>' : '<span class="go">' + IC.next + '</span>';
+    const sub = st && st.opp ? 'v ' + esc(st.opp) : '';
+    const end = !open ? IC.lock : r ? stars(r.stars) : '<span class="go">' + IC.next + '</span>';
     const label = 'Fixture ' + (i + 1) + ', ' + lv.name + (open ? (r ? ', ' + r.stars + ' of 3 stars' : ', not played yet') : ', locked');
     return '<button class="tk ' + side + (open ? '' : ' lock') + (r ? ' done' : '') + (isNext ? ' next' : '') + '" data-l="' + i + '" aria-label="' + esc(label) + '">' +
       (isNext ? '<span class="flag">Next fixture</span>' : '') +
       '<span class="tk-stub"><small>No.</small><b>' + no(i) + '</b></span>' +
-      '<span class="tk-body"><small>' + top + '</small><b>' + esc(lv.name) + '</b>' + (sub ? '<em>' + sub + '</em>' : '') + '</span>' +
+      '<span class="tk-body"><b>' + esc(lv.name) + '</b>' + (sub ? '<em>' + sub + '</em>' : '') + '</span>' +
       '<span class="tk-end">' + end + '</span></button>';
   }
   const link = (from, done) => '<svg class="lk' + (done ? ' done' : '') + '" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path vector-effect="non-scaling-stroke" d="' +
@@ -194,7 +193,7 @@
     $('home').innerHTML =
       '<div class="scroll" id="scroll"><header class="mast"><div class="strip"><span>Official matchday programme</span><span>Price: nothing</span></div>' +
       '<div class="mast-main"><h1 class="title" id="brand">' + esc(GAME_NAME) + '</h1><button class="ib" id="bOpt" aria-label="Options">' + IC.gear + '</button></div>' +
-      '<div class="tally"><span>' + IC.star + '<b>' + total + '</b> of ' + LEVELS.length * 3 + ' stars</span><span><b>' + won + '</b> of ' + LEVELS.length + ' fixtures won</span></div></header>' +
+      '<div class="tally"><span>' + IC.star + '<b>' + total + '</b> of ' + LEVELS.length * 3 + ' stars</span></div></header>' +
       '<div class="path">' + path + '</div>' +
       '<p class="foot">' + (nx < 0 ? 'That is every fixture printed so far. More are at the printers. ' : '') + 'Progress is kept on this device only. No account, no tracking.' + (save.all ? ' All fixtures unlocked for testing.' : '') + '</p></div>' +
       '<div class="dock"><div id="note" role="status"></div><button class="cta" id="cta">' + cta + IC.next + '</button></div>';
@@ -273,6 +272,7 @@
     const lv = L(), a = lv.att[liveIdx()], k = kit(lv), decoy = a.role === 'decoy';
     $('who').innerHTML = '<div class="who-in">' + base(a.num, k.us, 'live') + '<span class="who-t"><small>Player ' + (round + 1) + ' of ' + lv.order.length + '</small><b>' + esc(a.name) + '</b></span></div>';
     fitTip(shortTip(a));
+    $('ctl').classList.toggle('quiet', !(li < 2 && !rec(li)));
     $('bPrev').disabled = round === 0; $('bRetry').disabled = false;
     const kb = $('kick'); kb.textContent = decoy ? 'DONE' : (sim && sim.isLast ? 'SHOOT' : 'PASS'); kb.classList.toggle('decoy', decoy);
     $('klabel').innerHTML = decoy ? 'Press when<br>your marker<br>has moved' : 'Press<br>drag to aim<br>release';
@@ -300,22 +300,17 @@
   function showBrief() {
     state = 'brief';
     const lv = L(), k = kit(lv), st = story(lv), ch = chapterOf(li), sc = scoreHtml(lv, false);
-    const sheet = lv.order.map((ai, n) => {
+    const order = lv.order.map((ai, n) => {
       const a = lv.att[ai];
-      return '<li>' + base(a.num, k.us) + '<div><b>' + esc(a.name) + (a.role === 'decoy' ? '<span class="tag">Decoy · no ball</span>' : '') + '</b><p>' + esc(a.tip) + '</p></div><span class="ord">' + ord(n) + '</span></li>';
+      return (n ? '<li class="arr" aria-hidden="true">' + IC.next + '</li>' : '') + '<li>' + base(a.num, k.us) + '<b>' + esc(a.name) + '</b>' + (a.role === 'decoy' ? '<small>no ball</small>' : '') + '</li>';
     }).join('');
-    const fixture = st
-      ? '<div class="fx">' + (st.comp || st.match ? '<div class="lbl">' + [st.comp, st.match].filter(Boolean).map(esc).join(' · ') + '</div>' : '') +
-        '<div class="fx-row"><div class="fx-opp"><b>' + (st.opp ? '<i>v</i> ' + esc(st.opp) : esc(ch.name)) + '</b><span class="kits">' + base('', k.us, 'sm') + '<span>' + (st.us ? esc(st.us) : 'You') + '</span>' + base('', k.them, 'sm') + '<span>Them</span></span></div>' +
-        (sc ? '<div class="board">' + sc + '</div>' : '') + '</div>' + (st.line ? '<p class="fx-line">' + esc(st.line) + '</p>' : '') + '</div>'
+    const fixture = st && st.opp
+      ? '<div class="fx slim"><b><i>v</i> ' + esc(st.opp) + '</b>' + (sc ? '<span class="board sm">' + sc + '</span>' : '') + '</div>'
       : '';
-    const first = li === 0 && !rec(0);
     showOv('page',
-      '<div class="pg brief"><div class="strip"><span>' + esc(ch.name) + '</span><span>Fixture No. ' + no(li) + '</span></div>' + fixture +
-      '<div class="lbl mv">The move</div><h1>' + esc(lv.name) + '</h1><p class="lede">' + esc(lv.brief) + '</p>' +
-      '<dl class="stats trio"><div><dd>' + lv.time + 's</dd><dt>On the clock</dt></div><div><dd>' + lv.order.length + '</dd><dt>Players, all you</dt></div><div><dd>' + stars(3) + '</dd><dt>2 retries or fewer</dt></div></dl>' +
-      '<div class="sheet-h"><span class="lbl">Team sheet</span><span class="lbl soft">You play each in turn</span></div><ol class="sheet">' + sheet + '</ol>' +
-      '<p class="fine">' + (first ? 'First time out, the coach will talk you through it.' : 'The clock starts when you first move. Every player shares it.') + '</p></div>' +
+      '<div class="pg brief lean"><div class="strip"><span>' + esc(st && st.comp ? [st.comp, st.match].filter(Boolean).join(' · ') : ch.name) + '</span><span>No. ' + no(li) + '</span></div>' + fixture +
+      '<h1>' + esc(lv.name) + '</h1><p class="lede">' + esc(lv.brief) + '</p>' +
+      '<div class="lbl soft ord-h">You play them in this order</div><ol class="order">' + order + '</ol></div>' +
       '<div class="pg-foot"><button class="btn sq" id="bk" aria-label="Back to fixtures">' + IC.back + '</button><button class="btn p" id="go">Kick off</button></div>',
       { go: () => { save.seenHow = true; persist(); SFX.whistle(); beginRound(); }, bk: showHome });
   }
@@ -340,12 +335,13 @@
     SFX[f[3]]();
     let what = f[1], tryIt = f[2];
     if (sim.failWho >= 0 && sim.failWho !== live && sim.reason !== 'bump' && recs[sim.failWho]) {
-      what += ' It happened to the ' + lv.att[sim.failWho].num + ', a part you had already recorded: your new run moved the defence.';
+      what = 'It happened to the ' + lv.att[sim.failWho].num + ', a part you already recorded. Your new run moved the defence.';
       tryIt = 'Change this run, or go back and redo the earlier player.';
+      if (li < 4 && !rec(li) && round === lv.order.length - 1) { what = 'You went early, so the defenders dropped back with you and cut out the pass.'; tryIt = 'Hold your run until the pass is hit, then go.'; }
     } else if (sim.reason === 'time' && round > 0) tryIt = 'If the earlier pass cannot be reached in time, redo the previous player.';
     const prevA = round > 0 ? lv.att[lv.order[round - 1]] : null;
-    showOv('sheet', '<div class="sh-top"><span class="tab">' + IC.whistle + (sim.tick / 60).toFixed(1) + 's</span><span class="lbl soft">No. ' + esc(a.num) + ' ' + esc(a.name) + ' · retry ' + fails + '</span></div>' +
-      '<h2>' + f[0] + '</h2><p>' + esc(what) + '</p><p class="try"><b>Try</b> ' + esc(tryIt) + '</p>' +
+    showOv('sheet', '<div class="sh-top"><span class="tab">' + IC.whistle + (sim.tick / 60).toFixed(1) + 's</span></div>' +
+      '<h2>' + f[0] + '</h2>' + (what !== f[1] ? '<p>' + esc(what) + '</p>' : '') + '<p class="try"><b>Try</b> ' + esc(tryIt) + '</p>' +
       '<div class="btns">' + (prevA ? '<button class="btn" id="pv">Redo the ' + esc(prevA.num) + '</button>' : '') + '<button class="btn p" id="re">Try again</button></div>',
       { re: beginRound, pv: redoPrev });
   }
@@ -377,7 +373,7 @@
     stampOff(); hudReplay();
     showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + '</span>' + (after ? '<span class="board sm">' + after + '</span>' : '') + '</div>' +
       '<div class="res">' + stars(st, 'big stampin') + '<dl class="stats"><div><dd>' + t.toFixed(1) + 's</dd><dt>' + (isBest ? 'New best' : 'Move') + '</dt></div><div><dd>' + fails + '</dd><dt>' + (fails === 1 ? 'Retry' : 'Retries') + '</dt></div></dl></div>' +
-      '<p class="verdict">' + (st === 3 ? (fails === 0 ? 'First time of asking. Frame it.' : 'Three stars. Nothing to add.') : st === 2 ? 'Two retries or fewer earns the third star.' : 'Six retries or fewer earns a second star.') + '</p>' + nextRow +
+      (st < 3 ? '<p class="verdict">' + (st === 2 ? 'Two retries or fewer earns the third star.' : 'Six retries or fewer earns a second star.') + '</p>' : '') + (seasonDone || last ? nextRow : '') +
       '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="nx">' + nxt + IC.next + '</button></div>',
       { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1) });
     if (reduced()) return;
@@ -434,13 +430,13 @@
 
   /* ---------- coach: short prompts tied to what the player has not done yet ---------- */
   const COACH = {
-    k0: ['Drag anywhere to run. Your left thumb will do nicely.', 'pad', 'top'],
-    k1: ['Now press <b>PASS</b>, keep holding and drag towards the 9.', 'kick', 'top'],
-    k2: ['Keep holding. Drag towards the 9: further is harder.', 'kick', 'top'],
+    k0: ['Drag anywhere to run.', 'pad', 'top'],
+    k1: ['Now press <b>PASS</b>, hold, and drag towards the 9.', 'kick', 'top'],
+    k2: ['Keep holding. Drag further for a harder pass.', 'kick', 'top'],
     k3: ['Let go to play it.', 'kick', 'top'],
-    k4: ['Played. Now for the other end of it.', '', 'top'],
-    s0: ['Now you are the striker. Your own pass is coming. Drag to start.', 'pad', 'top'],
-    s1: ['Stay level with the last defender until the pass is hit.', '', 'top'],
+    k4: ['Played. Now you become the striker.', '', 'top'],
+    s0: ['You are the 9 now. Your own pass is coming. Drag to start.', 'pad', 'top'],
+    s1: ['Wait for the pass to be hit.', '', 'top'],
     s2: ['It is on its way. Run onto it.', 'pad', 'top'],
     s3: ['You have it. Press <b>SHOOT</b> and drag at the goal.', 'kick'],
     s4: ['Pick a corner, then let go.', 'kick'],
@@ -448,11 +444,42 @@
     d1: ['When he has gone far enough, press <b>DONE</b>.', 'kick', 'top']
   };
   const tutorial = () => li === 0 && !rec(0) && L().order.length === 2;
+  /* Moves 2-4, first time through: one prompt per situation. r ready, w waiting for the pass, i pass on its way,
+     h on the ball, a aiming, k played. Keyed by round within the move. */
+  const TUT = {
+    1: [
+      { r: 'Two defenders this time. Drag to start.', h: 'Press <b>PASS</b> and drag at the gap between the two defenders.', a: 'Through the middle of them. Let go to play it.', k: 'Played. Now time the run.' },
+      { r: 'You are the 9. See the yellow line? That is offside.', w: 'Stay behind the yellow line until the pass is hit.', i: 'It is hit. Go now, run onto it.', h: 'Press <b>SHOOT</b> and drag at a corner.', a: 'Away from the keeper, then let go.' }
+    ],
+    2: [
+      { r: 'Three players now. You start with the 6.', h: 'Pass down the right, into the space <b>ahead</b> of the 7.', a: 'Aim where he will be, not where he is. Let go.', k: 'Played. Now be the winger.' },
+      { r: 'You are the 7. Set off early so you arrive with the ball.', w: 'Run up the line. Your pass is coming.', i: 'Take it in your stride.', h: 'Carry it to the byline, then press <b>PASS</b> and drag back towards the penalty spot.', a: 'Into the space in front of goal. The 9 will be there.', k: 'Played. One more: the finish.' },
+      { r: 'You are the 9. The pull-back comes late. Do not go too soon.', w: 'Wait for the winger to reach the byline, then move.', i: 'Now arrive. Meet it in front of goal.', h: 'Press <b>SHOOT</b> and drag at the goal.', a: 'Let go.' }
+    ],
+    3: [
+      null,
+      { r: 'The middle is empty now. You are the 8.', h: 'Press <b>PASS</b> and drag through the gap your decoy left.', a: 'Into the space for the 11. Let go.', k: 'Played. Now finish it.' },
+      { r: 'You are the 11. Run in from the left to meet your pass.', w: 'Start your run. Stay behind the yellow line.', i: 'It is on its way. Run onto it.', h: 'Press <b>SHOOT</b> and drag at a corner.', a: 'Let go.' }
+    ]
+  };
+  function tutKey(me, b) {
+    const t = TUT[li] && !rec(li) ? TUT[li][round] : null; if (!t) return null;
+    let ph;
+    if (sim.liveKickTick >= 0) ph = sim.tick - sim.liveKickTick < 50 ? 'k' : '';
+    else if (state === 'ready' && sim.tick === 0) ph = 'r';
+    else if (b.owner === sim.live) ph = inp.charging ? 'a' : 'h';
+    else ph = b.owner < 0 && b.lastKicker >= 0 ? 'i' : 'w';
+    if (!ph || !t[ph]) return '';
+    const onBall = ph === 'h' || ph === 'a', top = !onBall || me.y > 30, key = 't' + li + round + ph + (top ? 'T' : 'B');
+    COACH[key] = [t[ph], onBall ? 'kick' : ph === 'k' ? '' : 'pad', top ? 'top' : ''];
+    return key;
+  }
   function coachState() {
     if (state !== 'ready' && state !== 'play') return '';
     const a = L().att[liveIdx()], me = sim.att[sim.live], b = sim.ball;
     if (state === 'ready' && sim.tick > 0) return 'paused';
     if (a.role === 'decoy' && !save.seenDecoy) return state === 'play' && sim.tick > 50 ? 'd1' : 'd0';
+    const tk = tutKey(me, b); if (tk !== null) return tk;
     if (!tutorial()) return state === 'ready' ? 'ready' : '';
     if (round === 0) {
       if (sim.liveKickTick >= 0) return 'k4';
@@ -473,6 +500,7 @@
     const top = !!(COACH[key] && COACH[key][2] === 'top');
     el.innerHTML = html; el.className = html ? 'on' + (COACH[key] ? ' coach' : '') + (top ? ' top' : '') : '';
     $('stage').classList.toggle('coach-top', top);
+    $('tip').classList.toggle('mute', !!COACH[key]);
     $('pad').classList.toggle('cue', cue === 'pad' || key === 'ready'); $('kickwrap').classList.toggle('cue', cue === 'kick');
   }
 

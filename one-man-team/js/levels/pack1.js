@@ -1,69 +1,61 @@
-/* Pack 1: the basics (moves 1-4).
-   Defences use the engine-v2 types: `line` (back-line unit), `zone` (screening midfielder), `press`, `mark`.
+/* Pack 1: the opening four. Deliberately gentle: one or two defenders, generous clocks, a slower keeper.
+   Each adds exactly one idea: pass and finish, the offside line, a third player, a decoy.
    See tools/LEVEL_DESIGN.md. */
 (function (root) {
   const L = (root.OMT_LEVELS = root.OMT_LEVELS || []);
   L.push({
-      name: 'Through ball', time: 9,
-      brief: 'Two players. Slide it in behind, then be the one who runs onto it.',
+      name: 'First pass', time: 12,
+      brief: 'Pass it forward, then be the striker who runs onto it.',
+      gk: { react: 22 },
       att: [
-        { num: 8, name: 'Playmaker', x: 25, y: 50, role: 'ball', tip: 'Carry it away from the holding midfielder, then slide a pass between the centre-halves for the 9.' },
-        { num: 9, name: 'Striker', x: 28, y: 26.6, role: 'ball', tip: 'Your pass is coming. Stay level with the last defender until it is hit, then run on and finish.' }
+        { num: 8, name: 'Playmaker', x: 25, y: 46, role: 'ball', tip: 'Pass it into the space in front of the 9.' },
+        { num: 9, name: 'Striker', x: 25, y: 27, role: 'ball', tip: 'Run onto your own pass and score.' }
       ],
       order: [0, 1],
       def: [
-        { t: 'zone', x: 25, y: 40, spd: 5.0, eng: 4 },
-        { t: 'line', x: 10, y: 25, spd: 5.0 }, { t: 'line', x: 20, y: 25, spd: 5.0 },
-        { t: 'line', x: 30, y: 25, spd: 5.0 }, { t: 'line', x: 40, y: 25, spd: 5.0 }
+        { t: 'zone', x: 13, y: 23, spd: 4.0, eng: 4, leash: 6 }
       ]
     },
     {
-      name: 'Down the wing', time: 13,
-      brief: 'Three players. Out wide, cross it low, arrive in the box.',
+      name: 'Through ball', time: 12,
+      brief: 'Two defenders hold a line. Go beyond it only once the pass is on its way.',
+      gk: { react: 18 },
       att: [
-        { num: 6, name: 'Holder', x: 25, y: 52, role: 'ball', tip: 'Find the 7 on the right. Play it where he can reach it before the full-back.' },
-        { num: 7, name: 'Winger', x: 42, y: 41, role: 'ball', tip: 'Shake the full-back, collect the pass, get to the byline and cut it back for the 9.' },
-        { num: 9, name: 'Striker', x: 24, y: 25, role: 'ball', tip: 'Arrive late in front of the back line. Aim before the cut-back comes and release as it arrives to hit it first time.' }
+        { num: 8, name: 'Playmaker', x: 25, y: 48, role: 'ball', tip: 'Slide it between the two defenders for the 9.' },
+        { num: 9, name: 'Striker', x: 25, y: 27.5, role: 'ball', tip: 'Wait behind the yellow line. Go when the pass is hit.' }
+      ],
+      order: [0, 1],
+      def: [
+        { t: 'line', x: 18, y: 25, spd: 4.6 }, { t: 'line', x: 32, y: 25, spd: 4.6 }
+      ]
+    },
+    {
+      name: 'Down the wing', time: 14,
+      brief: 'Three players now. Out to the winger, pulled back, tapped in.',
+      gk: { react: 16 },
+      att: [
+        { num: 6, name: 'Holder', x: 25, y: 50, role: 'ball', tip: 'Play it down the right, ahead of the 7.' },
+        { num: 7, name: 'Winger', x: 41, y: 40, role: 'ball', tip: 'Run onto it, reach the byline, pull it back for the 9.' },
+        { num: 9, name: 'Striker', x: 24, y: 26, role: 'ball', tip: 'Arrive as the ball does and finish.' }
       ],
       order: [0, 1, 2],
       def: [
-        { t: 'zone', x: 25, y: 42, spd: 5.2, eng: 6 },
-        { t: 'mark', a: 1, x: 40.6, y: 38.3, spd: 5.4, eng: 3.5 },
-        { t: 'line', x: 12, y: 23.5, spd: 5.2, eng: 5 }, { t: 'line', x: 22, y: 23.5, spd: 5.2, eng: 5 }, { t: 'line', x: 32, y: 23.5, spd: 5.2, eng: 5 }
+        { t: 'mark', a: 1, x: 40, y: 37.8, spd: 4.6, eng: 3.5, react: 26 },
+        { t: 'zone', x: 21, y: 19, spd: 4.6, eng: 5, leash: 8 }
       ]
     },
     {
-      name: 'The decoy', time: 12,
-      brief: 'Your first run never touches the ball. It only exists to drag a defender out of the way.',
+      name: 'The decoy', time: 13,
+      brief: 'Your first player never touches the ball. His run drags a defender out of the way.',
       att: [
-        { num: 10, name: 'Decoy', x: 25, y: 27, role: 'decoy', tip: 'No ball for you. Your marker follows wherever you go: pull him out of the middle, then press DONE.' },
-        { num: 8, name: 'Playmaker', x: 25, y: 52, role: 'ball', tip: 'Carry right, away from the screen, then slip the 11 in through the gap your decoy opened.' },
-        { num: 11, name: 'Inside forward', x: 9, y: 31, role: 'ball', tip: 'Cut inside off the left, stay onside, finish.' }
+        { num: 10, name: 'Decoy', x: 25, y: 28, role: 'decoy', tip: 'Run wide. Your marker follows you. Then press DONE.' },
+        { num: 8, name: 'Playmaker', x: 25, y: 50, role: 'ball', tip: 'Pass through the gap the decoy left, for the 11.' },
+        { num: 11, name: 'Forward', x: 14, y: 30, role: 'ball', tip: 'Run in from the left, onto the pass, and score.' }
       ],
       order: [0, 1, 2],
       def: [
-        { t: 'mark', a: 0, x: 25, y: 24.6, spd: 5.6, eng: 4 },
-        { t: 'zone', x: 21, y: 43, spd: 5.2, eng: 6 },
-        { t: 'mark', a: 2, x: 10.4, y: 28.4, spd: 5.4, eng: 3.5 },
-        { t: 'line', x: 34, y: 24, spd: 5.2 }, { t: 'line', x: 43, y: 24, spd: 5.2 }
-      ]
-    },
-    {
-      name: 'Tiki-taka', time: 14,
-      brief: 'Four players, three passes, one clock. Every run has to fit around the ones before it.',
-      att: [
-        { num: 6, name: 'Holder', x: 25, y: 54, role: 'ball', tip: 'Start it. Find the 8 on the left before the press arrives.' },
-        { num: 8, name: 'Link', x: 13, y: 43, role: 'ball', tip: 'Come off your marker, take it, and move it on to the 10 between the lines.' },
-        { num: 10, name: 'Creator', x: 31, y: 33, role: 'ball', tip: 'Receive on the turn and thread the 9 through.' },
-        { num: 9, name: 'Striker', x: 21, y: 22, role: 'ball', tip: 'Last touch. Time it, stay onside, score.' }
-      ],
-      order: [0, 1, 2, 3],
-      def: [
-        { t: 'press', x: 25, y: 46, spd: 5.4 },
-        { t: 'mark', a: 1, x: 13.9, y: 40.6, spd: 5.3, eng: 3.5 },
-        { t: 'mark', a: 2, x: 30.6, y: 30.6, spd: 5.0, eng: 3.5 },
-        { t: 'line', x: 7, y: 20, spd: 5.1 }, { t: 'line', x: 16.5, y: 20, spd: 5.1 },
-        { t: 'line', x: 26, y: 20, spd: 5.1 }, { t: 'line', x: 35.5, y: 20, spd: 5.1 }
+        { t: 'mark', a: 0, x: 25, y: 25.8, spd: 5.2, eng: 3.5 },
+        { t: 'zone', x: 36, y: 22, spd: 4.8, eng: 5, leash: 8 }
       ]
     });
 })(typeof module !== 'undefined' ? global : window);

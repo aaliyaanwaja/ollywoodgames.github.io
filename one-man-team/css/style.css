@@ -190,7 +190,8 @@ button:disabled { cursor: default; }
 #marks i { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--mustard); border: 2px solid var(--ink); transform: rotate(45deg); z-index: 1; }
 #secs { width: 40px; flex: none; text-align: center; font: 400 18px/24px var(--display); letter-spacing: .02em; border-radius: 4px; font-variant-numeric: tabular-nums; }
 #clock.late #secs { background: var(--ink); color: var(--chalk); }
-#tip { margin-top: 8px; height: 38px; font: 500 14.5px/19px var(--text); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#tip { margin-top: 6px; height: 38px; font: 500 14.5px/19px var(--text); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#tip.mute { visibility: hidden; }
 
 #stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: var(--paper-shade);
   background-image: radial-gradient(circle, rgba(20, 33, 61, .13) 1.2px, transparent 1.6px); background-size: 8px 8px; }
@@ -354,3 +355,19 @@ canvas { display: block; }
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
   #pad.cue { background: #F6DC86; } #kickwrap.cue #kick { box-shadow: var(--shadow), 0 0 0 5px var(--mustard); }
 }
+
+/* --- lean briefing: the move is the hero, one line of what to do, who you play --- */
+.fx.slim { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 0; padding: 0; background: none; border: 0; box-shadow: none; }
+.fx.slim b { min-width: 0; font: 700 17px/1.1 var(--label); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx.slim b i { font-style: normal; text-transform: lowercase; }
+.brief.lean h1 { margin: 28px 0 10px; font-size: clamp(44px, 14vw, 64px); line-height: .95; }
+.brief.lean .lede { font-size: 18px; line-height: 1.4; max-width: 22em; }
+.ord-h { margin-top: 30px; padding-top: 12px; border-top: 2px solid var(--ink); }
+.order { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 6px; }
+.order li { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 64px; }
+.order li b { font: 700 13px/1 var(--label); letter-spacing: .06em; text-transform: uppercase; }
+.order li small { font: 600 11px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.order li.arr { min-width: 0; padding-top: 12px; color: var(--ink-soft); }
+.order li.arr svg { width: 18px; height: 18px; }
+/* --- controls: the written reminders only appear on the first two moves --- */
+#ctl.quiet #klabel, #ctl.quiet #pad { visibility: hidden; }
