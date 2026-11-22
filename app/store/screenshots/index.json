@@ -1,0 +1,162 @@
+{
+  "android": {
+    "size": "1080 x 1920",
+    "caption_block_px": 361,
+    "caption_block_share": 0.188,
+    "caption_type_px": 106,
+    "screenshots": [
+      {
+        "file": "android/01-goal.png",
+        "caption": "YOU PLAY EVERY PLAYER",
+        "alt": "A goal on a felt pitch with confetti, and the runs of three earlier players drawn in chalk",
+        "alt_chars": 90,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/02-pass.png",
+        "caption": "FIRST, PLAY THE PASS",
+        "alt": "The first player aims a pass with the aim line showing and the pass button held down",
+        "alt_chars": 84,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/03-rewind.png",
+        "caption": "REWIND. NOW RUN ONTO IT",
+        "alt": "A second player runs onto the pass while the first player replays his recorded part",
+        "alt_chars": 83,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/04-defenders.png",
+        "caption": "DEFENDERS REACT TO EVERY RUN",
+        "alt": "A full-back has followed the winger inside, leaving the touchline free for the overlapping runner",
+        "alt_chars": 97,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/05-decoy.png",
+        "caption": "A DECOY NEVER TOUCHES THE BALL",
+        "alt": "A decoy runner pulls his marker away while the recorded pass travels through the gap",
+        "alt_chars": 84,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/06-offside.png",
+        "caption": "MIND YOUR OWN OFFSIDE LINE",
+        "alt": "The offside line across the pitch while the striker waits for a pass from his own earlier player",
+        "alt_chars": 96,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/07-replay.png",
+        "caption": "WATCH THE WHOLE MOVE BACK",
+        "alt": "Result sheet with three stars, the move time and the number of takes, over the action replay",
+        "alt_chars": 92,
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "file": "android/08-career.png",
+        "caption": "THREE STARS FOR A QUICK MOVE",
+        "alt": "Fixture list of ticket stubs with stars earned, the next fixture flagged and later ones locked",
+        "alt_chars": 94,
+        "width": 1080,
+        "height": 1920
+      }
+    ]
+  },
+  "ios": {
+    "size": "1320 x 2868",
+    "caption_block_px": 539,
+    "caption_block_share": 0.188,
+    "caption_type_px": 136,
+    "screenshots": [
+      {
+        "file": "ios/01-goal.png",
+        "caption": "YOU PLAY EVERY PLAYER",
+        "alt": "A goal on a felt pitch with confetti, and the runs of three earlier players drawn in chalk",
+        "alt_chars": 90,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/02-pass.png",
+        "caption": "FIRST, PLAY THE PASS",
+        "alt": "The first player aims a pass with the aim line showing and the pass button held down",
+        "alt_chars": 84,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/03-rewind.png",
+        "caption": "REWIND. NOW RUN ONTO IT",
+        "alt": "A second player runs onto the pass while the first player replays his recorded part",
+        "alt_chars": 83,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/04-defenders.png",
+        "caption": "DEFENDERS REACT TO EVERY RUN",
+        "alt": "A full-back has followed the winger inside, leaving the touchline free for the overlapping runner",
+        "alt_chars": 97,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/05-decoy.png",
+        "caption": "A DECOY NEVER TOUCHES THE BALL",
+        "alt": "A decoy runner pulls his marker away while the recorded pass travels through the gap",
+        "alt_chars": 84,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/06-offside.png",
+        "caption": "MIND YOUR OWN OFFSIDE LINE",
+        "alt": "The offside line across the pitch while the striker waits for a pass from his own earlier player",
+        "alt_chars": 96,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/07-replay.png",
+        "caption": "WATCH THE WHOLE MOVE BACK",
+        "alt": "Result sheet with three stars, the move time and the number of takes, over the action replay",
+        "alt_chars": 92,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/08-career.png",
+        "caption": "THREE STARS FOR A QUICK MOVE",
+        "alt": "Fixture list of ticket stubs with stars earned, the next fixture flagged and later ones locked",
+        "alt_chars": 94,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/09-season.png",
+        "caption": "A CAREER OF MATCH MOMENTS",
+        "alt": "End of season report with a rosette, stars won, fixtures won and the season table",
+        "alt_chars": 81,
+        "width": 1320,
+        "height": 2868
+      },
+      {
+        "file": "ios/10-practice.png",
+        "caption": "LEARN IT IN FOUR SHORT DRILLS",
+        "alt": "A practice drill: the coach explains how to aim a shot away from the goalkeeper",
+        "alt_chars": 79,
+        "width": 1320,
+        "height": 2868
+      }
+    ]
+  }
+}

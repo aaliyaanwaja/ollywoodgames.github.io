@@ -4,10 +4,47 @@
     "slug": "one-man-team",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["android"],
+    "platforms": ["android", "ios"],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F2EAD8",
+    "ios": {
+      "bundleIdentifier": "com.ollywoodgames.onemanteam",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "userInterfaceStyle": "light",
+      "icon": "./assets/icon.png",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "en",
+        "RCTAsyncStorageExcludeFromBackup": false
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1", "0A2A.1", "3B52.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": ["E174.1", "85F4.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
+          }
+        ]
+      }
+    },
     "android": {
       "package": "com.ollywoodgames.onemanteam",
       "versionCode": 1,
@@ -20,11 +57,7 @@
         "backgroundColor": "#2F7D4F"
       },
       "permissions": ["android.permission.VIBRATE"],
-      "blockedPermissions": [
-        "android.permission.SYSTEM_ALERT_WINDOW",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
-      ]
+      "blockedPermissions": ["android.permission.SYSTEM_ALERT_WINDOW", "android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"]
     },
     "plugins": [
       [
@@ -36,8 +69,19 @@
           "resizeMode": "contain"
         }
       ],
-      ["expo-status-bar", { "style": "dark" }],
-      ["expo-navigation-bar", { "enforceContrast": false, "style": "dark" }],
+      [
+        "expo-status-bar",
+        {
+          "style": "dark"
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false,
+          "style": "dark"
+        }
+      ],
       "expo-system-ui",
       "expo-dev-client"
     ]

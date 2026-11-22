@@ -21,15 +21,15 @@ LEVEL = 1   # zero-based: the level the bot completes. Level 0 is seeded as alre
 def node(code):
     return subprocess.check_output(['node', '-e', code], cwd=APP).decode()
 
-def prepared_page(save):
-    """The same two calls App.tsx makes."""
+def prepared_page(save, platform='android'):
+    """The same two calls App.tsx makes. `platform` is what App.tsx passes from Platform.OS."""
     code = ("const S=require('./src/page-script.js'),G=require('./src/game-html.js');"
             "const save=JSON.parse(process.argv[1]);"
-            "const script=S.bootstrapScript({save,version:require('./app.json').expo.version,insets:{top:31,right:0,bottom:17,left:0}});"
+            "const script=S.bootstrapScript({save,version:require('./app.json').expo.version,insets:{top:31,right:0,bottom:17,left:0},platform:process.argv[2]});"
             "process.stdout.write(JSON.stringify({html:S.withBootstrap(G.GAME_HTML,script),base:S.BASE_URL,script,"
             "back:S.backScript(),hide:S.setActiveScript(false),show:S.setActiveScript(true),"
             "insets:S.insetsScript({top:40,right:0,bottom:20,left:0})}))")
-    return json.loads(subprocess.check_output(['node', '-e', code, json.dumps(save)], cwd=APP).decode())
+    return json.loads(subprocess.check_output(['node', '-e', code, json.dumps(save), platform], cwd=APP).decode())
 
 FAKE_NATIVE = """window.__posted = []; window.ReactNativeWebView = { postMessage: function (m) { window.__posted.push(m); } };"""
 
@@ -89,6 +89,9 @@ async def main():
         ctx, page, errs, external = await open_game(browser, prep, local_storage=json.dumps(stale))
         nat = await page.evaluate("window.__OMT_NATIVE__")
         ok(nat and nat['save'] == json.dumps(seeded) and nat['version'] == '1.0.0', 'window.__OMT_NATIVE__ = { save, version } exists before the game runs', nat)
+        ok(nat.get('platform') == 'android', 'window.__OMT_NATIVE__.platform is android by default', nat.get('platform'))
+        ob = await page.evaluate("[getComputedStyle(document.getElementById('scroll')).overscrollBehaviorY, getComputedStyle(document.documentElement).touchAction, document.querySelectorAll('#omt-shell-css').length]")
+        ok(ob == ['none', 'manipulation', 1], 'the shell stylesheet is in the page once: inner lists cannot overscroll, no double-tap zoom', ob)
         ok(await page.evaluate("location.href") == prep['base'] and await page.evaluate("window.isSecureContext"), 'page runs at the shell base URL in a secure context')
         ok(await page.evaluate("(function(){try{localStorage.setItem('omt.t','1');return localStorage.getItem('omt.t')==='1'}catch(e){return false}})()"), 'localStorage works at that origin')
         ok((await page.evaluate("__omt.info()"))['state'] == 'home', 'game reached its home screen', await page.evaluate("__omt.info()"))
@@ -153,15 +156,44 @@ async def main():
         ok(not errs, 'no console errors', errs)
         await ctx.close()
 
-        print('C. first launch, no stored save')
-        prep0 = prepared_page(None)
+        print('C. first launch on iOS, no stored save: cover, practice drills, then fixture 1')
+        prep0 = prepared_page(None, 'ios')
         ctx, page, errs, external = await open_game(browser, prep0)
         nat = await page.evaluate("window.__OMT_NATIVE__")
         ok(nat['save'] is None, 'window.__OMT_NATIVE__.save is null')
+        ok(nat.get('platform') == 'ios', 'window.__OMT_NATIVE__.platform is ios when the shell says so', nat.get('platform'))
+        # The current game opens on the programme cover and goes to the practice drills before fixture 1.
+        ok(await page.evaluate("document.getElementById('home').classList.contains('cover')"), 'first launch shows the programme cover')
+        await page.click('#cta'); await page.wait_for_timeout(400)
+        card = await page.evaluate("document.getElementById('card').innerText")
+        ok('PRACTICE' in card.upper() and await page.evaluate("!!document.getElementById('sk')"), 'Kick off leads to the first practice drill, with a way to skip', card[:120])
+        await page.evaluate(prep0['back']); await page.wait_for_timeout(300)
+        b = await posted(page, 'back')
+        ok(len(b) == 1 and b[0]['handled'] is True, 'back during a practice drill is handled by the page', b)
+        # back went to the fixtures; the drills stay reachable from Options
+        await page.click('#bOpt'); await page.wait_for_timeout(300)
+        await page.click('#oPrac'); await page.wait_for_timeout(400)
+        await page.click('#sk'); await page.wait_for_timeout(400)
+        saves = await posted(page, 'save')
+        last = json.loads(saves[-1]['v']) if saves else {}
+        st0 = await page.evaluate("__omt.info()")
+        ok(last.get('practised') is True and st0['li'] == 0 and st0['state'] == 'brief', 'skipping practice is saved through the bridge and opens fixture 1', (last.get('practised'), st0))
+        # the optional slow-aim setting travels through the bridge like every other setting
+        await page.evaluate("__omt.home()"); await page.wait_for_timeout(300)
+        await page.click('#bOpt'); await page.wait_for_timeout(300)
+        has_slow = await page.evaluate("!!document.getElementById('oSlow')")
+        if has_slow: await page.click('#oSlow'); await page.wait_for_timeout(200)
+        saves = await posted(page, 'save')
+        last = json.loads(saves[-1]['v']) if saves else {}
+        ok(has_slow and last.get('slow') is True, 'switching slow aim on posts a save with slow: true', (has_slow, last.get('slow')))
+        await page.click('#oSlow'); await page.wait_for_timeout(200); await page.click('#x'); await page.wait_for_timeout(200)
         st = await play_level(page, 0)
         saves = await posted(page, 'save')
         last = json.loads(saves[-1]['v']) if saves else {}
-        ok(st and st['state'] == 'goal' and levels[0] in last.get('done', {}), 'first level completed from a clean start and its result was posted', (st, list(last.get('done', {}))))
+        r0 = last.get('done', {}).get(levels[0])
+        ok(st and st['state'] == 'goal' and isinstance(r0, dict), 'first level completed from a clean start and its result was posted', (st, list(last.get('done', {}))))
+        ok(isinstance(r0, dict) and r0.get('stars') in (1, 2, 3) and isinstance(r0.get('time'), (int, float)) and r0.get('time') > 0 and 'retries' in r0,
+           'the posted result carries the move time the stars are graded on', r0)
         ok(not errs, 'no console errors', errs)
         await ctx.close()
         await browser.close()

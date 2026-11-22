@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { Linking, Vibration } from 'react-native';
+import { Linking, Platform, Vibration } from 'react-native';
 
 import { externalUrl, hapticPlan, parseMessage, type PageMessage } from './page-script';
 import { storeSave } from './storage';
@@ -34,9 +34,17 @@ const handlers: Record<string, Handler> = {
   },
   // { t: 'haptic', p: number | number[] } in Vibration-API milliseconds
   haptic(msg) {
-    const plan = hapticPlan(msg.p);
+    const plan = hapticPlan(msg.p, Platform.OS);
     if (plan.kind === 'impact') Haptics.impactAsync(IMPACT[plan.style]).catch(() => {});
-    else if (plan.kind === 'pattern') Vibration.vibrate(plan.pattern);
+    else if (plan.kind === 'pattern') Vibration.vibrate(plan.pattern); // Android: the motor plays the rhythm
+    else if (plan.kind === 'sequence') {
+      // iOS: one Taptic impact per beat (see hapticPlan). The longest pattern the game sends lasts under 0.4 s.
+      for (const step of plan.steps) {
+        const fire = () => Haptics.impactAsync(IMPACT[step.style]).catch(() => {});
+        if (step.at <= 0) fire();
+        else setTimeout(fire, step.at);
+      }
+    }
   },
   // { t: 'open', url } for a link that leaves the game (sent by the shell's own click interceptor)
   open(msg) {

@@ -6,12 +6,16 @@
   "scripts": {
     "sync-game": "node scripts/sync-game.js",
     "art": "python3 scripts/make-art.py",
+    "screenshots": "python3 scripts/make-screenshots.py",
     "start": "npm run sync-game && expo start",
     "android": "npm run sync-game && expo start --android",
+    "ios": "npm run sync-game && expo start --ios",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "test": "node scripts/sync-game.js --check && node tests/shell.test.js && python3 tests/bridge_test.py",
     "check": "npm run typecheck && npm run lint && npm test",
+    "check-native": "node scripts/check-native.js",
+    "check-listing": "python3 scripts/count-listing.py",
     "eas-build-pre-install": "node scripts/sync-game.js --check --lenient"
   },
   "dependencies": {

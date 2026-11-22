@@ -22,10 +22,23 @@ function cleanInsets(i) {
   return { top: n(i && i.top), right: n(i && i.right), bottom: n(i && i.bottom), left: n(i && i.left) };
 }
 
+/* Rules the shell adds on top of the game's own stylesheet, on both platforms. `!important` because this sheet is
+   inserted before the game's.
+   - overscroll-behavior: none on every scroller: the fixtures list and the programme pages scroll inside the page,
+     where the WebView's own bounce/overscroll switches do not reach. Without this an inner list rubber-bands on iOS
+     and shows the stretch or glow on Android.
+   - touch-action: manipulation on the root: no double-tap zoom anywhere (the game sets `none` on the pitch itself).
+   - no callout, no tap highlight: WKWebView's long-press sheet and grey flash. */
+const SHELL_CSS =
+  '*{overscroll-behavior:none!important;-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent!important}' +
+  'html{touch-action:manipulation;-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}';
+
 /* Runs in the page before any of the game's own scripts. It is delivered twice (spliced into the HTML and through
-   injectedJavaScriptBeforeContentLoaded) and is written so that the second arrival does nothing. */
+   injectedJavaScriptBeforeContentLoaded) and is written so that the second arrival does nothing.
+   opts.platform is 'ios' or 'android' (React Native's Platform.OS); anything else is reported as 'android'. */
 function bootstrapScript(opts) {
-  const native = { save: typeof opts.save === 'string' ? opts.save : null, version: String(opts.version), platform: 'android' };
+  const platform = opts.platform === 'ios' ? 'ios' : 'android';
+  const native = { save: typeof opts.save === 'string' ? opts.save : null, version: String(opts.version), platform };
   return '(function(){' +
     'if(window.__omtShell)return;' +
     'var W=window,D=document;' +
@@ -39,6 +52,11 @@ function bootstrapScript(opts) {
     'var first=' + scriptJson(cleanInsets(opts.insets)) + ';insets(first);' +
     'D.addEventListener("DOMContentLoaded",function(){insets(first);});' +
 
+    /* the shell's own style rules (see SHELL_CSS) */
+    'var css=function(){if(D.getElementById("omt-shell-css"))return;var p=D.head||D.documentElement;if(!p)return;' +
+      'var s=D.createElement("style");s.id="omt-shell-css";s.textContent=' + scriptJson(SHELL_CSS) + ';p.appendChild(s);};' +
+    'try{css();}catch(e){}D.addEventListener("DOMContentLoaded",function(){try{css();}catch(e){}});' +
+
     /* every AudioContext the page makes is remembered, so the shell can silence it when the app is backgrounded */
     'var ctxs=[],paused=[];' +
     '["AudioContext","webkitAudioContext"].forEach(function(k){var A=W[k];if(typeof A!=="function"||typeof Proxy!=="function")return;' +
@@ -51,7 +69,8 @@ function bootstrapScript(opts) {
         'Object.defineProperty(D,"hidden",{configurable:true,get:function(){return true;}});' +
         'Object.defineProperty(D,"visibilityState",{configurable:true,get:function(){return "hidden";}});}}catch(e){}' +
       'try{D.dispatchEvent(new Event("visibilitychange"));}catch(e){}' +
-      'if(on){paused.forEach(function(c){try{c.resume().catch(function(){});}catch(e){}});paused=[];}' +
+      /* on return: resume what the shell suspended, and anything iOS itself interrupted (a call, Siri, an alarm) */
+      'if(on){ctxs.forEach(function(c){if(paused.indexOf(c)>=0||c.state==="interrupted"){try{c.resume().catch(function(){});}catch(e){}}});paused=[];}' +
       'else{ctxs.forEach(function(c){if(c.state==="running"){paused.push(c);try{c.suspend().catch(function(){});}catch(e){}}});}};' +
 
     /* hardware back: ask the game; tell the shell whether it did anything */
@@ -112,25 +131,36 @@ function validSave(v) {
 /* The game speaks Vibration-API: a duration in ms, or [buzz, gap, buzz, gap, ...].
    - One short buzz is a tap. Raw 8 to 20 ms motor pulses are weak or silent on many phones, so these become
      tuned impact effects: up to 12 ms light, up to 30 ms medium, longer heavy.
-   - A pattern is a rhythm (whistle, goal, denied) and is kept as a rhythm, with each part clamped. Android's
-     pattern form starts with a wait, hence the leading 0. */
-function hapticPlan(p) {
+   - A pattern is a rhythm (whistle, goal, denied) and is kept as a rhythm, with each part clamped.
+     Android: the motor plays it as written; Android's pattern form starts with a wait, hence the leading 0.
+     iOS: an iPhone cannot buzz for a chosen number of milliseconds. React Native's Vibration on iOS ignores the
+     durations and plays the long system buzz once per entry, which would turn a 100 ms whistle into over a second
+     of rattling. So on iOS a pattern becomes a `sequence`: one Taptic impact per buzz, at the moment that buzz
+     would have started, its weight chosen from the buzz length exactly as for a single tap. */
+const impactStyle = ms => (ms <= 12 ? 'light' : ms <= 30 ? 'medium' : 'heavy');
+function hapticPlan(p, platform) {
   const ok = v => typeof v === 'number' && isFinite(v) && v >= 0;
   if (ok(p)) {
     if (p < 1) return { kind: 'none' };
-    return { kind: 'impact', style: p <= 12 ? 'light' : p <= 30 ? 'medium' : 'heavy' };
+    return { kind: 'impact', style: impactStyle(p) };
   }
   if (Array.isArray(p) && p.length > 0 && p.every(ok)) {
     const parts = p.slice(0, 12).map(v => Math.min(400, Math.round(v)));
-    if (parts.length === 1) return hapticPlan(parts[0]);
+    if (parts.length === 1) return hapticPlan(parts[0], platform);
     if (!parts.some((v, i) => i % 2 === 0 && v > 0)) return { kind: 'none' };
+    if (platform === 'ios') {
+      const steps = []; let at = 0;
+      parts.forEach((v, i) => { if (i % 2 === 0 && v > 0) steps.push({ at, style: impactStyle(v) }); at += v; });
+      return { kind: 'sequence', steps };
+    }
     return { kind: 'pattern', pattern: [0].concat(parts) };
   }
   return { kind: 'none' };
 }
 
-/* Only https pages on the studio's own site may be opened from the game. Add hosts here when needed. */
-const EXTERNAL_HOSTS = ['ollywoodgames.github.io', 'play.google.com'];
+/* Only https pages on the studio's own site and the two stores may be opened from the game. Add hosts here when
+   needed. */
+const EXTERNAL_HOSTS = ['ollywoodgames.github.io', 'play.google.com', 'apps.apple.com'];
 function externalUrl(url) {
   if (typeof url !== 'string' || url.length > 2048) return null;
   // parsed by hand: React Native's URL class is not a full implementation
@@ -143,5 +173,5 @@ const isOwnUrl = url => typeof url === 'string' && (url === 'about:blank' || url
 
 module.exports = {
   BASE_URL, MAX_SAVE_CHARS, bootstrapScript, withBootstrap, setActiveScript, insetsScript, receiveScript, backScript,
-  parseMessage, validSave, hapticPlan, externalUrl, isOwnUrl, scriptJson,
+  parseMessage, validSave, hapticPlan, externalUrl, isOwnUrl, scriptJson, SHELL_CSS,
 };

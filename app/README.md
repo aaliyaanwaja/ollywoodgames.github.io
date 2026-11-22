@@ -1,41 +1,53 @@
-# One-Man Team: Android app shell
+# One-Man Team: app shell for Android and iOS
 
 An Expo app (SDK 58, React Native 0.88) with one screen: a full-screen WebView that runs the game from
-`../one-man-team/`, fully offline. The shell adds what a web page cannot do on its own: it keeps the save in native
-storage, turns the game's vibration requests into real haptics, handles the Android back button, pauses when the app is
-backgrounded, and opens outside links in the browser.
+`../one-man-team/`, fully offline. The same project builds for Google Play and for the App Store. The shell adds
+what a web page cannot do on its own: it keeps the save in native storage, turns the game's vibration requests into
+real haptics, handles the Android back button, pauses when the app is backgrounded, and opens outside links in the
+system browser.
 
 No navigation library, no state library. The whole shell is `App.tsx` plus four small files in `src/`.
 
+Store paperwork lives in `store/`: `release-checklist.md` (every step and every decision, in order, for both
+stores), `app-store-listing.md`, `play-store-listing.md`, the graphics and `screenshots/`.
+
 ---
 
-## READ THIS FIRST: the package name is permanent
+## READ THIS FIRST: two identifiers are permanent
 
-`app.json` sets `android.package` to **`com.ollywoodgames.onemanteam`**. That is a placeholder until you confirm it.
+`app.json` sets both of these to **`com.ollywoodgames.onemanteam`**. That is a PLACEHOLDER until you confirm it.
 
-**Google Play fixes the package name at the first upload. It can never be changed afterwards, not even if the game is
-renamed.** A different package name is a different app, with a new listing, no reviews and no installs carried over.
+| Store | Field in `app.json` | Becomes permanent |
+| --- | --- | --- |
+| Google Play | `android.package` | at the first upload of any build to Play Console |
+| App Store | `ios.bundleIdentifier` | when the first build is uploaded to App Store Connect (Apple's help page: "You can't change this property after you upload a build") |
 
-Before the first `eas build --profile production`:
+**Neither can ever be changed afterwards, not even if the game is renamed.** A different identifier is a different
+app, with a new listing, no reviews and no installs carried over.
 
-1. Decide the package name (lowercase, dots, no hyphens). Check it against your other titles so the studio prefix is
-   the same everywhere.
-2. If it changes, edit `android.package` in `app.json` and the matching line in `tests/shell.test.js`.
-3. Do not upload anything to Play until you are sure.
+Before the first `eas build --profile production` for either platform:
+
+1. Decide the identifier (lowercase, dots, no hyphens or underscores, so that one string is valid for both stores).
+   Check it against your other titles so the studio prefix is the same everywhere. The two stores may use the same
+   string, and usually do.
+2. If it changes, edit `android.package` and `ios.bundleIdentifier` in `app.json` and the two matching lines in
+   `tests/shell.test.js`.
+3. Do not upload anything to either store until you are sure.
 
 The display name ("One-Man Team") is a different thing and can be changed at any time; see "Where the name lives".
 
 ---
 
-## From a fresh Codespace to an APK on your phone
+## From a fresh Codespace to an Android preview APK
 
-Everything runs from the `app/` folder.
+Everything runs from the `app/` folder. A Codespace (Linux) is enough for both platforms.
 
 ```bash
 cd app
 npm ci                      # installs exactly what package-lock.json pins
 npm run sync-game           # rebuilds the game into src/game-html.js (needs python3)
 npm run check               # typecheck + lint + tests; must pass before any build
+npm run check-native        # generates both native projects in a scratch folder and checks the manifests
 
 npm install -g eas-cli      # once per Codespace
 eas login                   # your Expo account
@@ -52,17 +64,71 @@ Note on `eas init`: it stores `extra.eas.projectId` (and `owner`) in the config.
 `app.config.js`, the CLI may not be able to write it for you and will print the lines to paste into `app.json`
 under `expo`. Commit that change.
 
+## From a fresh Codespace to a TestFlight build
+
+You need a paid Apple Developer Program membership and an app record in App Store Connect first; those are steps
+A1 to A6 in `store/release-checklist.md` and only you can do them. Then, in the same Codespace:
+
+```bash
+cd app
+npm ci && npm run sync-game && npm run check && npm run check-native
+git add -A && git commit -m "iOS 1.0.0 (1)"          # EAS builds what is committed
+
+eas build --profile production --platform ios        # asks for your Apple ID; let EAS manage signing
+eas submit --profile production --platform ios       # uploads the finished build to App Store Connect
+```
+
+- `eas build` signs in to Apple with your Apple ID (two-factor code included), registers the bundle identifier if
+  needed, and creates the distribution certificate and provisioning profile. Say yes to each; EAS stores them.
+- `eas submit` reads `submit.production.ios` in `eas.json`. It ships with three placeholders
+  (`REPLACE_WITH_YOUR_APPLE_ID_EMAIL`, `REPLACE_WITH_APP_STORE_CONNECT_APP_ID`, `REPLACE_WITH_APPLE_TEAM_ID`).
+  Until you replace them the command stops and names them; builds are not affected.
+- After the upload Apple processes the build for ten minutes to half an hour. It then appears under TestFlight in
+  App Store Connect. Add yourself as an internal tester, install Apple's TestFlight app on the iPhone, and install
+  the build from there. Internal testers need no review.
+- **Every upload needs a higher `ios.buildNumber`** in `app.json` ("1", "2", "3" ...). `version` is shared with
+  Android.
+
+### What needs a Mac, and what EAS does in the cloud
+
+| Task | Where it runs | Mac needed |
+| --- | --- | --- |
+| Compiling the iOS app (Xcode) | EAS Build, on Expo's Macs | No |
+| Signing: certificate, provisioning profile | EAS, using your Apple login | No |
+| Uploading to App Store Connect / TestFlight | `eas submit`, from the Codespace | No |
+| Every App Store Connect form | A browser | No |
+| Installing on an iPhone | TestFlight app, or the link from a `preview` build | No (an iPhone, yes) |
+| Running in the iOS Simulator | `development-simulator` build + Xcode's Simulator | **Yes** |
+| Inspecting the web view (Safari Web Inspector) | Safari on a Mac, cable to the iPhone, development build | **Yes** |
+| Reading native crash logs | Xcode Organizer, or the Feedback section of TestFlight in a browser | Xcode: yes. TestFlight feedback: no |
+
+So a Mac is useful for debugging and is not on the path to release.
+
+### Other iOS builds
+
+```bash
+eas device:create                                          # once per iPhone: registers it for direct installs
+eas build --profile preview --platform ios                 # release build installed from a link, no TestFlight
+eas build --profile development --platform ios             # dev client for a registered iPhone
+eas build --profile development-simulator --platform ios   # dev client for the Simulator (needs a Mac to run)
+```
+
+`preview` on iOS is "ad hoc" distribution: it installs only on iPhones registered with `eas device:create` before
+the build was made. Use it when you want a build on your own phone without waiting for Apple's processing;
+use TestFlight for anyone else.
+
 ### A development build (optional)
 
 Only needed when you want to change the shell itself with live reload:
 
 ```bash
-eas build --profile development --platform android     # install the APK once
+eas build --profile development --platform android     # install the APK once (or --platform ios, see above)
 npm start -- --tunnel                                  # then open the dev build and scan the QR code
 ```
 
 `npm start` runs `sync-game` first. Edits to the game need `npm run sync-game` and a reload (press `r`).
-In a development build, the WebView can be inspected from desktop Chrome at `chrome://inspect`.
+In a development build, the Android WebView can be inspected from desktop Chrome at `chrome://inspect`, and the
+iOS one from Safari's Develop menu on a Mac (iOS 16.4 or later).
 
 ## To a production AAB and Google Play
 
@@ -89,19 +155,23 @@ Play Console accept Play App Signing (the default). You then never handle a key 
 
 ## What you must decide or supply before the first upload
 
+The full ordered list for both stores, with a rough time for each step, is `store/release-checklist.md`. The table
+below is the Android part as first written; the Apple equivalents (membership, App Store Connect record, age rating,
+App Privacy, export compliance) are in that checklist and in `store/app-store-listing.md`.
+
 | # | Decision | Where it goes | Notes |
 | --- | --- | --- | --- |
 | 1 | **Package name** | `app.json` `android.package` | Permanent. See the top of this file. |
 | 2 | Expo account and EAS project | `eas login`, `eas init` | Use the account your other games build under, so the credentials sit together. |
 | 3 | Signing | Automatic | Let EAS generate the keystore; accept Play App Signing. |
-| 4 | Play Console app | Play Console, Create app | Type Game, free. Listing text is in `docs/marketing/play-store-listing.md`. Free cannot be changed to paid later. |
+| 4 | Play Console app | Play Console, Create app | Type Game, free. Listing text is in `store/play-store-listing.md` (the description there replaces the one in `docs/marketing/play-store-listing.md`). Free cannot be changed to paid later. |
 | 5 | Privacy policy URL | Play Console, App content | `https://ollywoodgames.github.io/privacy.html`. The game's Options screen links to the same page. Check that the page is live and describes this game. |
 | 6 | Data safety form | Play Console, App content | Answers for this build are below. |
 | 7 | Content rating | Play Console, App content | IARC questionnaire: no violence, no sexual content, no bad language, no gambling, no user-to-user communication, no location sharing, no purchases. See the expectations in the listing document. |
 | 8 | Target audience | Play Console, App content | Your call. Choosing only 13 and over is the simple route. Including under-13s brings in the Families policy. |
 | 9 | Ads declaration | Play Console, App content | "No, my app does not contain ads" for this build. |
-| 10 | Store graphics | Play Console, Main store listing | Icon and feature graphic are in `app/store/`. Screenshots are still to be made (see `docs/marketing/store-assets-plan.md`). |
-| 11 | Testing requirement | Play Console | Some personal developer accounts must run a closed test with a minimum number of testers before production is unlocked. Play Console tells you on the Dashboard whether yours is one. |
+| 10 | Store graphics | Play Console, Main store listing | Icon and feature graphic are in `app/store/`; the eight phone screenshots are in `app/store/screenshots/android/` (`npm run screenshots` regenerates them). |
+| 11 | Testing requirement | Play Console | Personal accounts created after 13 November 2023 must run a closed test with 12 testers opted in for 14 days before production is unlocked (Google's help page, read 21 Nov 2026; details and source in the release checklist, step G6). Play Console tells you on the Dashboard whether yours is one. |
 | 12 | Support email | Play Console, Store settings | Shown publicly on the listing. |
 
 ### Data safety answers for the current build
@@ -120,11 +190,18 @@ form in the same release.
 
 ---
 
-## Checklist on a real phone
+## Checklist on a real phone (Android)
 
 None of this could be tested where the shell was written (no Android SDK, no emulator, no EAS login). Run all of it
 on the **preview APK**, on at least one phone with gesture navigation and, if you can, one with the three-button bar
-and one with a camera cut-out.
+and one with a camera cut-out. The iPhone list follows it.
+
+**First launch (both platforms)**
+- [ ] A new install opens on the programme cover. "Kick off" starts the four practice drills; "Skip practice" goes
+      to fixture 1. After the drills, fixture 1 starts.
+- [ ] Options has Practice drills and Slow aim. Slow aim on: time slows for a moment while the aim button is held.
+      It stays on after a restart.
+- [ ] Winning a fixture shows stars, the move time and the number of takes. Retrying does not reduce the stars.
 
 **Start-up**
 - [ ] The splash is cream with the round felt badge, then the game appears. No white flash, no blank screen.
@@ -188,6 +265,73 @@ and one with a camera cut-out.
 **Offline**
 - [ ] Everything above works in aeroplane mode.
 
+## Checklist on a real iPhone
+
+Nothing here has run on iOS: there was no Mac, no Simulator and no device. Run all of it on the **TestFlight build**
+(or an iOS `preview` build), on at least one iPhone with a Dynamic Island or notch and, if you can, one older model
+with a Home button (iPhone SE). Items marked (*) are the ones most likely to need a change to the shell.
+
+**Start-up**
+- [ ] The launch screen is cream with the round felt badge, then the game appears. No white flash, no blank screen.
+- [ ] The Home-screen icon has no black or white corners and the name under it is not cut short ("One-Man Team").
+- [ ] Fonts are the game's own (Anton titles, Barlow text).
+- [ ] (*) The game's save loads: complete a fixture, close the app from the app switcher, reopen: the stars are there.
+
+**Sound**
+- [ ] (*) The first tap produces sound, with the ring/silent switch set to ring and the volume up. One touch must be
+      enough: no second tap to "unlock" audio.
+- [ ] With the switch set to silent, the game is silent. That is deliberate (it is what iPhone owners expect of a
+      game, and `ignoreSilentHardwareSwitch` is left off). Music from another app keeps playing over the game: note
+      whether it does, and whether the game's effects mix with it or stop it.
+- [ ] Sound off in Options silences everything and stays off after a restart.
+- [ ] (*) Take a phone call or trigger Siri mid-move, then return: sound works again on the next touch.
+
+**Haptics**
+- [ ] Kicks and first touches give a light or medium tap; a tackle gives a heavy one.
+- [ ] (*) The whistle, a goal and a refused action feel like two or three quick taps in a rhythm, not one long buzz.
+- [ ] Vibration off in Options stops all of it. With Settings, Sounds & Haptics, System Haptics off, nothing fires;
+      that is the system's choice and correct.
+
+**Screen edges and gestures**
+- [ ] (*) Nothing sits under the Dynamic Island, notch or status bar; the clock and battery are dark on cream.
+- [ ] (*) Nothing sits under the home indicator; the PASS button and the run pad are fully reachable and the area
+      behind the indicator is cream.
+- [ ] (*) Dragging from the left edge of the screen to run does not slide the page, go "back" or show an edge glow.
+- [ ] Dragging up from the bottom edge while running: note how easily the home gesture fires by accident. (The shell
+      cannot defer that gesture without a native module; if it is a problem, say so.)
+- [ ] Rotating the phone does nothing (portrait lock), including upside down.
+- [ ] On an iPhone SE: the layout fits, with nothing clipped (the smallest screen the game supports is 360 by 640
+      points; the SE is 375 by 667).
+
+**Touch behaviour**
+- [ ] (*) Holding the PASS button for two seconds while dragging keeps aiming. Nothing cancels the touch, no menu,
+      no magnifier, no text selection, no "Copy / Look Up" bubble anywhere in the game.
+- [ ] Pinch does not zoom; double-tap does not zoom.
+- [ ] (*) Dragging the fixture list past its top or bottom does not bounce or rubber-band, and the whole page never
+      slides to show a gap.
+- [ ] Two thumbs work together: run with one while aiming with the other.
+- [ ] With Settings, Display, Text Size at the largest, the layout is unchanged.
+
+**Backgrounding**
+- [ ] (*) Swipe up to the app switcher mid-move: the crowd noise stops at once. Return: the move is frozen and
+      continues on the next touch.
+- [ ] Pull down Notification Centre or Control Centre mid-move: same.
+- [ ] Lock the phone mid-move, wait a minute, unlock: same.
+- [ ] (*) Leave the app in the background for an hour with other heavy apps open, come back: the game is either where
+      you left it or has restarted on the fixtures with progress intact. Never a blank cream screen.
+
+**Progress**
+- [ ] Install a newer TestFlight build over the old one: progress is kept.
+- [ ] Delete the app and reinstall: progress is gone. (It returns only when the whole phone is restored from an
+      iCloud or computer backup; the save is included in those.)
+- [ ] Options, Reset progress really resets after a restart.
+
+**Links and offline**
+- [ ] (*) Options, Privacy policy opens Safari, not a page inside the game. Coming back, the game is where it was.
+- [ ] Everything above works in aeroplane mode.
+
+**On an iPad, if you have one** (App Review may try it): the app opens in the iPhone-sized window and is playable.
+
 ### If the preview APK shows a blank screen
 
 The most likely cause is the one thing here that is deliberate and could not be tested: the store build has no
@@ -203,9 +347,9 @@ request, so the Data safety answers stay the same.
 app/
   App.tsx               the one screen: WebView + lifecycle (save loading, back, background, insets)
   index.ts              registers App
-  app.json              static config: name, package, version, icons, splash, permissions
-  app.config.js         one rule: store builds drop the INTERNET permission
-  eas.json              development / preview (APK) / production (AAB) profiles
+  app.json              static config: name, both identifiers, version, icons, splash, permissions, iOS privacy manifest
+  app.config.js         store builds drop the INTERNET permission (Android) and the dev-only local-network keys (iOS)
+  eas.json              build profiles (development, development-simulator, preview, production) and submit profiles
   src/
     game-html.js        GENERATED by `npm run sync-game`: the whole game as one string. Commit it.
     page-script.js      the JavaScript the shell runs inside the page, and the pure message helpers
@@ -214,11 +358,14 @@ app/
   scripts/
     sync-game.js        runs ../tools/build-single.py and writes src/game-html.js; --check verifies it
     make-art.py         draws every icon, the splash and the feature graphic
+    make-screenshots.py plays the real game with the bots and lays out the store screenshots for both stores
+    check-native.js     runs `expo prebuild` for both platforms in a scratch folder and checks the generated files
+    count-listing.py    counts every length-limited text in the store listings
   tests/
     shell.test.js       Node: message parsing, haptic mapping, link allow-list, config facts
     bridge_test.py      Playwright: the embedded game with a fake native side, played by the bots
   assets/               generated app icons and splash
-  store/                generated Play Console graphics and preview sheets
+  store/                listings, release checklist, Play Console graphics, screenshots/android and screenshots/ios
 ```
 
 ### Why the game is embedded as a JS module, not as an asset file
@@ -268,15 +415,15 @@ string `t`. Handlers live in one table in `src/bridge.ts`; unknown types are ign
 | `t` | Sent by | Payload | What the shell does |
 | --- | --- | --- | --- |
 | `save` | game | `v`: the whole save as a JSON string | Validates it (a JSON object, under 512 KB) and writes it to AsyncStorage under `omt.save.v1`. A bad value never replaces a good one. Writes are queued so they cannot land out of order. |
-| `haptic` | game | `p`: milliseconds, or `[buzz, gap, buzz, ...]` | A single value becomes a tuned impact: up to 12 ms light, up to 30 ms medium, longer heavy (raw 8 to 20 ms motor pulses are weak or silent on many phones). A pattern stays a rhythm through React Native's Vibration, each part capped at 400 ms. |
-| `open` | shell's page script | `url` | Opens the system browser, only for https links to hosts on the allow-list in `src/page-script.js` (the studio site and Google Play). |
+| `haptic` | game | `p`: milliseconds, or `[buzz, gap, buzz, ...]` | A single value becomes a tuned impact: up to 12 ms light, up to 30 ms medium, longer heavy (raw 8 to 20 ms motor pulses are weak or silent on many phones). A pattern stays a rhythm: on Android through React Native's Vibration, each part capped at 400 ms; on iOS as one Taptic impact per buzz at the moment that buzz would start (see "iOS behaviour"). |
+| `open` | shell's page script | `url` | Opens the system browser, only for https links to hosts on the allow-list in `src/page-script.js` (the studio site, Google Play and the App Store). |
 | `back` | shell's page script | `handled` | The answer to the back button; see below. |
 | `log` | shell's page script | `level`, `m` | Printed in development builds only. |
 
 Native to web, before the page's scripts run:
 
 ```js
-window.__OMT_NATIVE__ = { save: <stored string or null>, version: "1.0.0", platform: "android" }
+window.__OMT_NATIVE__ = { save: <stored string or null>, version: "1.0.0", platform: "android" | "ios" }
 ```
 
 The stored save is read from AsyncStorage **before the WebView is created**; the splash stays up meanwhile. The
@@ -289,7 +436,13 @@ bootstrap script is delivered two ways at once:
 Both are sent because of what the installed react-native-webview (14.0.1) does on Android: it runs
 `injectedJavaScriptBeforeContentLoaded` from `onPageStarted` with an asynchronous `evaluateJavascript`, so it can
 lose the race against the page's own scripts. Losing that race here would mean the game boots with no save and then
-overwrites the real one. The script is written so the second arrival does nothing.
+overwrites the real one. The script is written so the second arrival does nothing. On iOS the same library installs
+it as a `WKUserScript` at document start, which WebKit runs before any script of the page, so there either route
+would do; the splice is kept on both platforms so that there is one behaviour to reason about.
+
+The same script adds a small stylesheet of its own (`SHELL_CSS` in `src/page-script.js`): no overscroll on any
+scroller, no long-press callout, no double-tap zoom. The WebView's own switches reach only the page as a whole; the
+fixture list and the programme pages scroll inside it.
 
 The same script also installs `window.__omtShell`, which the shell calls later:
 
@@ -330,6 +483,52 @@ a `visibilitychange` listener and a `<head>` tag.
 - **Outside links:** intercepted in the page (click), again in `onShouldStartLoadWithRequest`, and if a foreign
   page ever loaded regardless the WebView is thrown away and the game restarted.
 
+### iOS behaviour
+
+Read from the installed react-native-webview 14.0.1: the JSDoc on its props (`src/WebViewTypes.ts`; the package
+ships no `docs/` folder) and its native code (`apple/RNCWebViewImpl.m`). **None of it has been run on iOS.**
+
+| Concern | What the shell does | Why |
+| --- | --- | --- |
+| Audio without a second gesture | `mediaPlaybackRequiresUserAction={false}` | The library's default on iOS is to require a gesture for all media; with the prop it sets `mediaTypesRequiringUserActionForPlayback` to none. The game still creates its audio on the first touch. |
+| Inline playback | `allowsInlineMediaPlayback`, AirPlay and picture-in-picture off | There is no video today; this stops any future media element from taking over the screen. |
+| Silent switch | left alone | Web Audio in WKWebView follows the ring/silent switch. `ignoreSilentHardwareSwitch` (a hidden looping audio element) is not used: a game that plays through silent mode gets complaints. |
+| Bounce and overscroll | `bounces={false}`, `scrollEnabled={false}`, `pullToRefreshEnabled={false}`, plus `SHELL_CSS` for inner lists | The page is a fixed layout; nothing should rubber-band. |
+| Text selection, callouts, link previews | `textInteractionEnabled={false}` (iOS 14.5+; the minimum here is 16.4), `allowsLinkPreview={false}`, `dataDetectorTypes="none"`, and the page-side `contextmenu`/`selectstart` cancel | `dataDetectorTypes` defaults to turning phone-number-like text into links. |
+| **`menuItems` must not be set** | not set | Passing even an empty list makes the library add a 0.4-second long-press recogniser with `cancelsTouchesInView`, which would cancel hold-to-aim. |
+| Safe area (notch, Dynamic Island, home indicator) | `contentInsetAdjustmentBehavior="never"`, `automaticallyAdjustContentInsets={false}`; insets measured by react-native-safe-area-context and written over `--st/--sb/--sl/--sr` | The web view runs edge to edge and the page pads itself. On iOS the page's own `env(safe-area-inset-*)` should give the same numbers; the native ones win so both platforms take one path. |
+| Swipe-back | `allowsBackForwardNavigationGestures={false}` | Also the library's default. There is no navigation controller, so the system has no back swipe either. |
+| Backgrounding | When `AppState` is anything but `active` (iOS reports `inactive` first), `setActive(false)`: `visibilitychange`, every `AudioContext` suspended. On return they are resumed, including any that iOS put into its `interrupted` state. | The script is injected at `inactive`, while the app can still run it. WebKit also suspends the page's timers itself in the background. |
+| Web-content process killed | `onContentProcessDidTerminate` rebuilds the page with the newest save | iOS's equivalent of Android's renderer crash; without it the player returns to a blank view. |
+| Save bridge | unchanged: `postMessage`, then AsyncStorage | On iOS `window.ReactNativeWebView.postMessage` is defined by a document-start user script. `RCTAsyncStorageExcludeFromBackup` is set to false in Info.plist so the save is part of the phone's own backup, like `allowBackup` on Android. The page's `localStorage` copy (WebKit's data store) is the fallback. |
+| Haptics | expo-haptics for everything | iOS cannot vibrate for a chosen number of milliseconds; React Native's `Vibration` with a pattern would play the long system buzz once per entry. So a pattern becomes timed impacts (`hapticPlan(p, 'ios')` returns `kind: 'sequence'`). No permission is involved. |
+| Privacy link | page click, `open` message, `Linking.openURL`, Safari | Same allow-list as Android. `onShouldStartLoadWithRequest` is the second line of defence. |
+| Back button | none | `BackHandler` never fires on iOS. Every screen of the game has its own way back. |
+| Debugging | `webviewDebuggingEnabled={__DEV__}` | Makes the web view inspectable from Safari (iOS 16.4+) in development builds only. |
+
+Config (`app.json`, checked by `npm run check-native` in the generated project):
+
+- **iPhone only:** `supportsTablet: false` gives `TARGETED_DEVICE_FAMILY = 1`. The layout is a phone layout; an
+  iPad would show it letterboxed in any case, and iPhone-only means no iPad screenshots and no iPad review.
+- **Portrait:** `orientation: "portrait"`. Expo writes portrait and portrait-upside-down into Info.plist; an iPhone
+  does not rotate upside down, so the result is portrait only.
+- **Info.plist:** nothing is added beyond `RCTAsyncStorageExcludeFromBackup`. The store build contains **no
+  usage-description string**: the app uses no camera, microphone, photos, location, contacts, Bluetooth, tracking
+  or notifications. expo-dev-client adds `NSLocalNetworkUsageDescription` and `NSBonjourServices` so development
+  builds can find Metro; `app.config.js` removes both from `preview` and `production` builds.
+- **`ITSAppUsesNonExemptEncryption: false`** (`ios.config.usesNonExemptEncryption`). Truthful: the app has no
+  encryption code and opens no network connection.
+- **Privacy manifest** (`ios.privacyManifests`): required. Ten manifests ship inside the installed packages (React
+  Native core, its bundled glog, boost and Folly, expo-constants, expo-file-system, expo-system-ui, AsyncStorage),
+  declaring four required-reason API categories between them: user defaults (CA92.1), file timestamps (C617.1,
+  0A2A.1, 3B52.1), disk space (E174.1, 85F4.1) and system boot time (35F9.1). The app-level manifest repeats
+  exactly those, with tracking false and nothing collected. A test reads every installed manifest and fails if a
+  dependency starts declaring something the app's manifest lacks.
+- **Icon:** `assets/icon.png`, 1024 by 1024, RGB with no alpha channel (a test reads the PNG header). iOS applies
+  its own corner mask. No dark or tinted variants are supplied; iOS derives them.
+- **Splash:** the same expo-splash-screen settings as Android: cream background, the felt badge at 250 points.
+- **Minimum iOS:** 16.4, the SDK's default.
+
 ### Permissions
 
 | Permission | Store build | Why |
@@ -338,7 +537,10 @@ a `visibilitychange` listener and a `<head>` tag.
 | `INTERNET` | **removed** | The game needs no network. Development builds keep it to reach Metro. |
 | `SYSTEM_ALERT_WINDOW`, `READ/WRITE_EXTERNAL_STORAGE` | removed | Present in Expo's template; not needed. |
 
-Checked by generating the native project in a scratch copy (`expo prebuild`) and reading its manifest.
+iOS: no permission of any kind, so no prompt is ever shown.
+
+Checked by `npm run check-native`, which generates both native projects in a scratch copy (`expo prebuild`) and
+reads the Android manifest, the iOS Info.plist, the entitlements and the privacy manifest.
 
 ### Where the name lives
 
@@ -359,7 +561,7 @@ by a dashed run. The numeral is the Barlow Condensed 700 glyph stored as an outl
 
 | File | Use |
 | --- | --- |
-| `assets/icon.png` (1024) | Launcher icon on old Android versions |
+| `assets/icon.png` (1024, no alpha) | iOS app icon; launcher icon on old Android versions |
 | `assets/adaptive-foreground.png`, `adaptive-background.png` | Adaptive icon layers; the art stays inside the safe zone for any mask shape |
 | `assets/adaptive-monochrome.png` | Themed icon (Android 13 and later) |
 | `assets/splash-icon.png` | Felt badge shown on the cream splash |
@@ -367,6 +569,20 @@ by a dashed run. The numeral is the Barlow Condensed 700 glyph stored as an outl
 | `store/feature-graphic-1024x500.png` | Play Console feature graphic (24-bit PNG) |
 | `store/preview-*.png` | Check sheets: icon at 48 to 192 px on white and dark, adaptive masks, splash on a phone, feature graphic with the outer 15 per cent dimmed. Not for upload. |
 | `../one-man-team/icons/*` | The web manifest's icons, same artwork, same file names as before |
+| `store/screenshots/android/*.png` | Eight Google Play phone screenshots, 1080 by 1920 |
+| `store/screenshots/ios/*.png` | Ten App Store screenshots, 1320 by 2868 (6.9-inch iPhone; Apple scales the smaller sizes from it) |
+| `store/screenshots/index.json`, `preview-*.png` | Captions, alt text and sizes; contact sheets. Not for upload. |
+
+### Store screenshots
+
+`npm run screenshots` (`scripts/make-screenshots.py`; add `-- --sheet` for the contact sheets). It opens the real
+`one-man-team/index.html` in headless Chromium, takes control of the clock, and lets the bots from `tools/` play to
+real moments: the goal, a pass being aimed, a run onto a recorded pass, a full-back dragged out of position, a
+decoy run, the offside line, the result sheet, the fixture list, the end-of-season report and a practice drill.
+Each capture is placed untouched on a page laid out like the game's matchday programme. Levels are chosen by name
+("The overlap", "Last-minute winner"), so adding packs does not change them; the star total on the fixture list
+follows whatever the game loads, so **regenerate once the game has all 60 fixtures**. What each one shows and its
+caption follow `docs/marketing/store-assets-plan.md`, with the differences listed at the top of the script.
 
 ---
 
@@ -411,12 +627,16 @@ offers these.
 3. One purchase: `react-native-iap` or RevenueCat's `react-native-purchases`. Read what is owned at start-up,
    before the WebView is created (next to `loadSave()` in `App.tsx`), and pass it into `bootstrapScript`. Offer
    "Restore purchase" in Options through a `restore` message.
-4. **Delete the INTERNET line in `app.config.js`.** Both need the network.
+4. **Delete the INTERNET line in `app.config.js`.** Both need the network. On iOS add the advert SDK's own
+   Info.plist keys (AdMob needs `GADApplicationIdentifier`, `SKAdNetworkItems` and, if adverts are personalised,
+   `NSUserTrackingUsageDescription`), and extend `ios.privacyManifests` with what the SDK collects.
 5. Both need a new native build; neither can be delivered by a JavaScript-only update.
 
 **Outside the code, in the same release**
 
-- Redo the Data safety form (advert SDKs collect device identifiers; purchases involve purchase history).
+- Redo the Data safety form (advert SDKs collect device identifiers; purchases involve purchase history), and
+  Apple's App Privacy answers and age-rating "Advertising" answer.
+- Remove "No adverts, no purchases, no account" and "Plays without a connection" from both store descriptions.
 - Answer "Contains ads: yes"; the advertising-ID declaration changes; the privacy policy page must name the SDKs.
 - Show Google's consent form (UMP) before the first advert where the law requires it.
 - Set the advert content rating filter to match the game's rating.
@@ -426,29 +646,37 @@ offers these.
 
 ## Verified here / not verified here
 
-Verified in the sandbox this was written in (Node 22, Python 3 with Playwright, no Android tooling):
+Re-run on 22 November 2026 in a Linux sandbox: Node 22, Python 3 with Playwright (Chromium only), **no Android SDK,
+no Mac, no Xcode, no Simulator or emulator, no device, no EAS login, no store account.**
 
-- `npm ci` from the lock file installs cleanly.
-- `npx tsc --noEmit` and `npx expo lint`: no errors, no warnings.
-- `npx expo-doctor`: 18 of 20 checks pass. The other two need Expo's servers (config schema, React Native
-  Directory), which the sandbox could not reach. Run `npx expo-doctor` once in the Codespace; if either reports
-  something, it will name the field.
-- `npx expo export --platform android` bundles (Hermes bytecode, about 2.3 MB). In a non-bytecode export the game
-  string inside the minified bundle was extracted and matched the module exactly.
-- `npx expo prebuild --platform android` in a scratch copy generates the native project; its manifest, styles and
-  icon resources were read and match this document.
-- `node scripts/sync-game.js --check`: embedded HTML byte-identical to `tools/build-single.py` output.
-- `tests/bridge_test.py` (headless Chromium at 390 by 844, the embedded page prepared exactly as `App.tsx` prepares
-  it, a fake `ReactNativeWebView`): the native save is read at boot and beats a stale `localStorage` copy; a bot
-  completes a level and a `save` message carrying old and new progress is posted; haptic messages map to
-  vibrations; insets, back, background/foreground with audio suspend and resume, and the privacy link all behave.
+Verified:
 
-Not verified, because there is no Android SDK, emulator, device or EAS login here:
+| Command | Result |
+| --- | --- |
+| `npm ci` | 713 packages installed from the lock file. |
+| `npm run sync-game` | Rebuilt the embed after the game changed (practice drills, new star rule, slow aim, packs 4 to 6): about 409 KB of HTML (the game was still changing; run it again last thing before a build). Nothing in the shell needed fixing for those changes; the contract checks in `sync-game` all still pass. |
+| `npx tsc --noEmit` | No errors. |
+| `npx expo lint` | No errors, no warnings. |
+| `npm test` | `sync-game --check` byte-identical; `shell.test.js` 13 checks passed; `bridge_test.py` 35 of 35 checks passed (now including the cover and practice-drill flow, slow aim through the save bridge, the move time in the posted result, `platform: "ios"`, and the shell stylesheet). |
+| `npx expo-doctor` | 18 of 20 checks passed. The other two need Expo's servers (config schema, React Native Directory), which the sandbox cannot reach (`ENOTFOUND exp.host`). Run it once in the Codespace. |
+| `npx expo export --platform android` and `--platform ios` (in a scratch copy) | Both bundle: Hermes bytecode, 2.4 MB each (626 and 628 modules). |
+| `npm run check-native` | 11 checks passed on projects generated by `expo prebuild` in a scratch folder outside the repository, with `EAS_BUILD_PROFILE=production` and again with `development`. Store build, iOS: bundle identifier, version and build number from `app.json`; `TARGETED_DEVICE_FAMILY = 1`; portrait only; **no key ending in `UsageDescription` and no `NSBonjourServices`**; `ITSAppUsesNonExemptEncryption` false; `NSAllowsArbitraryLoads` false; light appearance; dark status-bar text; launch storyboard; empty entitlements; `PrivacyInfo.xcprivacy` written and in the Xcode project; one 1024 by 1024 icon without alpha. Store build, Android: package, versionCode, portrait, backup on, predictive back off, `VIBRATE` the only permission. Development build: keeps the local-network keys and `INTERNET`. |
+| `eas.json` against the `@expo/eas-json` 27.11.0 schema (the one eas-cli uses), in a scratch folder | All four build profiles resolve for both platforms; the Android submit profile resolves; the iOS submit profile is rejected with messages naming the three placeholders, as intended. |
+| `npm run check-listing` | Every counted text within its limit. It also reports that the game loads 44 fixtures while the listings say 60. |
+| `npm run screenshots` | 8 Android and 10 iOS images written and looked at one by one. |
 
-- **No APK or AAB was built. The app has never run on Android.**
-- Everything in "Checklist on a real phone".
-- That the WebView shows the page with the INTERNET permission removed.
-- How the haptics feel on real motors.
-- That the EAS builder has Python for the pre-install check (if not, the hook says so and continues).
-- `eas.json` against the live EAS service, and `eas submit`.
+Not verified:
+
+- **No APK, AAB or IPA was built. The app has never run on Android or on iOS.**
+- Everything in the two real-device checklists. For iOS in particular: that sound starts on the first touch; that
+  WebKit gives the page a working `localStorage` and secure context at the `.invalid` base URL; that nothing
+  bounces; that hold-to-aim is never cancelled; safe-area insets; the backgrounding path; the timed Taptic
+  sequences; that the privacy link opens Safari.
+- The page-side tests ran in Chromium. Playwright's WebKit build could not be downloaded here, so no test has run
+  in Apple's browser engine, let alone in WKWebView.
+- That the dev-launcher's Xcode build phase and the `app.config.js` plugin agree in a compiled Release build
+  (the generated Info.plist was read; the compiled one was not).
+- That the Android WebView shows the page with the INTERNET permission removed.
+- Signing, `eas build`, `eas submit`, TestFlight and both consoles.
+- The Xcode version on EAS's default image for SDK 58 (Apple requires Xcode 26 or later for uploads).
 - The two network-only expo-doctor checks.

@@ -1,7 +1,7 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, BackHandler, StyleSheet, View } from 'react-native';
+import { AppState, BackHandler, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
@@ -59,7 +59,7 @@ function Game() {
   // 2. The page, with the bootstrap script first in <head>. Rebuilt only when the page must be reloaded.
   const page = useMemo(() => {
     if (!ready) return null;
-    const script = bootstrapScript({ save: save.current, version: VERSION, insets: insetsNow.current });
+    const script = bootstrapScript({ save: save.current, version: VERSION, insets: insetsNow.current, platform: Platform.OS });
     return { script, source: { html: withBootstrap(GAME_HTML, script), baseUrl: BASE_URL } };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `generation` is the reload trigger
   }, [ready, generation]);
@@ -71,6 +71,8 @@ function Game() {
   }, [insets]);
 
   // 4. Background / foreground: freeze the game and silence Web Audio; resume audio on return.
+  //    iOS reports 'inactive' first (app switcher, Control Centre, an incoming call, the lock button) and only then
+  //    'background'. Anything but 'active' freezes the game, so the script runs while the app can still run it.
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
       web.current?.injectJavaScript(setActiveScript(state === 'active'));
@@ -78,7 +80,8 @@ function Game() {
     return () => sub.remove();
   }, []);
 
-  // 5. Hardware back: the page decides. Only when it has nowhere to go back to does the app step aside.
+  // 5. Hardware back (Android only; iOS has no back button and BackHandler never fires there): the page decides.
+  //    Only when it has nowhere to go back to does the app step aside.
   const leave = useCallback(() => {
     if (backTimer.current) clearTimeout(backTimer.current);
     backTimer.current = null;
@@ -146,6 +149,9 @@ function Game() {
         }}
         // Android can kill the WebView's renderer under memory pressure; rebuild it with the newest save.
         onRenderProcessGone={() => setGeneration(g => g + 1)}
+        // iOS does the same to WKWebView's content process, typically while the app sits in the background.
+        // Without this the player would come back to a blank cream screen.
+        onContentProcessDidTerminate={() => setGeneration(g => g + 1)}
         javaScriptEnabled
         domStorageEnabled
         mediaPlaybackRequiresUserAction={false}
@@ -168,8 +174,22 @@ function Game() {
         thirdPartyCookiesEnabled={false}
         saveFormDataDisabled
         forceDarkOn={false}
+        // ---- iOS (WKWebView). Each line is explained in README, "iOS behaviour". ----
+        allowsInlineMediaPlayback
+        allowsAirPlayForMediaPlayback={false}
+        allowsPictureInPictureMediaPlayback={false}
+        allowsBackForwardNavigationGestures={false}
+        contentInsetAdjustmentBehavior="never"
+        automaticallyAdjustContentInsets={false}
+        automaticallyAdjustsScrollIndicatorInsets={false}
+        dataDetectorTypes="none"
+        pullToRefreshEnabled={false}
+        directionalLockEnabled
+        sharedCookiesEnabled={false}
         textInteractionEnabled={false}
         allowsLinkPreview={false}
+        // Do NOT add `menuItems` (even an empty list) to hide the selection menu: on iOS it installs a 0.4 s
+        // long-press recogniser that cancels touches in the WebView, which would break hold-to-aim.
         webviewDebuggingEnabled={__DEV__}
       />
     </View>
