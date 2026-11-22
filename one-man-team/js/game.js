@@ -217,7 +217,7 @@
       '<div class="mast-main"><h1 class="title" id="brand">' + esc(GAME_NAME) + '</h1><button class="ib" id="bOpt" aria-label="Options">' + IC.gear + '</button></div>' +
       '<div class="tally"><span>' + IC.star + '<b>' + total + '</b> of ' + LEVELS.length * 3 + ' stars</span></div></header>' +
       '<div class="path">' + path + '</div>' +
-      '<p class="foot">' + (nx < 0 ? 'That is every fixture printed so far. More are at the printers. ' : '') + 'Progress is kept on this device only. No account, no tracking.' + (save.all ? ' All fixtures unlocked for testing.' : '') + '</p></div>' +
+      '<p class="foot">' + (nx < 0 ? 'Every fixture won. The stars are still there to be had. ' : '') + 'Progress is kept on this device only. No account, no tracking.' + (save.all ? ' All fixtures unlocked for testing.' : '') + '</p></div>' +
       '<div class="dock"><div id="note" role="status"></div><button class="cta" id="cta">' + cta + IC.next + '</button></div>';
     $('cta').onclick = () => { SFX.tap(); startLevel(target); };
     document.querySelectorAll('.tk').forEach(b => b.onclick = () => {
@@ -482,7 +482,7 @@
       '<h1>' + esc(ch.name) + '</h1><div class="inkstamp">' + (last ? 'All moves complete' : 'Season complete') + '</div>' +
       '<dl class="stats wide"><div><dd>' + got + '/' + max + '</dd><dt>Stars</dt></div><div><dd>' + (ch.to - ch.from + 1) + '</dd><dt>Fixtures won</dt></div><div><dd>' + tries + '</dd><dt>Retries</dt></div></dl>' +
       '<p class="lede">' + line + '</p><ol class="table">' + rows + '</ol>' +
-      (last ? '<div class="final"><div class="lbl">Final whistle</div><p>That is every fixture printed so far: <b>' + all + ' of ' + allMax + ' stars</b> across ' + LEVELS.length + ' moves. More are at the printers.</p></div>' : '') + '</div>' +
+      (last ? '<div class="final"><div class="lbl">Final whistle</div><p>From the bottom of Division Four to the Amateur Cup: <b>' + all + ' of ' + allMax + ' stars</b> across ' + LEVELS.length + ' moves. Any star you are missing is a quicker move away.</p></div>' : '') + '</div>' +
       '<div class="pg-foot"><button class="btn' + (last ? ' p' : ' sq') + '" id="mv"' + (last ? '>Back to the fixtures' : ' aria-label="Fixtures">' + IC.list) + '</button>' +
       (last ? '' : '<button class="btn p" id="nx"><span>' + (nextCh ? esc(nextCh.name) : 'Next season') + '</span>' + IC.next + '</button>') + '</div>',
       { mv: showHome, nx: () => startLevel(ch.to + 1) });
