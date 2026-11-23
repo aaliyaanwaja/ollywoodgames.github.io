@@ -35,7 +35,7 @@
     [0, 1, 2].map(i => '<i class="' + (i < n ? 'on' : 'off') + '" style="--i:' + i + '">' + IC.star + '</i>').join('') + '</span>';
 
   /* ---------- saved progress ---------- */
-  const KEY = 'omt.v1';
+  const KEY = (window.OMT_CONFIG && window.OMT_CONFIG.key) || 'omt.v1';
   let save = { done: {}, sound: true, haptics: true, seenHow: false, all: false, cover: false, seenDecoy: false };
   /* Inside the app shell the native side owns the save (see app/README.md): it injects window.__OMT_NATIVE__ = { save }
      before this script runs and receives every change through postMessage. In a browser, localStorage is used. */
@@ -64,7 +64,7 @@
   const persist = () => { const v = JSON.stringify(save); try { localStorage.setItem(KEY, v); } catch (e) {} toNative({ t: 'save', v }); };
   const lid = i => LEVELS[i].name;
   const rec = i => save.done[lid(i)];
-  const unlocked = i => save.all || i === 0 || !!rec(i - 1);
+  const unlocked = i => save.all || CFG.unlock || i === 0 || !!rec(i - 1);
   const nextLevel = () => { for (let i = 0; i < LEVELS.length; i++) if (!rec(i)) return i; return -1; };
   /* Stars grade the finished move, never the number of takes: one for scoring, a second for beating par (the bot's time
      x 1.5), a third for the gaffer's time (x 1.2). The bot times live in js/levels/pars.js. */
@@ -127,7 +127,10 @@
   function resize() { Render.resize($('stage')); }
   window.addEventListener('resize', resize);
 
-  const PRACTICE = window.OMT_PRACTICE || [];
+  /* Special builds set window.OMT_CONFIG before this script: { rate, assist, practice, slow, unlock, key, title }.
+     A rating set asks three questions after every fixture and keeps the answers on the device for copying out. */
+  const CFG = window.OMT_CONFIG || {};
+  const PRACTICE = CFG.practice === false ? [] : window.OMT_PRACTICE || [];
   let prac = -1, pracLv = null, pracRep = 0;   // practice drill being played, or -1
   const L = () => prac >= 0 ? pracLv : LEVELS[li];
   const liveIdx = () => L().order[round];
@@ -171,7 +174,7 @@
       '<p class="cv-note">Play the pass. Then go back and be the one who runs onto it.</p></div>' +
       '<div class="dock"><button class="cta" id="cta"><b>Kick off</b><small>The coach talks you through move one</small></button>' +
       '<p class="by">A game by ' + esc(STUDIO) + '</p></div>';
-    $('cta').onclick = () => { SFX.tap(); save.cover = true; persist(); if (save.practised) startLevel(0); else startPractice(0); };
+    $('cta').onclick = () => { SFX.tap(); save.cover = true; persist(); if (save.practised || !PRACTICE.length) startLevel(0); else startPractice(0); };
     screen('home');
   }
 
@@ -217,6 +220,7 @@
       '<div class="mast-main"><h1 class="title" id="brand">' + esc(GAME_NAME) + '</h1><button class="ib" id="bOpt" aria-label="Options">' + IC.gear + '</button></div>' +
       '<div class="tally"><span>' + IC.star + '<b>' + total + '</b> of ' + LEVELS.length * 3 + ' stars</span></div></header>' +
       '<div class="path">' + path + '</div>' +
+      (CFG.rate ? '<button class="btn" id="rtb" style="width:100%;margin-top:14px">Your ratings: copy and send</button>' : '') +
       '<p class="foot">' + (nx < 0 ? 'Every fixture won. The stars are still there to be had. ' : '') + 'Progress is kept on this device only. No account, no tracking.' + (save.all ? ' All fixtures unlocked for testing.' : '') + '</p></div>' +
       '<div class="dock"><div id="note" role="status"></div><button class="cta" id="cta">' + cta + IC.next + '</button></div>';
     $('cta').onclick = () => { SFX.tap(); startLevel(target); };
@@ -412,13 +416,13 @@
       if (li < 4 && !rec(li) && round === lv.order.length - 1) { what = 'You went early, so the defenders dropped back with you and cut out the pass.'; tryIt = 'Hold your run until the pass is hit, then go.'; }
     } else if (sim.reason === 'time' && round > 0) tryIt = 'If the earlier pass cannot be reached in time, redo the previous player.';
     const prevA = round > 0 ? lv.att[lv.order[round - 1]] : null;
-    const oKey = li + ':' + seq, offer = !save.slow && fails === 8 && (offerKey === oKey || (save.slowAsk || 0) < 3);
+    const oKey = li + ':' + seq, offer = CFG.slow !== false && !save.slow && fails === 8 && (offerKey === oKey || (save.slowAsk || 0) < 3);
     if (offer && offerKey !== oKey) { offerKey = oKey; save.slowAsk = (save.slowAsk || 0) + 1; persist(); }
     showOv('sheet', '<div class="sh-top"><span class="tab">' + IC.whistle + (sim.tick / 60).toFixed(1) + 's</span></div>' +
       '<h2>' + f[0] + '</h2>' + (what !== f[1] ? '<p>' + esc(what) + '</p>' : '') + '<p class="try"><b>Try</b> ' + esc(tryIt) + '</p>' +
       (offer ? '<div class="offer"><p><b>Finding this one tough?</b> Slow aim slows time for a moment while you aim. You can switch it off in Options.</p><button class="btn" id="sl">Turn on slow aim</button></div>' : '') +
-      '<div class="btns">' + (prevA ? '<button class="btn" id="pv">Redo the ' + esc(prevA.num) + '</button>' : '') + '<button class="btn p" id="re">Try again</button></div>',
-      { re: beginRound, pv: redoPrev, sl: () => { save.slow = true; persist(); toast('Slow aim on'); beginRound(); } });
+      '<div class="btns">' + (CFG.rate && fails >= 3 ? '<button class="btn" id="gu">Give up and rate</button>' : '') + (prevA ? '<button class="btn" id="pv">Redo the ' + esc(prevA.num) + '</button>' : '') + '<button class="btn p" id="re">Try again</button></div>',
+      { re: beginRound, pv: redoPrev, gu: () => showRate(true, () => { if (li + 1 < LEVELS.length) startLevel(li + 1); else showHome(); }), sl: () => { save.slow = true; persist(); toast('Slow aim on'); beginRound(); } });
   }
   function redoPrev() { if (round === 0) return; recs[liveIdx()] = null; round--; recs[liveIdx()] = null; beginRound(); }
   function onWon() {
@@ -438,8 +442,43 @@
     const lv = L(), after = scoreHtml(lv, true);
     if (after && parseScore(story(lv).score)) later(() => { const el = $('score'); el.innerHTML = after; el.className = 'on'; void el.offsetWidth; el.className = 'on tick'; SFX.tick(); }, 650);
   }
+  const SCALES = [
+    ['c', 'Challenge', ['Far too easy', 'Easy', 'About right', 'Hard', 'Far too hard']],
+    ['f', 'Fun', ['Dull', 'Flat', 'Fine', 'Good', 'Loved it']],
+    ['r', 'Fair', ['Cheap', 'Mostly cheap', 'Mixed', 'Mostly fair', 'My own fault']]
+  ];
+  let lastRate = '';
+  function showRate(gaveUp, after) {
+    state = gaveUp ? 'failed' : 'goal'; const pickd = {}, lv = L(), takes = fails + (gaveUp ? 0 : 1);
+    const draw = () => {
+      showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + ' · ' + takes + (takes === 1 ? ' take' : ' takes') + (gaveUp ? ' · not finished' : '') + '</span></div><h2>How was that one?</h2>' +
+        SCALES.map(sc => '<div class="rate"><b>' + sc[1] + '</b><div class="rate-row">' + sc[2].map((t, i) => '<button class="rt' + (pickd[sc[0]] === i + 1 ? ' on' : '') + '" data-k="' + sc[0] + '" data-v="' + (i + 1) + '"><i>' + (i + 1) + '</i><span>' + t + '</span></button>').join('') + '</div></div>').join('') +
+        '<div class="btns"><button class="btn p" id="sv"' + (Object.keys(pickd).length < 3 ? ' disabled' : '') + '>Save and carry on</button></div>',
+        { sv: () => {
+          if (!save.ratings) save.ratings = {};
+          save.ratings[lv.name] = { n: li + 1, c: pickd.c, f: pickd.f, r: pickd.r, takes, done: gaveUp ? 0 : 1, time: gaveUp ? null : +(sim.tick / 60).toFixed(1), fails: failTally() };
+          persist(); after();
+        } });
+      document.querySelectorAll('.rt').forEach(b => b.onclick = () => { pickd[b.dataset.k] = +b.dataset.v; SFX.tap(); draw(); });
+    };
+    draw();
+  }
+  function failTally() { const t = {}; (save.log || []).forEach(e => { if (e[0] === li + 1 && e[2] !== 'goal') t['P' + e[1] + ' ' + e[2]] = (t['P' + e[1] + ' ' + e[2]] || 0) + 1; }); return t; }
+  function ratingsText() {
+    const r = save.ratings || {}, rows = Object.keys(r).sort((a, b) => r[a].n - r[b].n).map(k => { const x = r[k]; return [x.n, k, 'challenge ' + x.c, 'fun ' + x.f, 'fair ' + x.r, x.takes + ' takes', x.done ? x.time + 's' : 'gave up', Object.keys(x.fails || {}).map(f => f + ' x' + x.fails[f]).join('; ')].join(' | '); });
+    return (CFG.title || 'Ratings') + '\n' + (rows.join('\n') || 'Nothing rated yet.');
+  }
+  function showRatings() {
+    const txt = ratingsText();
+    showOv('page', '<div class="pg"><div class="strip"><span>' + esc(CFG.title || 'Ratings') + '</span><span>' + Object.keys(save.ratings || {}).length + ' rated</span></div><h1>Your ratings</h1>' +
+      '<p class="fine">Copy this and paste it into the chat when you have played as many as you want.</p><pre class="log">' + esc(txt) + '</pre></div>' +
+      '<div class="pg-foot"><button class="btn" id="cp">Copy</button><button class="btn p" id="x">Done</button></div>',
+      { x: showHome, cp: () => { try { navigator.clipboard.writeText(txt).then(() => toast('Copied'), () => toast('Select the text to copy')); } catch (e) { toast('Select the text to copy'); } } });
+  }
   function showGoal() {
     if (prac >= 0) { seq++; return pracDone(); }
+    const rKey = li + ':' + fails + ':' + sim.tick;
+    if (CFG.rate && lastRate !== rKey) { seq++; rsim = FB.makeSim(L(), recs, -1); rhold = 0; stampOff(); return showRate(false, () => { lastRate = rKey; seq--; showGoal(); }); }
     state = 'goal'; seq++; rsim = FB.makeSim(L(), recs, -1); rhold = 0;
     const lv = L(), t = sim.tick / 60, st = Math.min(starsFor(li, t), save.slow ? 2 : 3), old = rec(li), firstWin = !old;
     if (!old || st > old.stars || (st === old.stars && t < old.time)) { save.done[lid(li)] = { stars: st, time: +t.toFixed(2), retries: fails, slow: save.slow ? 1 : 0 }; persist(); }
@@ -681,7 +720,7 @@
      corner on the side the player chose. Full strength at first, gone by fixture 5. Applies to live input only. */
   const HELP = [1, 1, 0.6, 0.3];
   function assist(q) {
-    const k = prac >= 0 ? 1 : HELP[li] || 0;
+    const k = CFG.assist === false ? 0 : prac >= 0 ? 1 : HELP[li] || 0;
     if (!k || !q.aim || !q.charging || !sim.isLast || q.ay >= -0.05) return q;
     const me = sim.att[sim.live], xg = me.x + q.ax * (me.y / -q.ay);
     if (Math.abs(xg - 25) > 5.5) return q;
@@ -692,7 +731,7 @@
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000 || 0); last = now;
     const S0 = state === 'play' ? sim : state === 'goal' ? rsim : null, slow = !!S0 && decisive(S0);
-    const aimSlow = !!save.slow && prac < 0 && state === 'play' && inp.charging && aimLeft > 0; if (aimSlow) aimLeft -= dt;
+    const aimSlow = !!save.slow && CFG.slow !== false && prac < 0 && state === 'play' && inp.charging && aimLeft > 0; if (aimSlow) aimLeft -= dt;
     tempo += ((slow ? 0.38 : aimSlow ? 0.35 : 1) - tempo) * Math.min(1, dt * 14);
     if (slow !== swell) { swell = slow; if (state === 'play') SFX.crowd(slow ? 0.075 : 0.016, slow ? 0.18 : 0.5); }
     acc += dt * tempo;
@@ -737,6 +776,7 @@
     try { ['400 12px Anton', '500 12px Barlow', '600 12px Barlow', '600 12px "Barlow Condensed"', '700 12px "Barlow Condensed"'].forEach(f => document.fonts.load(f)); document.fonts.ready.then(resize); } catch (e) {}
   }
 
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#rtb')) { SFX.tap(); showRatings(); } });
   window.__omt = {
     setAuto(f) { autoFactory = f; }, info: () => ({ state, li, round, fails, levels: LEVELS.length }), start: startLevel, unlockAll() { save.all = true; },
     home: showHome, name: GAME_NAME,

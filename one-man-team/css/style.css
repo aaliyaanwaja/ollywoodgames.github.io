@@ -379,3 +379,11 @@ pre.log { margin: 12px 0 0; padding: 12px; background: var(--chalk); border: 2px
 .offer { margin: 12px 0 2px; padding: 12px; background: var(--paper-shade); border: 2px dashed var(--ink); border-radius: 6px; }
 .offer p { margin: 0 0 10px; font: 500 14.5px/1.4 var(--text); }
 .offer .btn { width: 100%; }
+
+/* rating sets */
+.rate { margin: 10px 0 0; } .rate > b { display: block; font: 700 13px/1 var(--label); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.rate-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.rt { min-height: 54px; padding: 4px 2px; background: var(--chalk); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.rt i { font: 400 20px/1 var(--display); font-style: normal; } .rt span { font: 600 9.5px/1.05 var(--label); letter-spacing: .02em; text-transform: uppercase; text-align: center; }
+.rt.on { background: var(--mustard); box-shadow: 2px 2px 0 var(--ink); }
+.btn[disabled] { opacity: .4; }
