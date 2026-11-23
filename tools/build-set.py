@@ -5,7 +5,7 @@ Level files are loaded in the order given, in place of the normal packs; story.j
 dropped unless listed. The config becomes window.OMT_CONFIG, for example
   {"rate": true, "assist": false, "practice": false, "slow": false, "unlock": true, "key": "omt.setA", "title": "Set A"}"""
 import re, sys, os, base64, json
-root = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'one-man-team')
+root = os.environ.get('OMT_ROOT') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'one-man-team')
 out, cfg, files = sys.argv[1], json.loads(sys.argv[2]), sys.argv[3:]
 html = open(os.path.join(root, 'index.html')).read()
 css = open(os.path.join(root, 'css', 'style.css')).read()

@@ -442,7 +442,11 @@
     const lv = L(), after = scoreHtml(lv, true);
     if (after && parseScore(story(lv).score)) later(() => { const el = $('score'); el.innerHTML = after; el.className = 'on'; void el.offsetWidth; el.className = 'on tick'; SFX.tick(); }, 650);
   }
-  const SCALES = [
+  const SCALES = (CFG.scales || []).length ? [
+    ['c', 'Challenge', ['Far too easy', 'Easy', 'About right', 'Hard', 'Far too hard']],
+    ['f', 'Fun', ['Dull', 'Flat', 'Fine', 'Good', 'Loved it']],
+    ['r', 'Fair', ['Cheap', 'Mostly cheap', 'Mixed', 'Mostly fair', 'My own fault']]
+  ].concat(CFG.scales) : [
     ['c', 'Challenge', ['Far too easy', 'Easy', 'About right', 'Hard', 'Far too hard']],
     ['f', 'Fun', ['Dull', 'Flat', 'Fine', 'Good', 'Loved it']],
     ['r', 'Fair', ['Cheap', 'Mostly cheap', 'Mixed', 'Mostly fair', 'My own fault']]
@@ -453,10 +457,10 @@
     const draw = () => {
       showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + ' · ' + takes + (takes === 1 ? ' take' : ' takes') + (gaveUp ? ' · not finished' : '') + '</span></div><h2>How was that one?</h2>' +
         SCALES.map(sc => '<div class="rate"><b>' + sc[1] + '</b><div class="rate-row">' + sc[2].map((t, i) => '<button class="rt' + (pickd[sc[0]] === i + 1 ? ' on' : '') + '" data-k="' + sc[0] + '" data-v="' + (i + 1) + '"><i>' + (i + 1) + '</i><span>' + t + '</span></button>').join('') + '</div></div>').join('') +
-        '<div class="btns"><button class="btn p" id="sv"' + (Object.keys(pickd).length < 3 ? ' disabled' : '') + '>Save and carry on</button></div>',
+        '<div class="btns"><button class="btn p" id="sv"' + (Object.keys(pickd).length < SCALES.length ? ' disabled' : '') + '>Save and carry on</button></div>',
         { sv: () => {
           if (!save.ratings) save.ratings = {};
-          save.ratings[lv.name] = { n: li + 1, c: pickd.c, f: pickd.f, r: pickd.r, takes, done: gaveUp ? 0 : 1, time: gaveUp ? null : +(sim.tick / 60).toFixed(1), shot: gaveUp ? null : shotFrom(), fails: failTally() };
+          save.ratings[lv.name] = Object.assign({ n: li + 1, takes, done: gaveUp ? 0 : 1, time: gaveUp ? null : +(sim.tick / 60).toFixed(1), shot: gaveUp ? null : shotFrom(), fails: failTally() }, pickd);
           persist(); after();
         } });
       document.querySelectorAll('.rt').forEach(b => b.onclick = () => { pickd[b.dataset.k] = +b.dataset.v; SFX.tap(); draw(); });
@@ -466,7 +470,7 @@
   function shotFrom() { const k = sim.liveRec && sim.liveRec.kick; return k ? +Math.hypot(k.bx - 25, k.by).toFixed(1) : null; }
   function failTally() { const t = {}; (save.log || []).forEach(e => { if (e[0] === li + 1 && e[2] !== 'goal') t['P' + e[1] + ' ' + e[2]] = (t['P' + e[1] + ' ' + e[2]] || 0) + 1; }); return t; }
   function ratingsText() {
-    const r = save.ratings || {}, rows = Object.keys(r).sort((a, b) => r[a].n - r[b].n).map(k => { const x = r[k]; return [x.n, k, 'challenge ' + x.c, 'fun ' + x.f, 'fair ' + x.r, x.takes + ' takes', x.done ? x.time + 's' + (x.shot != null ? ' shot ' + x.shot + 'm' : '') : 'gave up', Object.keys(x.fails || {}).map(f => f + ' x' + x.fails[f]).join('; ')].join(' | '); });
+    const r = save.ratings || {}, rows = Object.keys(r).sort((a, b) => r[a].n - r[b].n).map(k => { const x = r[k]; return [x.n, k].concat(SCALES.map(sc => sc[1].toLowerCase() + ' ' + x[sc[0]]), [x.takes + ' takes', x.done ? x.time + 's' + (x.shot != null ? ' shot ' + x.shot + 'm' : '') : 'gave up', Object.keys(x.fails || {}).map(f => f + ' x' + x.fails[f]).join('; ')]).join(' | '); });
     return (CFG.title || 'Ratings') + '\n' + (rows.join('\n') || 'Nothing rated yet.');
   }
   function showRatings() {
