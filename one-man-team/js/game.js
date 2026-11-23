@@ -195,7 +195,7 @@
   const link = (from, done) => '<svg class="lk' + (done ? ' done' : '') + '" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path vector-effect="non-scaling-stroke" d="' +
     (from === 'L' ? 'M34 0C34 16 66 12 66 28' : 'M66 0C66 16 34 12 34 28') + '"/></svg>';
   function showHome() {
-    if (!save.cover && !save.all && nextLevel() === 0) return showCover();
+    if (!save.cover && !save.all && !CFG.unlock && nextLevel() === 0) return showCover();
     state = 'home'; hideOv(); sim = null; rsim = null;
     const nx = nextLevel(), total = totalStars(), won = LEVELS.filter((_, i) => rec(i)).length;
     let chase = -1; if (nx < 0) chase = LEVELS.findIndex((_, i) => rec(i).stars < 3);
@@ -456,16 +456,17 @@
         '<div class="btns"><button class="btn p" id="sv"' + (Object.keys(pickd).length < 3 ? ' disabled' : '') + '>Save and carry on</button></div>',
         { sv: () => {
           if (!save.ratings) save.ratings = {};
-          save.ratings[lv.name] = { n: li + 1, c: pickd.c, f: pickd.f, r: pickd.r, takes, done: gaveUp ? 0 : 1, time: gaveUp ? null : +(sim.tick / 60).toFixed(1), fails: failTally() };
+          save.ratings[lv.name] = { n: li + 1, c: pickd.c, f: pickd.f, r: pickd.r, takes, done: gaveUp ? 0 : 1, time: gaveUp ? null : +(sim.tick / 60).toFixed(1), shot: gaveUp ? null : shotFrom(), fails: failTally() };
           persist(); after();
         } });
       document.querySelectorAll('.rt').forEach(b => b.onclick = () => { pickd[b.dataset.k] = +b.dataset.v; SFX.tap(); draw(); });
     };
     draw();
   }
+  function shotFrom() { const k = sim.liveRec && sim.liveRec.kick; return k ? +Math.hypot(k.bx - 25, k.by).toFixed(1) : null; }
   function failTally() { const t = {}; (save.log || []).forEach(e => { if (e[0] === li + 1 && e[2] !== 'goal') t['P' + e[1] + ' ' + e[2]] = (t['P' + e[1] + ' ' + e[2]] || 0) + 1; }); return t; }
   function ratingsText() {
-    const r = save.ratings || {}, rows = Object.keys(r).sort((a, b) => r[a].n - r[b].n).map(k => { const x = r[k]; return [x.n, k, 'challenge ' + x.c, 'fun ' + x.f, 'fair ' + x.r, x.takes + ' takes', x.done ? x.time + 's' : 'gave up', Object.keys(x.fails || {}).map(f => f + ' x' + x.fails[f]).join('; ')].join(' | '); });
+    const r = save.ratings || {}, rows = Object.keys(r).sort((a, b) => r[a].n - r[b].n).map(k => { const x = r[k]; return [x.n, k, 'challenge ' + x.c, 'fun ' + x.f, 'fair ' + x.r, x.takes + ' takes', x.done ? x.time + 's' + (x.shot != null ? ' shot ' + x.shot + 'm' : '') : 'gave up', Object.keys(x.fails || {}).map(f => f + ' x' + x.fails[f]).join('; ')].join(' | '); });
     return (CFG.title || 'Ratings') + '\n' + (rows.join('\n') || 'Nothing rated yet.');
   }
   function showRatings() {
@@ -494,7 +495,7 @@
     stampOff(); hudReplay();
     showOv('sheet', '<div class="sh-top"><span class="lbl soft">No. ' + no(li) + ' · ' + esc(lv.name) + '</span>' + (after ? '<span class="board sm">' + after + '</span>' : '') + '</div>' +
       '<div class="res">' + stars(st, 'big stampin') + '<dl class="stats"><div><dd>' + t.toFixed(1) + 's</dd><dt>' + (isBest ? 'New best' : 'Move') + '</dt></div><div><dd>' + (fails + 1) + '</dd><dt>' + (fails === 0 ? 'Take' : 'Takes') + '</dt></div></dl></div>' +
-      (st < 3 ? '<p class="verdict">' + (save.slow && starsFor(li, t) === 3 ? 'Quick enough for three. The third star needs slow aim switched off.' : 'A move of ' + parOf(li, st === 2 ? 1.2 : 1.5).toFixed(1) + 's or quicker earns the ' + (st === 2 ? 'third' : 'second') + ' star. Take as many goes as you like.') + '</p>' : '') + (seasonDone || last ? nextRow : '') +
+      (st < 3 && parOf(li, 1) ? '<p class="verdict">' + (save.slow && starsFor(li, t) === 3 ? 'Quick enough for three. The third star needs slow aim switched off.' : 'A move of ' + parOf(li, st === 2 ? 1.2 : 1.5).toFixed(1) + 's or quicker earns the ' + (st === 2 ? 'third' : 'second') + ' star. Take as many goes as you like.') + '</p>' : '') + (seasonDone || last ? nextRow : '') +
       '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="nx">' + nxt + IC.next + '</button></div>',
       { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1) });
     if (reduced()) return;
