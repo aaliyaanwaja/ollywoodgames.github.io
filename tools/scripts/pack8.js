@@ -26,7 +26,7 @@ module.exports = [
     { carry: [], kickAt: [24, 48.6], power: 0.3 },
     { start: 0, pre: [[24, 48.6]], spot: 1, first: 1, kickAt: [35.5, 43.8], power: 0.35 },
     { start: 0, pre: [[35.5, 43.8]], spot: 1, carry: [[33.5, 41.5]], kickAt: [31.2, 19], power: 0.7 },
-    { start: 126, pre: [[27.5, 32]], meet: 0.8, carry: [[31, 16.5]], kickAt: [28.2, 0], power: 1 }
+    { start: 126, pre: [[27.5, 32]], meet: 0.8, carry: [[33.5, 14.5]], kickAt: [22.8, 0], power: 1 }
   ],
   // Bend the run
   [
@@ -58,6 +58,6 @@ module.exports = [
     { decoy: [[39, 30]] },
     { carry: [], kickAt: [31.5, 42.8], power: 0.4 },
     { start: 0, pre: [[31.5, 42.8]], spot: 1, first: 1, kickAt: [30.5, 20], power: 0.85 },
-    { start: 4, pre: [[30.2, 20.5]], spot: 1, grab: 2.5, carry: [[30.5, 19.0]], kickAt: [28.2, 0], power: 1 }
+    { start: 4, pre: [[30.2, 20.5]], spot: 1, grab: 2.5, carry: [[32.5, 14]], kickAt: [22.9, 0], power: 1 }
   ]
 ];

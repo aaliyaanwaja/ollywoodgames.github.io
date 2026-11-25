@@ -5,11 +5,12 @@
   const L = (root.OMT_LEVELS = root.OMT_LEVELS || []);
   L.push({
       name: 'Switch of play', time: 12,
+      engine: { recSpd: 0, dangerR: 0, markLeash: 0 },   // keeper covers his near post (B); no through-on-goal pressure (A) or hand-over yet
       brief: 'Three players. They are packed on the right, so move it to the far side quickly.',
       att: [
         { num: 2, name: 'Right-back', x: 41, y: 45, role: 'ball', tip: 'You are crowded out. Roll it inside to the 6 before the press reaches you.' },
         { num: 6, name: 'Pivot', x: 27, y: 44, role: 'ball', tip: 'Do not dwell on it. Hit the diagonal early, behind their back line on the far side.' },
-        { num: 11, name: 'Winger', x: 8, y: 30, role: 'ball', tip: 'Run onto the switch, drive into the box and finish at the near post.' }
+        { num: 11, name: 'Winger', x: 8, y: 30, role: 'ball', tip: 'Run onto the switch, drive into the box and shoot across the keeper into the far corner.' }
       ],
       order: [0, 1, 2],
       def: [
@@ -19,6 +20,7 @@
     },
     {
       name: 'The lay-off', time: 14,
+      engine: { recSpd: 0, dangerR: 0, markLeash: 0 },   // keeper covers his near post (B); no through-on-goal pressure (A) or hand-over yet
       brief: 'Three players. Up to the 9, set back first time, and a runner from deep goes through the middle.',
       att: [
         { num: 6, name: 'Holder', x: 25, y: 53, role: 'ball', tip: 'Step right to open the lane past the screen, then play it firmly into the feet of the 9.' },
@@ -34,6 +36,7 @@
     },
     {
       name: 'The cut-back', time: 10,
+      engine: { recSpd: 0, dangerR: 0, markLeash: 0 },   // keeper covers his near post (B); no through-on-goal pressure (A) or hand-over yet
       brief: 'Get to the byline and pull it back. First, the 9 has to take his marker off the penalty spot.',
       att: [
         { num: 9, name: 'Decoy', x: 26, y: 14, role: 'decoy', tip: 'No ball for you. Dart to the near post so your marker leaves the spot, then press DONE.' },
@@ -49,6 +52,7 @@
     },
     {
       name: 'The overlap', time: 16,
+      engine: { recSpd: 0, dangerR: 0, markLeash: 0 },   // keeper covers his near post (B); no through-on-goal pressure (A) or hand-over yet
       brief: 'Four players. The 11 comes short and takes the full-back with him. The 3 goes round the outside.',
       att: [
         { num: 6, name: 'Holder', x: 23, y: 53, role: 'ball', tip: 'Play it short into the 11 as he comes towards you.' },

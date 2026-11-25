@@ -33,7 +33,7 @@ module.exports = [
     { carry: [], kickAt: [43.5, 31], power: 0.85 },
     { start: 0, pre: [[43.5, 31]], spot: 1, first: 1, kickAt: [39, 28.5], power: 0.15 },
     { start: 40, pre: [[39, 28]], spot: 1, grab: 3, carry: [[40.5, 14], [41.5, 5]], kickAt: [30, 13], power: 0.55 },
-    { start: 240, pre: [[30, 13.5]], spot: 1, grab: 2.5, first: 1, kickAt: [28.2, 0], power: 1 }
+    { start: 240, pre: [[30, 13.5]], spot: 1, grab: 2.5, first: 1, kickAt: [23.8, 0], power: 1 }
   ],
   // Draw them out
   [

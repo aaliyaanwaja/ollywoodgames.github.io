@@ -4,7 +4,7 @@ module.exports = [
   [
     { carry: [], kickAt: [28, 45], power: 0.6 },
     { start: 0, pre: [[28, 45]], spot: 1, first: 1, kickAt: [7, 19], power: 1 },
-    { start: 55, pre: [[9, 20]], spot: 1, carry: [[19, 8]], kickAt: [22, 0], power: 1 }
+    { start: 55, pre: [[9, 20]], spot: 1, carry: [[19, 8]], kickAt: [27.1, 0], power: 1 }
   ],
   // The lay-off
   [
@@ -42,7 +42,7 @@ module.exports = [
   [
     { carry: [], kickAt: [26, 43], power: 0.5 },
     { start: 0, pre: [[26, 43]], spot: 1, carry: [[29, 21]], kickAt: [37, 12], power: 0.7 },
-    { start: 50, pre: [[37, 14]], spot: 1, carry: [[30, 9]], kickAt: [28.2, 0], power: 1 }
+    { start: 50, pre: [[37, 14]], spot: 1, carry: [[32, 12]], kickAt: [22.6, 0], power: 1 }
   ],
   // Push them back
   [

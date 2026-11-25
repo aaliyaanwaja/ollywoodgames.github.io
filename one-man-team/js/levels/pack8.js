@@ -68,7 +68,7 @@
         { num: 5, name: 'Centre-back', x: 12, y: 51, role: 'ball', tip: 'The hunter is coming. Roll it inside to the 6 at once.' },
         { num: 6, name: 'Pivot', x: 24, y: 48, role: 'ball', tip: 'Aim early and move it on first time, out to the 8 on your right.' },
         { num: 8, name: 'Playmaker', x: 36, y: 43, role: 'ball', tip: 'Step inside the hunter. As the 9 spins, slide it into the hole his marker has left.' },
-        { num: 9, name: 'Striker', x: 29, y: 28, role: 'ball', tip: 'Come short so your marker follows, spin in behind, and shoot before the cover arrives.' }
+        { num: 9, name: 'Striker', x: 29, y: 28, role: 'ball', tip: 'Come short so your marker follows, then spin in behind. Drive outside the cover and shoot across the keeper into the far corner.' }
       ],
       order: [0, 1, 2, 3],
       def: [
@@ -149,7 +149,7 @@
         { num: 11, name: 'Decoy', x: 30, y: 29, role: 'decoy', tip: 'No ball for you. Pull out wide to the right and take your centre-half along. DONE.' },
         { num: 6, name: 'Pivot', x: 22, y: 50, role: 'ball', tip: 'The hunter is coming. Play it into the 10 at once.' },
         { num: 10, name: 'Number ten', x: 32, y: 42, role: 'ball', tip: 'Aim early. Thread it first time through the hole between their centre-halves.' },
-        { num: 8, name: 'Runner', x: 26, y: 36, role: 'ball', tip: 'Go at once. Meet it beyond their line and shoot from the edge before the last man closes.' }
+        { num: 8, name: 'Runner', x: 26, y: 36, role: 'ball', tip: 'Go at once. Meet it beyond their line, go round the last man on his outside and shoot across the keeper into the far corner.' }
       ],
       order: [0, 1, 2, 3, 4],
       def: [

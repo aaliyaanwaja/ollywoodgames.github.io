@@ -6,7 +6,7 @@ const { FB } = require(path.join(__dirname, '..', 'one-man-team', 'js', 'sim.js'
 const C = FB.C, P = FB.P, verbose = process.argv.includes('-v');
 const hyp = Math.hypot;
 
-let maxDefSpd = 0, maxGkSpd = 0, failed = 0;
+let maxDefSpd = 0, maxGkSpd = 0, failed = 0, maxSprint = 0;
 
 /* run(level, ctrl, opt): play `level` with attacker `opt.live` (default 0) driven by ctrl(S, me, t) -> input.
    opt.recs: recordings of earlier players, opt.ticks: stop after this many, opt.each(S): called after every tick. */
@@ -19,7 +19,7 @@ function run(level, ctrl, opt) {
   while (S.status === 'play' && S.tick < n) {
     const px = S.def.map(d => d.x), py = S.def.map(d => d.y), gx = S.gk.x, gy = S.gk.y;
     FB.step(S, live >= 0 ? ctrl(S, S.att[live], S.tick) || {} : {});
-    S.def.forEach((d, i) => { maxDefSpd = Math.max(maxDefSpd, hyp(d.x - px[i], d.y - py[i]) * 60); });
+    S.def.forEach((d, i) => { const v = hyp(d.x - px[i], d.y - py[i]) * 60; if (d.sprint) maxSprint = Math.max(maxSprint, v); else maxDefSpd = Math.max(maxDefSpd, v); });
     maxGkSpd = Math.max(maxGkSpd, hyp(S.gk.x - gx, S.gk.y - gy) * 60);
     if (opt.each) opt.each(S);
   }
@@ -135,7 +135,9 @@ scenario('line: a lone carrier cannot walk through it: it drops to the box, one 
   let stepped = -1, tuck = 99, coverDepth = 0, floorY = 99;
   const S = run(L, (S, me, t) => go(me, 24, 5), { ticks: 400, each: S => {
     const p = S.presser;
-    floorY = Math.min(floorY, ...S.def.filter((d, i) => i !== p).map(d => d.y));
+    // with C.coverDeep (option 3 of 10-finish-pressure.md, off in the game) the inside partner of the man who stepped out drops to cover depth on purpose
+    const ins = C.coverDeep && p >= 0 && S.def[p].kind === 'line' ? (() => { const u = S.units[S.def[p].ui], k = S.def[p].uk; return [u.m[k - 1], u.m[k + 1]].filter(i => i !== undefined).sort((a, b) => Math.abs(S.def[a].hx - 25) - Math.abs(S.def[b].hx - 25))[0]; })() : -1;
+    floorY = Math.min(floorY, ...S.def.filter((d, i) => i !== p && i !== ins).map(d => d.y));
     if (p >= 0 && S.def[p].kind === 'line' && S.status === 'play') {
       if (stepped < 0) stepped = S.tick;
       const k = S.def[p].uk, l = S.def[k - 1], r = S.def[k + 1];
@@ -346,9 +348,12 @@ scenario('keeper: stands on the angle between ball and goal', () => {
   const out = [];
   for (const [x, y] of [[8, 22], [42, 18], [25, 30], [15, 40]]) {
     const S = run(shotLvl(x, y), () => ({}), { ticks: 180 }), g = S.gk, b = S.ball;
-    const dx = b.x - P.cx, dy = b.y, u = ((g.x - P.cx) * dx + g.y * dy) / (dx * dx + dy * dy);
-    const off = hyp(g.x - P.cx - dx * u, g.y - dy * u);
-    out.push(chk(off < 0.35 && g.y >= 1 && hyp(g.x - P.cx, g.y) < 7, `ball (${x},${y}): keeper (${f(g.x)},${f(g.y)}) is ${f(off)} m off the ball-goal line`));
+    // with C.gkBisect (B, on by default) the keeper's line runs from the ball to his anchor on the goal line, not to its centre
+    let ax = P.cx;
+    if (C.gkBisect) { const d1 = hyp(b.x - P.cx + P.goalHalf, b.y), d2 = hyp(b.x - P.cx - P.goalHalf, b.y); ax = P.cx - P.goalHalf + 2 * P.goalHalf * d1 / (d1 + d2); ax += (P.cx + Math.sign(b.x - P.cx) * P.goalHalf - ax) * C.gkNear * Math.min(1, Math.abs(b.x - P.cx) / 6); }
+    const dx = b.x - ax, dy = b.y, u = ((g.x - ax) * dx + g.y * dy) / (dx * dx + dy * dy);
+    const off = hyp(g.x - ax - dx * u, g.y - dy * u);
+    out.push(chk(off < 0.35 && g.y >= 1 && hyp(g.x - P.cx, g.y) < 7, `ball (${x},${y}): keeper (${f(g.x)},${f(g.y)}) is ${f(off)} m off the ball-${C.gkBisect ? 'anchor' : 'goal'} line`));
   }
   return out;
 });
@@ -472,8 +477,117 @@ scenario('compatibility: old-format levels (mark / zone with only x, y, spd, eng
     chk(typeof FB.offsideLine(S) === 'number' && FB.makeSim && FB.step && FB.finalRec && FB.C && FB.P && FB.LEVELS, 'public API intact')];
 });
 
-scenario('fairness: no defender or keeper ever moved faster than 5.8 m/s in any scenario above', () =>
-  [chk(maxDefSpd <= 5.8 + 1e-9, `fastest defender ${f(maxDefSpd)} m/s`), chk(maxGkSpd <= 5.8 + 1e-9, `fastest keeper ${f(maxGkSpd)} m/s`)]);
+/* ---------------- finish pressure (10-finish-pressure.md, 13-a-b-in-the-game.md). Each scenario sets its own options, then restores ---------------- */
+// Engine options for one scenario. makeSim loads FB.C0 (the defaults) plus the level's own `engine` field into FB.C, so
+// a scenario changes the defaults, and puts them back afterwards.
+function withC(over, fn) { const C0 = FB.C0, save = {}; for (const k in over) { save[k] = C0[k]; C0[k] = over[k]; C[k] = over[k]; } try { return fn(); } finally { Object.assign(C0, save); Object.assign(C, save); } }
+const SPRINT = { recSpd: 7.0, recBoost: 1.3 };
+// a carrier through on goal: he received in behind a back two at y 27 and runs at goal, then stops at 18 m to aim
+function throughLvl(dy) { return lvl([{ x: 25, y: 25 + dy }], [{ t: 'line', x: 21, y: 28.5 + dy, spd: 5.3 }, { t: 'line', x: 31, y: 28.5 + dy, spd: 5.3 }]); }
+const dawdle = dy => (S, me, t) => me.y > 18 + dy ? go(me, 25, 0) : { mx: 0, my: 0, charging: true, aim: true, ax: 0, ay: -1, power: 1 };
+scenario('recovery sprint: near goal a played-through defender sprints back (faster than a dribbler, never above recSpd) and catches a striker who stops to aim', () => {
+  let top = 0, stopT = -1;
+  const S = withC(Object.assign({ dangerR: 0, coverDeep: 0 }, SPRINT), () => run(throughLvl(0), dawdle(0), { ticks: 400, each: S => { S.def.forEach(d => { if (d.sprint) top = Math.max(top, hyp(d.vx, d.vy)); }); if (stopT < 0 && S.att[0].y <= 18.05) stopT = S.tick; } }));
+  const S0 = withC({ recSpd: 0, dangerR: 0 }, () => run(throughLvl(0), dawdle(0), { ticks: 400 }));
+  return [chk(top > C.ballSpd && top <= SPRINT.recSpd + 1e-9, `fastest sprint ${f(top)} m/s (dribbling ${C.ballSpd}, cap ${SPRINT.recSpd})`),
+    chk(S.reason === 'tackled' && (S.tick - stopT) / 60 < 1.3, `with the sprint he is ${S.reason} ${f((S.tick - stopT) / 60)} s after stopping at 18 m`),
+    chk(S0.status !== 'fail' || S0.tick > S.tick + 20, `without it: ${S0.status} ${S0.reason} at ${f(S0.tick / 60)} s (with it ${f(S.tick / 60)} s)`)];
+});
+scenario('recovery sprint: not in midfield, and not for a loose ball', () => {
+  let midTop = 0, looseTop = 0;
+  withC(SPRINT, () => run(throughLvl(22), dawdle(22), { ticks: 240, each: S => S.def.forEach(d => { midTop = Math.max(midTop, hyp(d.vx, d.vy)); }) }));
+  const L = lvl([{ x: 25, y: 40 }, { x: 25, y: 30, role: 'ball' }], [{ t: 'line', x: 20, y: 28, spd: 5.3 }, { t: 'line', x: 30, y: 28, spd: 5.3 }]);
+  withC(SPRINT, () => run(L, (S, me, t) => kick(me, 25, 12, 0.7, t, 10), { live: 0, ticks: 120, each: S => S.def.forEach(d => { looseTop = Math.max(looseTop, hyp(d.vx, d.vy)); }) }));
+  return [chk(midTop <= 5.3 + 1e-9, `the same run 22 m further out: fastest defender ${f(midTop)} m/s (his own speed 5.3)`),
+    chk(looseTop <= 5.3 + 1e-9, `a through ball into the box: fastest defender ${f(looseTop)} m/s while it is loose`)];
+});
+scenario('danger zone: a striker standing 17 m out between two wide-apart centre-halves is closed down by the nearer one', () => {
+  const L = lvl([{ x: 23, y: 17 }], [{ t: 'line', x: 12, y: 14.5, spd: 5.3 }, { t: 'line', x: 38, y: 14.5, spd: 5.3 }]);
+  const stand = (S, me, t) => ({ mx: 0, my: 0 });
+  const on = withC({ dangerR: 24, recSpd: 0 }, () => run(L, stand, { ticks: 300 })), off = withC({ dangerR: 0, recSpd: 0 }, () => run(L, stand, { ticks: 300 }));
+  return [chk(on.reason === 'tackled' && on.failBy === 0, `with the rule: ${on.status} ${on.reason} by defender ${on.failBy} after ${f(on.tick / 60)} s (want the nearer, 0)`),
+    chk(off.status === 'play', `without it nobody goes: ${off.status} ${off.reason} after ${f(off.tick / 60)} s`)];
+});
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+scenario('one goes, one covers: when a centre-half steps out, his inside partner drops 3.5-6 m behind him, between ball and goal', () => {
+  const L = lvl([{ x: 21, y: 45 }], line4(25));
+  let best = null;
+  withC({ coverDeep: 1 }, () => run(L, (S, me, t) => go(me, 22, 20), { ticks: 260, each: S => {
+    const p = S.presser; if (p < 0 || S.def[p].kind !== 'line' || S.status !== 'play') return;
+    const pr = S.def[p], u = S.units[pr.ui], k = pr.uk, nb = [u.m[k - 1], u.m[k + 1]].filter(i => i !== undefined).map(i => S.def[i]);
+    const ins = nb.sort((a, b) => Math.abs(a.hx - 25) - Math.abs(b.hx - 25))[0], b = S.ball;
+    const depth = pr.y - ins.y, gl = hyp(P.cx - b.x, b.y), lateral = Math.abs(((ins.x - b.x) * (-b.y) - (ins.y - b.y) * (P.cx - b.x)) / gl);
+    if (hyp(pr.x - b.x, pr.y - b.y) < 3) best = { depth, lateral };
+  } }));
+  return [chk(best && best.depth > 3.5 && best.depth < 6.5, `cover depth ${best ? f(best.depth) : '-'} m behind the man who stepped out`), chk(best && best.lateral < 2.5, `${best ? f(best.lateral) : '-'} m off the ball-goal line`)];
+});
+scenario('keeper (bisector, shaded to the near post): with the ball wide, the near post closes and what is open is at the far post', () => {
+  const g = withC({ gkBisect: 1, gkNear: 0.2 }, () => run(shotLvl(40, 14), () => ({}), { ticks: 180 }).gk);
+  const centreLine = 25 + (40 - 25) * (g.y / 14);   // x of the ball-goal-centre line at his depth
+  // metres of the near half and the far half of the goal that a full-power shot from a standing start scores in
+  const split = (x, y) => { let n = 0, fa = 0; for (let tx = 21.2; tx <= 28.85; tx += 0.4) if (shoot(x, y, tx, 1).status === 'goal') { if ((tx - 25) * (x - 25) > 0) n += 0.4; else fa += 0.4; } return [n, fa]; };
+  const out = [chk(g.x - centreLine > 0.4, `ball (40,14): keeper at x ${f(g.x)}, ${f(g.x - centreLine)} m towards the near post from the ball-goal-centre line`)];
+  for (const [x, y] of [[36, 12], [33, 17], [38, 13]]) {
+    const on = withC({ gkBisect: 1, gkNear: 0.2 }, () => split(x, y)), off = withC({ gkBisect: 0, gkNear: 0 }, () => split(x, y));
+    out.push(chk(on[1] >= on[0] && on[0] < off[0], `from (${x},${y}): near/far open ${f(on[0])}/${f(on[1])} m (old keeper ${f(off[0])}/${f(off[1])} m)`));
+  }
+  return out;
+});
+
+/* ---------------- marker hand-over (markLeash, 13-a-b-in-the-game.md) ---------------- */
+// a decoy (attacker 0) and a man-marker 2.5 m goal-side of him; the ball sits with a future player deep in midfield
+const leashLvl = (dx, dy, mk) => lvl([{ x: 25 + dx, y: 28 + dy, role: 'decoy' }, { x: 25, y: 50, role: 'ball' }],
+  [Object.assign({ t: 'mark', a: 0, x: 25 + dx, y: 25.5 + dy, spd: 5.5 }, mk || {}), { t: 'line', x: 12, y: 25, spd: 5.2 }, { t: 'line', x: 38, y: 25, spd: 5.2 }]);
+function dragged(L, path, ticks) {
+  let wp = 0, far = 0; const d0 = L.def[0];
+  const S = run(L, (S, me) => { if (wp < path.length && hyp(path[wp][0] - me.x, path[wp][1] - me.y) < 0.4) wp++; return wp < path.length ? go(me, path[wp][0], path[wp][1]) : { mx: 0, my: 0 }; },
+    { ticks: ticks || 300, each: S => { far = Math.max(far, hyp(S.def[0].x - d0.x, S.def[0].y - d0.y)); } });
+  const d = S.def[0], me = S.att[0];
+  return { S, far, home: hyp(d.x - d0.x, d.y - d0.y), toMan: hyp(d.x - me.x, d.y - me.y), handed: d.handed };
+}
+scenario('hand-over: a decoy who runs 20 m out to the touchline is passed on once he is 10 m from where the marking started; the marker returns to shape', () => {
+  const r = dragged(leashLvl(0, 0), [[5, 30]], 330);
+  return [chk(r.handed, 'marker has handed his man over'), chk(r.far > 5 && r.far < C.markLeash + 4, `he went ${f(r.far)} m with him at most (leash ${C.markLeash})`),
+    chk(r.home < 6, `at the end he is ${f(r.home)} m from his set position, ${f(r.toMan)} m from the decoy`)];
+});
+scenario('hand-over: a man coming short (away from goal) is passed on too', () => {
+  const r = dragged(leashLvl(0, 0), [[25, 46]], 330);
+  return [chk(r.handed && r.far < C.markLeash + 4 && r.home < 6, `handed ${r.handed}, went ${f(r.far)} m at most, ends ${f(r.home)} m from his position`)];
+});
+scenario('hand-over: never for a run towards goal; a man running in behind is followed all the way', () => {
+  const r = dragged(leashLvl(-8, 0), [[24, 12], [22, 6]], 240);
+  return [chk(!r.handed && r.far > C.markLeash + 2 && r.toMan < 3.5, `handed ${r.handed}, went ${f(r.far)} m, ${f(r.toMan)} m from his man at the end`)];
+});
+scenario('hand-over: he picks his man up again when the man comes back', () => {
+  let wasHanded = false;
+  const L = leashLvl(0, 0); let wp = 0; const path = [[8, 30], [24, 28]];
+  const S = run(L, (S, me) => { if (wp < path.length && hyp(path[wp][0] - me.x, path[wp][1] - me.y) < 0.4) wp++; return wp < path.length ? go(me, path[wp][0], path[wp][1]) : { mx: 0, my: 0 }; },
+    { ticks: 420, each: S => { wasHanded = wasHanded || S.def[0].handed; } });
+  return [chk(wasHanded && !S.def[0].handed && hyp(S.def[0].x - S.att[0].x, S.def[0].y - S.att[0].y) < 3.5, `handed over on the way out ${wasHanded}, marking again at the end ${!S.def[0].handed}, ${f(hyp(S.def[0].x - S.att[0].x, S.def[0].y - S.att[0].y))} m from him`)];
+});
+scenario('hand-over: a defender\'s own `leash` overrides markLeash, and markLeash 0 switches it off (he follows to the touchline)', () => {
+  const short = dragged(leashLvl(0, 0, { leash: 5 }), [[5, 30]], 330);
+  const off = withC({ markLeash: 0 }, () => dragged(leashLvl(0, 0), [[5, 30]], 330));
+  return [chk(short.handed && short.far < 5 + 4, `leash 5: handed ${short.handed} after at most ${f(short.far)} m`),
+    chk(!off.handed && off.far > 15 && off.toMan < 3.5, `markLeash 0: handed ${off.handed}, followed ${f(off.far)} m, ${f(off.toMan)} m from the decoy`)];
+});
+scenario('hand-over: never while his man has the ball; he presses him wherever he takes it', () => {
+  const L = lvl([{ x: 25, y: 28 }], [{ t: 'mark', a: 0, x: 25, y: 25.5, spd: 5.5 }]);
+  let handed = false;
+  const S = run(L, (S, me) => go(me, 8, 40), { ticks: 240, each: S => { handed = handed || S.def[0].handed; } });
+  return [chk(!handed && (S.status === 'fail' || hyp(S.def[0].x - S.att[0].x, S.def[0].y - S.att[0].y) < 3), `handed ${handed}; ${S.status} ${S.reason}, ${f(hyp(S.def[0].x - S.att[0].x, S.def[0].y - S.att[0].y))} m from the carrier`)];
+});
+scenario('levels: per-level engine settings apply to that level only, and two sims of different levels stepped in turn keep their own', () => {
+  const A = lvl([{ x: 25, y: 28 }], [], { engine: { recSpd: 0, gkBisect: 0 } }), B = lvl([{ x: 25, y: 28 }], []);
+  const sa = FB.makeSim(A, [null], 0), sb = FB.makeSim(B, [null], 0); const seen = [];
+  for (let k = 0; k < 3; k++) { FB.step(sa, {}); seen.push(C.recSpd, C.gkBisect); FB.step(sb, {}); seen.push(C.recSpd, C.gkBisect); }
+  let bad = false; try { FB.makeSim(lvl([{ x: 25, y: 28 }], [], { engine: { recSdp: 0 } }), [null], 0); } catch (e) { bad = true; }
+  return [chk(seen.join(',') === [0, 0, FB.C0.recSpd, FB.C0.gkBisect].concat([0, 0, FB.C0.recSpd, FB.C0.gkBisect], [0, 0, FB.C0.recSpd, FB.C0.gkBisect]).join(','), `settings seen while stepping: ${seen.join(',')}`),
+    chk(bad, 'a misspelt engine setting is refused')];
+});
+
+scenario('fairness: no defender or keeper ever moved faster than 5.8 m/s in any scenario above, except a defender in a recovery sprint (never above recSpd 7.0)', () =>
+  [chk(maxDefSpd <= 5.8 + 1e-9, `fastest defender not sprinting ${f(maxDefSpd)} m/s`), chk(maxSprint <= 7.0 + 1e-9, `fastest recovery sprint ${f(maxSprint)} m/s`), chk(maxGkSpd <= 5.8 + 1e-9, `fastest keeper ${f(maxGkSpd)} m/s`)]);
 
 console.log(failed ? `\n${failed} scenario(s) FAILED` : '\nall scenarios passed');
 process.exit(failed ? 1 : 0);

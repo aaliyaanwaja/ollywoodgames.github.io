@@ -26,12 +26,17 @@ happens to an earlier pass. The engine is `one-man-team/js/sim.js` (read the hea
     { t: 'line', x: 30, y: 25, spd: 5.0 }, { t: 'line', x: 40, y: 25, spd: 5.0 }    // all `line`, same unit
   ],
   gk: { sweeper: true },           // optional, see "Goalkeeper"
-  lines: { 0: { gap: 12 } }        // optional per-unit back-line settings, see "line"
+  lines: { 0: { gap: 12 } },       // optional per-unit back-line settings, see "line"
+  engine: { recSpd: 0 }            // optional: engine settings (keys of FB.C) for this level only, see below
 }
 ```
 - The ball starts with the first `role: 'ball'` attacker in `order`. It then travels down the chain of `ball` attackers in
   `order`; only the next one in the chain can collect a pass. The last one must score.
 - `role: 'decoy'` attackers never touch the ball. Their round is just a run; it ends when the bot/human presses DONE.
+- `engine` overrides the engine's defaults (`FB.C0`) for this level only. Every sim starts from the defaults and then
+  applies its own level's `engine`, so nothing leaks between levels; a misspelt key is refused. Used for the ramp in
+  `docs/foundation/13-a-b-in-the-game.md`: fixtures 1-4 `{ recSpd: 0, dangerR: 0, gkBisect: 0, gkNear: 0, markLeash: 0 }`,
+  5-8 `{ recSpd: 0, dangerR: 0, markLeash: 0 }`, 9 onwards none. Tools that try a variant on every level change `FB.C0`.
 - Old levels that only use `mark` and `zone` with `x, y, spd, eng` still load and run (with the new behaviour, so re-run
   their bot scripts: timings will have changed).
 
@@ -108,6 +113,12 @@ intercepted. Presses his own man when he has the ball, and any other carrier who
 better placed is pressing. At kick-off put him 2-3 m goal-side of his man; he settles into his exact spot in the first
 half second.
 
+**Hand-over** (`C.markLeash`, 10 m; the defender's own `leash` overrides it, 0 switches it off). Once his man, as he last
+saw him, is more than the leash from where he started AND no nearer the goal than he started (pulled wide or short, not
+running in behind), the marker passes him on and plays as a screen from his own position (`zone` behaviour). He picks
+the man up again if the man comes back within leash - 3 m or gets nearer the goal than he started. Never while his man
+has the ball. A decoy run of 8-9 m still takes his marker with him; a longer one does not.
+
 ### Goalkeeper: `gk` (level field, optional)
 ```js
 gk: { sweeper: true }              // comes for through balls anywhere in the box (default: six-yard area only)
@@ -119,6 +130,12 @@ gk: { x: 25, y: 1.2 }              // start position (default)
 Attackers and the ball are unchanged: 7.6 m/s without the ball, 6.5 with it, 60% of that while aiming; kick speed
 9..28 m/s by power 0..1; a ball rolls roughly `speed / 0.8` metres (11 m at power 0, 35 m at power 1) and is slow for
 the last third of that.
+
+**Through on goal (A) and the keeper's near post (B)**, on by default (10-finish-pressure.md, 13-a-b-in-the-game.md).
+When the carrier has no defender on his feet goal-side of him, recovering defenders sprint (own speed + 1.3, at most
+7.0 m/s) inside 32 m of goal, and inside 24 m the nearest back-line man within 12 m of the ball goes to him. While
+someone has the ball the keeper stands on the line that halves the angle, shaded a fifth of the way to the near post:
+the far corner is the finish to design for.
 
 **One presses, one covers, the rest keep shape.** Each tick the engine picks one first defender: the eligible man who
 can get to the carrier soonest (the carrier's own marker is preferred; the current presser keeps the job unless someone

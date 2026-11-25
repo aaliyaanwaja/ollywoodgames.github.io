@@ -49,6 +49,9 @@
     markReact: 18,        // default perception delay of a marker (ticks)
     markTight: 1.3, markLoose: 3.0, markNear: 6, markFar: 24,   // gap to his man by ball distance
     markShade: 0.45,      // how far he cheats towards the ball side
+    markLeash: 10,        // hand-over: a marker dragged this far from his set position, by a man who is running AWAY from
+                          // goal (no nearer it than that position), passes him on and returns to shape (zone duties).
+                          // A defender's own `leash` overrides it; 0 switches it off. See handOver().
     // screening
     zoneShiftX: 0.25, zoneShiftY: 0.12,
     zoneLeash: 5,         // how far from his shape position a screen will go to stand on a passing lane
@@ -67,8 +70,37 @@
     gkSpd: 3.6, gkClose: 4.4, gkRush: 5.4, gkDive: 4.7,
     gkReach: 0.8, gkDiveExt: 0.4,
     gkOutMin: 1.2, gkOutMax: 3.0, gkOneK: 0.45, gkOneR: 18, gkOneMax: 5, gkSweepOneMax: 7, gkStandOff: 3.2,
-    gkSmotherR: 2.6, gkPassReact: 10, gkMargin: 0.15
+    gkSmotherR: 2.6, gkPassReact: 10, gkMargin: 0.15,
+    // finish pressure (docs/foundation/10-finish-pressure.md, 13-a-b-in-the-game.md). Each option is off at 0.
+    // A ("through on goal": recSpd, dangerR) and B (the keeper covers his near post: gkBisect, gkNear) are on by default;
+    // a level can switch them off with its `engine` field (the first eight fixtures do, to keep them easy).
+    // "Through on goal": a carrier with no outfield defender on his feet goal-side of him within throughW of his
+    // line to goal. Options 1 and 2 act only then.
+    throughW: 5,
+    recSpd: 7.0,          // 1. recovery sprint: cap on the speed of a defender running back towards his own goal while a
+                          //    carrier is through on goal inside recZone (the normal cap is 5.8; dribbling is 6.5)
+    recBoost: 1.3,        //    ... his sprint is his own speed plus this, never above recSpd
+    recZone: 32,          //    ... metres from goal centre
+    dangerR: 24,          // 2. through on goal inside this of goal: the nearest back-line man goes to the ball ...
+    dangerEng: 12,        //    ... if he is within this of it, even when his place in the line is further away
+    coverDeep: 0,         // 3. one goes, one covers: the inside partner of a back-line man who steps out drops to cover
+    coverDepth: 4.5,      //    ... this far goal-side of him, and coverInside of the way across to the ball-goal line
+    coverInside: 0.6,
+    gkBisect: 1,          // 4. keeper stands on the bisector of the angle the posts make at the ball ...
+    gkNear: 0.2           //    ... shaded this share of the way on towards the near post (ball 6 m+ off centre)
   };
+  /* Per-level engine settings. C0 holds the defaults (tools that try a variant on every level change FB.C0, not FB.C).
+     A level may carry `engine: { key: value }`, overrides of C0 for that level only. makeSim resolves C0 plus the
+     level's overrides into S.cfg; step() loads a sim's own S.cfg into C whenever the last sim stepped was a different
+     one, so two sims of different levels never see each other's settings. */
+  const C0 = Object.assign({}, C);
+  let cfgLive = null;
+  function useCfg(S) { if (cfgLive !== S.cfg) { Object.assign(C, S.cfg); cfgLive = S.cfg; } }
+  function resolveCfg(level) {
+    const e = level.engine || {};
+    for (const k in e) if (!(k in C0) || typeof e[k] !== typeof C0[k]) throw new Error('level "' + level.name + '": unknown engine setting ' + k);
+    return Object.freeze(Object.assign({}, C0, e));
+  }
   const HN = 64;           // ticks of attacker history kept for delayed perception
   const PN = 60, PDT = 0.06; // loose-ball path samples (3.6 s ahead)
 
@@ -79,10 +111,12 @@
   const hyp = Math.hypot;
 
   function makeSim(level, recs, live) {
+    const cfg = resolveCfg(level);
+    cfgLive = null; Object.assign(C, cfg); cfgLive = cfg;   // the defaults first, then this level's settings
     const chain = level.order.filter(i => level.att[i].role === 'ball');
     const gkc = level.gk || {};
     const S = {
-      tick: 0, level, live, chain, chainPos: 0,
+      tick: 0, level, cfg, live, chain, chainPos: 0,
       limit: Math.round(level.time * 60),
       role: live >= 0 ? level.att[live].role : 'replay',
       isLast: live === chain[chain.length - 1],
@@ -97,15 +131,16 @@
         hx: d.x, hy: d.y, vx: 0, vy: 0,
         spd: Math.min(d.spd === undefined ? 5.2 : d.spd, C.defMax),
         eng: d.eng !== undefined ? d.eng : d.t === 'mark' ? 3.5 : d.t === 'line' ? C.lineEng : d.t === 'press' ? 16 : 7,
-        leash: d.leash !== undefined ? d.leash : d.t === 'press' ? 99 : 14,
+        leash: d.leash !== undefined ? d.leash : d.t === 'press' ? 99 : d.t === 'mark' ? (C.markLeash > 0 ? C.markLeash : 1e9) : 14,
         screen: d.screen !== undefined ? d.screen : C.zoneLeash,
         react: clamp(Math.round(d.react !== undefined ? d.react : d.t === 'mark' ? C.markReact : C.passReact), 0, HN - 4),
         agg: d.agg === undefined ? 0.5 : clamp(d.agg, 0, 1),
         tight: d.tight === undefined ? 1 : d.tight,
         unit: d.unit || 0,
         // readable state for the renderer
-        fx: 0, fy: 1, lunge: 0, offBalance: 0, intent: 'shape', footX: d.x, footY: d.y,
+        fx: 0, fy: 1, lunge: 0, offBalance: 0, intent: 'shape', footX: d.x, footY: d.y, sprint: false,
         // private
+        handed: false,       // a marker who has passed his man on (see handOver)
         lt: 0, ldx: 0, ldy: 1, striking: false, close: 0, sx: d.x, sy: d.y, tx: d.x, ty: d.y, tvx: 0, tvy: 0, cap: 0,
         cs: -1, csc: 0, ui: -1, uk: -1
       })),
@@ -120,7 +155,7 @@
       liveKickTick: -1,
       liveRec: { x: [], y: [], fx: [], fy: [], kick: null },
       // defence bookkeeping
-      presser: -1, cover: -1, pressured: false, setTicks: 0, chase0: -1, chase1: -1, chaseS0: 0, chaseS1: 0,
+      presser: -1, cover: -1, pressured: false, through: false, setTicks: 0, chase0: -1, chase1: -1, chaseS0: 0, chaseS1: 0,
       units: [],
       hx: level.att.map(a => new Float64Array(HN).fill(a.x)), hy: level.att.map(a => new Float64Array(HN).fill(a.y)),
       hvx: level.att.map(() => new Float64Array(HN)), hvy: level.att.map(() => new Float64Array(HN)),
@@ -235,7 +270,9 @@
       T = Math.max(T, u.floor);
     }
     if (behind) T = Math.max(4, Math.min(T, ry - 3));
-    const down = (behind ? 1 : C.lineDropK) * u.spd * TICK, up = C.lineUpSpd * TICK;
+    // played through near goal: the unit's height comes back at a recovery sprint (each member still runs his own race)
+    const sprint = behind && S.through && C.recSpd > 0 && hyp(b.x - P.cx, b.y) < C.recZone ? Math.min(C.recSpd, u.spd + C.recBoost) : u.spd;
+    const down = (behind ? 1 : C.lineDropK) * sprint * TICK, up = C.lineUpSpd * TICK;
     const dy = clamp(T - u.y, -down, up);
     u.intent = behind ? 'recover' : dy < -1e-4 ? 'drop' : dy > 1e-4 ? 'step' : 'hold';
     u.y += dy; u.vy = dy / TICK;
@@ -276,15 +313,29 @@
 
   // Man-marker: goal-side of where he THINKS his man is (he sees him `react` ticks late and extrapolates),
   // shaded to the ball side, tighter as the ball gets close. A sharp cut makes the extrapolation wrong: separation.
+  function seenMan(S, d) {
+    const t = S.tick, r = d.react;
+    if (t - r < 0) return [S.level.att[d.a].x, S.level.att[d.a].y, 0, 0];
+    const k = (t - r) % HN, mvx = S.hvx[d.a][k], mvy = S.hvy[d.a][k];
+    return [S.hx[d.a][k] + mvx * r * TICK, S.hy[d.a][k] + mvy * r * TICK, mvx, mvy];
+  }
+  /* Hand-over. A marker follows his man, but not off the pitch. Once his man (where he last saw him, `react` ticks ago,
+     not extrapolated) is more than `leash` metres from where the marking started (the man's start position, which the
+     marker began 2-3 m goal-side of) AND is no nearer the goal than he was there (he is pulling the marker wide or
+     short, not running in behind), the marker passes him on and goes back to shape: from then on he plays as a screen
+     from his own set position, standing on the lane to the most dangerous receiver. He picks the man up again if the man
+     comes back within leash - 3 m of that start, or gets nearer the goal than he started (danger beats shape). Never
+     while his man has the ball (then he presses him as before). Decoys can still pull a marker; they cannot delete him. */
+  function handOver(S, d) {
+    if (d.leash >= 1e9 || S.ball.owner === d.a) { d.handed = false; return; }
+    const a0 = S.level.att[d.a], k = Math.max(0, S.tick - d.react) % HN, mx = S.hx[d.a][k], my = S.hy[d.a][k];
+    const away = hyp(mx - a0.x, my - a0.y), nearer = hyp(a0.x - P.cx, a0.y) - hyp(mx - P.cx, my);
+    if (!d.handed) d.handed = away > d.leash && nearer < 0;
+    else if (nearer > 1 || away < d.leash - 3) d.handed = false;
+  }
   function markTarget(S, d) {
-    const b = S.ball, t = S.tick, r = d.react;
-    let mx, my, mvx = 0, mvy = 0;
-    if (t - r < 0) { mx = S.level.att[d.a].x; my = S.level.att[d.a].y; }
-    else {
-      const k = (t - r) % HN;
-      mvx = S.hvx[d.a][k]; mvy = S.hvy[d.a][k];
-      mx = S.hx[d.a][k] + mvx * r * TICK; my = S.hy[d.a][k] + mvy * r * TICK;
-    }
+    const b = S.ball;
+    const [mx, my, mvx, mvy] = seenMan(S, d);
     d.tvx = mvx; d.tvy = mvy;                              // he runs WITH his man (as he last saw him), not after him
     let gx = P.cx - mx, gy = -my; const gl = hyp(gx, gy) || 1; gx /= gl; gy /= gl;
     let ox = b.x - mx, oy = b.y - my; const bd = hyp(ox, oy) || 1; ox /= bd; oy /= bd;
@@ -305,7 +356,7 @@
     const side = (d.x - b.x) * gx + (d.y - b.y) * gy;
     if (side < -0.3) {
       const qx = b.x + car.mvx * 0.5, qy = b.y + car.mvy * 0.5;
-      d.tx = qx + gx * 4; d.ty = Math.max(2.5, qy + gy * 4); d.cap = d.spd; d.intent = 'recover';
+      d.tx = qx + gx * 4; d.ty = Math.max(2.5, qy + gy * 4); d.cap = recoverCap(S, d, d.ty < d.y - 0.5); d.intent = 'recover';
       return;
     }
     let jx = 0, jy = 0;
@@ -335,18 +386,32 @@
     if (!carried) samplePath(S);
     S.setTicks = carried && hyp(bvx, bvy) < C.setSpd * C.ballSpd ? S.setTicks + 1 : 0;
 
+    // markers dragged away from goal hand their man over (before anyone is picked to press: a handed-over man is nobody's)
+    for (let i = 0; i < D.length; i++) if (D[i].t === 'mark' && D[i].offBalance === 0 && D[i].lt === 0) handOver(S, D[i]);
     // who is the first defender (press), who covers him
     let best = -1, bs = 1e9, second = -1, ss = 1e9, near = 1e9;
+    // "He's through": a carrier with no outfield defender on his feet goal-side of him in the corridor to goal
+    // (throughW either side of the line from ball to goal centre). Only then do the finish-pressure rules apply.
+    S.through = false;
+    if (carried && !future && (C.recSpd > 0 || C.dangerR > 0)) {
+      S.through = true;
+      for (let i = 0; i < D.length; i++) {
+        const d = D[i], ax = d.x - b.x, ay = d.y - b.y, along = ax * gx + ay * gy;
+        if (d.offBalance === 0 && along > 0.5 && along < gl && Math.abs(ax * gy - ay * gx) < C.throughW) { S.through = false; break; }
+      }
+    }
+    // through on goal near goal: whoever in the back line is nearest goes to the ball, wherever his place in the shape is
+    const danger = S.through && C.dangerR > 0 && gl < C.dangerR;
     if (carried && !future) {
       for (let i = 0; i < D.length; i++) {
         const d = D[i];
         if (d.offBalance > 0) continue;
         const dist = hyp(d.x - b.x, d.y - b.y);
         if (dist < near) near = dist;
-        const own = d.t === 'mark' && d.a === b.owner, cur = i === S.presser;
+        const own = d.t === 'mark' && d.a === b.owner && !d.handed, cur = i === S.presser;
         let ok;
         if (d.t === 'mark') ok = own || dist < d.eng;
-        else if (d.t === 'line') ok = hyp(d.sx - b.x, d.sy - b.y) < d.eng || (cur && dist < d.eng);
+        else if (d.t === 'line') ok = hyp(d.sx - b.x, d.sy - b.y) < d.eng || (cur && dist < d.eng) || (danger && dist < C.dangerEng);
         else ok = (dist < d.eng || (cur && dist < d.eng + 2)) && hyp(d.hx - b.x, d.hy - b.y) < d.leash;
         if (!ok) continue;
         const beaten = (d.x - b.x) * gx + (d.y - b.y) * gy < -0.3;
@@ -368,7 +433,7 @@
       for (let k = 0; k < S.units.length; k++) S.units[k].ch = -1;
       for (let i = 0; i < D.length; i++) {
         const d = D[i]; d.cs = -1;
-        if (d.t === 'mark' || d.offBalance > 0 || d.lt > 0 || el < d.react) continue;
+        if ((d.t === 'mark' && !d.handed) || d.offBalance > 0 || d.lt > 0 || el < d.react) continue;
         let s = meet(S, d.x, d.y, d.spd * 0.9, 0.1, 0.6), sc;
         if (s >= 0 && hyp(S.px[s] - d.x, S.py[s] - d.y) <= d.eng) sc = s * PDT;
         else {
@@ -394,25 +459,34 @@
     for (let i = 0; i < D.length; i++) {
       const d = D[i];
       if (d.offBalance > 0 || d.lt > 0) continue;            // busy tackling or getting up
-      d.tvx = 0; d.tvy = 0;
+      d.tvx = 0; d.tvy = 0; d.sprint = false;
       if (d.t === 'line') {
         const u = S.units[d.ui];
         d.sx = clamp(u.cx + u.shift + (d.hx - u.cx) * u.k, 2, P.w - 2);
         d.sy = u.y + (d.hy - u.h0);
         // cover: the men either side of a centre-half who has stepped out tuck in and drop a yard behind him
-        if (isLineCover(S, d)) { const p = D[S.presser]; d.sx += (p.sx - d.sx) * C.lineCoverTuck; d.sy -= C.lineCoverDrop; }
+        if (isLineCover(S, d)) {
+          const p = D[S.presser];
+          if (C.coverDeep && isInsideCover(S, d)) {
+            // one goes, one covers: the inside partner drops off to cover depth behind him, on the inside, so that if
+            // the man who stepped out is beaten he is still between the ball and the goal
+            const dp = hyp(p.x - b.x, p.y - b.y), cx = b.x + gx * (dp + C.coverDepth), cy = b.y + gy * (dp + C.coverDepth);
+            d.sx += (cx - d.sx) * C.coverInside; d.sy = Math.max(3, Math.min(d.sy - C.lineCoverDrop, cy));
+          } else { d.sx += (p.sx - d.sx) * C.lineCoverTuck; d.sy -= C.lineCoverDrop; }
+        }
       }
       if (i === S.presser) { pressTarget(S, d, car, gx, gy); }
       else if (i === S.chase0 || i === S.chase1) {
         const s = i === S.chase0 ? S.chaseS0 : S.chaseS1;
         d.tx = S.px[s]; d.ty = S.py[s]; d.cap = d.spd; d.intent = 'intercept';
       }
-      else if (!carried && t - b.kickTick < d.react && d.t !== 'mark') { /* has not read the pass yet: carries on */ }
-      else if (d.t === 'mark') markTarget(S, d);
+      else if (!carried && t - b.kickTick < d.react && (d.t !== 'mark' || d.handed)) { /* has not read the pass yet: carries on */ }
+      else if (d.t === 'mark' && !d.handed) markTarget(S, d);
       else if (d.t === 'line') {
         d.tx = d.sx; d.ty = d.sy; d.tvy = S.units[d.ui].vy; d.intent = S.units[d.ui].intent;
-        d.cap = d.intent === 'drop' ? d.spd * C.lineDropK * 1.08 : d.spd;   // backpedalling, not sprinting
-        if (isLineCover(S, d)) d.intent = 'cover';
+        // backpedalling while the line drops; flat out only in a recovery sprint (option 1)
+        d.cap = d.intent === 'drop' ? d.spd * C.lineDropK * 1.08 : d.intent === 'recover' ? recoverCap(S, d, S.units[d.ui].vy < -0.5) : d.spd;
+        if (isLineCover(S, d) && !d.sprint) d.intent = 'cover';      // a sprinting man keeps 'recover', so he is drawn sprinting
       }
       else if (i === S.cover) {
         d.tx = b.x + gx * C.coverD; d.ty = Math.max(3, b.y + gy * C.coverD); d.cap = d.spd; d.intent = 'cover';
@@ -420,7 +494,7 @@
       else if (carried && !future && b.y < d.y - 1.5 && hyp(d.x - b.x, d.y - b.y) < d.eng * 2) {
         // beaten screen: recovery run to a spot between ball and goal, not at the ball
         const k = Math.min(5, gl * 0.5);
-        d.tx = b.x + gx * k; d.ty = Math.max(3, b.y + gy * k); d.cap = d.spd; d.intent = 'recover';
+        d.tx = b.x + gx * k; d.ty = Math.max(3, b.y + gy * k); d.cap = recoverCap(S, d, d.ty < d.y - 0.5); d.intent = 'recover';
       }
       else zoneTarget(S, d, carried);
 
@@ -440,6 +514,24 @@
   function isLineCover(S, d) {
     const p = S.presser >= 0 ? S.def[S.presser] : null;
     return !!(p && p !== d && p.t === 'line' && p.ui === d.ui && Math.abs(p.uk - d.uk) === 1);
+  }
+  /* Recovery sprint. A defender who has been beaten or played through, near his own goal, and is running BACK towards
+     it to get goal-side of the ball, goes flat out: his own speed plus recBoost, never above recSpd. Only then: a
+     defender facing the ball, jockeying, marking or stepping up never goes above his normal speed. The renderer
+     already draws intent 'recover' at speed as a sprint (leaning into the run, back to the play). */
+  function recoverCap(S, d, goalward) {
+    d.sprint = false;
+    if (!(C.recSpd > 0) || !goalward || !S.through || hyp(S.ball.x - P.cx, S.ball.y) > C.recZone) return d.spd;
+    d.sprint = true;
+    return Math.min(C.recSpd, Math.max(d.spd, d.spd + C.recBoost));
+  }
+  // the inside partner of a line member who has stepped out to the ball (the one nearer the middle of the goal)
+  function isInsideCover(S, d) {
+    if (!isLineCover(S, d)) return false;
+    const p = S.def[S.presser], u = S.units[d.ui];
+    const other = u.m[p.uk + (p.uk - d.uk)];                       // the presser's neighbour on the other side, if any
+    if (other === undefined) return true;
+    return Math.abs(d.hx - P.cx) <= Math.abs(S.def[other].hx - P.cx);
   }
 
   function moveDefence(S, future) {
@@ -481,8 +573,8 @@
         let wx = d.tvx + dx / dd * sp, wy = d.tvy + dy / dd * sp; const wl = hyp(wx, wy);
         if (wl > d.cap) { wx *= d.cap / wl; wy *= d.cap / wl; }
         d.vx += (wx - d.vx) * C.defAccel; d.vy += (wy - d.vy) * C.defAccel;
-        const v = hyp(d.vx, d.vy);
-        if (v > d.spd) { d.vx *= d.spd / v; d.vy *= d.spd / v; }
+        const v = hyp(d.vx, d.vy), top = Math.max(d.spd, d.cap);   // cap is above spd only in a recovery sprint
+        if (v > top) { d.vx *= top / v; d.vy *= top / v; }
         d.lunge = 0;
       }
       d.x += d.vx * TICK; d.y += d.vy * TICK;
@@ -555,7 +647,17 @@
       }
       g.sweeping = sweep;
       if (!sweep) {
-        const ux = (b.x - P.cx) / bd, uy = b.y / bd;
+        // the point on the goal line he stands in front of: the middle of the goal, or (gkBisect, while someone has the
+        // ball) where the bisector of the angle between the posts, seen from the ball, meets the line. That is nearer the
+        // near post when the ball is wide, so the near post is covered and the far corner is the one left.
+        let ax = P.cx;
+        if (C.gkBisect && carried) {
+          const d1 = hyp(b.x - P.cx + P.goalHalf, b.y), d2 = hyp(b.x - P.cx - P.goalHalf, b.y);
+          ax = P.cx - P.goalHalf + 2 * P.goalHalf * d1 / (d1 + d2);
+          // ... and a little further towards the near post (gkNear of the way): a shot there arrives soonest
+          ax += (P.cx + Math.sign(b.x - P.cx) * P.goalHalf - ax) * C.gkNear * clamp(Math.abs(b.x - P.cx) / 6, 0, 1);
+        }
+        const ad = hyp(b.x - ax, b.y) || 1, ux = (b.x - ax) / ad, uy = b.y / ad;
         let out = clamp(C.gkOutMin + (32 - bd) * 0.1, C.gkOutMin, C.gkOutMax), smother = false;
         g.intent = 'angle';
         if (carried && !future && hyp(b.x - g.x, b.y - g.y) < C.gkSmotherR) {
@@ -573,9 +675,9 @@
             sp = C.gkClose; g.intent = 'narrow';
           }
           // having come out he stands his ground (sliding across to stay on the angle); he does not back-pedal
-          out = Math.max(out, Math.min(hyp(g.x - P.cx, g.y), bd - 1.5));
+          out = Math.max(out, Math.min(hyp(g.x - ax, g.y), bd - 1.5));
         }
-        if (!smother) { tx = P.cx + ux * out; ty = Math.max(1, uy * out); if (ty <= 1.01) tx = clamp(tx, P.cx - 3.6, P.cx + 3.6); }
+        if (!smother) { tx = ax + ux * out; ty = Math.max(1, uy * out); if (ty <= 1.01) tx = clamp(tx, P.cx - 3.6, P.cx + 3.6); }
         if (!smother && carried && !future && S.setTicks >= 4 && bd < 24 && hyp(tx - g.x, ty - g.y) < 0.6) { tx = g.x; ty = g.y; g.intent = 'set'; }
       }
     }
@@ -591,6 +693,7 @@
 
   function step(S, inp) {
     if (S.status !== 'play') return;
+    useCfg(S);
     inp = inp || {};
     const t = S.tick, b = S.ball;
 
@@ -710,5 +813,5 @@
     return { x: r.x, y: r.y, fx: r.fx, fy: r.fy, kick: r.kick, len: r.x.length };
   }
 
-  root.FB = { TICK, P, C, LEVELS, makeSim, step, finalRec, offsideLine };
+  root.FB = { TICK, P, C, C0, LEVELS, makeSim, step, finalRec, offsideLine };
 })(typeof module !== 'undefined' ? module.exports : window);

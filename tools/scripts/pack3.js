@@ -9,8 +9,8 @@ module.exports = [
   ],
   // Clear the channel
   [
-    { decoy: [[7, 30]] },
-    { decoy: [[40, 41]] },
+    { decoy: [[15, 29]] },
+    { decoy: [[35, 36]] },
     { carry: [[24, 53]], kickAt: [16, 47], power: 0.25 },
     { start: 0, pre: [[16, 47]], spot: 1, carry: [[20, 42]], kickAt: [27.95, 16], power: 0.8 },
     { start: 190, pre: [[30, 22]], meet: 0.5, carry: [[27, 9]], kickAt: [28, 0], power: 1 }
@@ -40,7 +40,7 @@ module.exports = [
   // False nine
   [
     { carry: [[33, 52], [29, 52.5]], kickAt: [17, 49], power: 0.3 },
-    { decoy: [[27, 41]] },
+    { decoy: [[26, 38.5]] },
     { start: 100, pre: [[18, 49.5]], spot: 1, first: 1, kickAt: [24, 18], power: 0.95 },
     { start: 145, pre: [[23.3, 20]], spot: 1, grab: 2.5, carry: [[24, 10]], kickAt: [28, 0], power: 1 }
   ],

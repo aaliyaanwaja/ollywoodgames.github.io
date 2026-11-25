@@ -28,8 +28,8 @@
       name: 'Clear the channel', time: 12,
       brief: 'Five players. Two runs without the ball pull both centre-halves apart. Then go through the middle.',
       att: [
-        { num: 9, name: 'Decoy', x: 24.5, y: 27.5, role: 'decoy', tip: 'No ball for you. Drag your centre-half out to the left touchline, then press DONE.' },
-        { num: 10, name: 'Decoy', x: 29, y: 29, role: 'decoy', tip: 'No ball for you. Come short and wide to the right so your marker follows. Then DONE.' },
+        { num: 9, name: 'Decoy', x: 24.5, y: 27.5, role: 'decoy', tip: 'No ball for you. Drag your centre-half out to the left, about ten metres. Any further and he lets you go. Then DONE.' },
+        { num: 10, name: 'Decoy', x: 29, y: 29, role: 'decoy', tip: 'No ball for you. Come short and wide to the right so your marker follows, but not too far. Then DONE.' },
         { num: 6, name: 'Pivot', x: 25, y: 54, role: 'ball', tip: 'Give it to the 8 on your left and let him pick the pass.' },
         { num: 8, name: 'Playmaker', x: 15, y: 46, role: 'ball', tip: 'Carry inside the screen, then thread it down the empty middle for the 7.' },
         { num: 7, name: 'Inside forward', x: 41, y: 31, role: 'ball', tip: 'Cut in off the right into the gap the decoys left. Stay onside and finish.' }
@@ -109,7 +109,7 @@
       brief: 'Four players. The 9 drops deep and his centre-half follows. The 11 runs into the hole he leaves.',
       att: [
         { num: 5, name: 'Centre-back', x: 31, y: 55, role: 'ball', tip: 'Start it. Roll it across to the 8 on your left.' },
-        { num: 9, name: 'False nine', x: 22.5, y: 29.5, role: 'decoy', tip: 'No ball for you. Drop deep towards halfway so your marker comes too, then press DONE.' },
+        { num: 9, name: 'False nine', x: 22.5, y: 29.5, role: 'decoy', tip: 'No ball for you. Drop about ten metres deep so your marker comes too. Any further and he lets you go. Then DONE.' },
         { num: 8, name: 'Playmaker', x: 16, y: 47, role: 'ball', tip: 'Aim early. As it arrives, hit it first time through the hole the 9 has left.' },
         { num: 11, name: 'Runner', x: 12, y: 30.5, role: 'ball', tip: 'Run off the left into the hole the 9 left. Go as the 8 plays it, and finish.' }
       ],

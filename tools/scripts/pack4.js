@@ -31,7 +31,7 @@ module.exports = [
   [
     { decoy: [[22, 15]] },
     { carry: [[32.2, 24.4], [31, 23]], kickAt: [33, 7.5], power: 0.35 },
-    { start: 34, pre: [[33, 11]], meet: 0.2, carry: [[31.5, 7]], kickAt: [28, 0], power: 1 }
+    { start: 34, pre: [[33, 11]], meet: 0.2, carry: [[32.5, 10]], kickAt: [23.1, 0], power: 1 }
   ],
   // The flick-on
   [
