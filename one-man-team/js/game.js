@@ -709,11 +709,17 @@
   /* ---------- loop ---------- */
   function sounds(S) {
     const b = S.ball;
-    if (b.kickTick !== lastKick && b.kickTick >= 0) { lastKick = b.kickTick; SFX.kick(Math.min(1, Math.hypot(b.vx, b.vy) / C.kickMax)); }
+    if (b.kickTick !== lastKick && b.kickTick >= 0) {
+      lastKick = b.kickTick;
+      const sp = Math.hypot(b.vx, b.vy);
+      if (b.shot) SFX.strike(Math.min(1, Math.max(0, (sp / (C.shotPace || 1) - C.shotMin) / (C.shotMax - C.shotMin))));
+      else SFX.kick(Math.min(1, sp / C.kickMax));
+    }
     if (b.recvTick !== lastRecv && b.recvTick >= 0) { lastRecv = b.recvTick; SFX.touch(); }
   }
-  /* The decisive shot: the last player has hit it and it is travelling at goal. The sim is deterministic per tick,
-     so stepping it less often changes how the moment feels and nothing about how it ends. */
+  /* The decisive shot: the last player has hit it and it is travelling at goal. The crowd rises for it. It plays at
+     full speed: it used to be shown at 0.38 speed, which made a shot from 15-21 m crawl in over about two seconds
+     (docs/foundation/16-shot-pace.md). */
   function decisive(S) {
     const b = S.ball;
     if (!S || S.status !== 'play' || b.owner >= 0 || S.chainPos !== S.chain.length - 1 || b.vy > -5 || b.y > 20) return false;
@@ -737,7 +743,7 @@
     const dt = Math.min(0.1, (now - last) / 1000 || 0); last = now;
     const S0 = state === 'play' ? sim : state === 'goal' ? rsim : null, slow = !!S0 && decisive(S0);
     const aimSlow = !!save.slow && CFG.slow !== false && prac < 0 && state === 'play' && inp.charging && aimLeft > 0; if (aimSlow) aimLeft -= dt;
-    tempo += ((slow ? 0.38 : aimSlow ? 0.35 : 1) - tempo) * Math.min(1, dt * 14);
+    tempo += ((aimSlow ? 0.35 : 1) - tempo) * Math.min(1, dt * 14);
     if (slow !== swell) { swell = slow; if (state === 'play') SFX.crowd(slow ? 0.075 : 0.016, slow ? 0.18 : 0.5); }
     acc += dt * tempo;
     let n = 0;

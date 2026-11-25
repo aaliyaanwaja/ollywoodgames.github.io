@@ -75,7 +75,8 @@ No defender catches an attacker running away from him, except in an A recovery s
 |---|---|
 | Pass speed | 9-28 m/s by power. Full charge takes 0.7 s |
 | Pass roll | about 11 m at zero power to 35 m at full; slow over its last third |
-| Shot (any kick by the last ball player) | 17-34 m/s, and it holds its pace (friction 0.28 against 0.8) |
+| Shot (any kick by the last ball player) | 20.4-40.8 m/s by power, friction 0.336 against 0.8: `shotMin 17`, `shotMax 34`, `shotFric 0.28`, all times `shotPace 1.2` (16-shot-pace.md). The same path as the old 17-34 m/s shot, covered in 1/1.2 of the time. From 18 m: 0.48 s to the line at full power, 0.61 s at power 0.6, 0.77 s at 0.3 |
+| Shot on screen | always at full speed. The old 0.38 slow motion on the decisive shot is gone (it made a shot from 18 m take 1.5-2.4 s on screen). A shot has its own strike sound and a firmer buzz, a chalk ring off the boot, a brighter streak, and the net and camera kick with the pace it arrives at |
 | Who can collect | only the next ball player in `order`, within 1.35 m, from 6 ticks after the kick |
 | Pass accepted | the passer's round is won 54 ticks (0.9 s) after the kick. Anything after that happens in the next round |
 | Through-ball reach through a 9 m gap | power 1 gets through from up to 18 m in front of the line; 0.8 from 14 m; 0.6 from 12 m. From 20 m or more a centre-half always cuts it out |
@@ -120,7 +121,7 @@ No defender catches an attacker running away from him, except in an A recovery s
 | One-on-one | carrier inside 18 m with no defender within 3.5 m goal-side: he comes out to 0.45 × distance, at most 5 m (7 m for a sweeper), and stops 3.2 m short. He never back-pedals |
 | Smother | a ball dribbled within 2.6 m of him |
 | Sets | when the carrier slows to aim inside 24 m |
-| Shot | waits `gk.react` ticks (13; +5 if he was moving), then dives at 4.7 m/s. Saves within 0.8 m of him, 1.2 m at full stretch |
+| Shot | waits `gk.react` ticks (13; +5 if he was moving), then dives at 4.7 m/s. Saves within 0.8 m of him, 1.2 m at full stretch. Against a shot all three run on the shot's clock (`shotPace 1.2`): he reacts after 13 / 1.2 (about 11) real ticks, dives at 5.64 m/s and reaches full stretch 1.2 times as fast, so he gets to the same places on the same shots as before 16. Open goal from 10-21 m moved by at most 0.3 m in any of 72 cells (mean change 0.1 m either way; the average open goal 0.03 m wider) |
 | Claims a pass | inside his zone, if he gets there 0.15 s before any attacker. Unplayed attackers are assumed to run when the pass is hit |
 | Fact that matters | a full-power shot from 10 m passes him before his reaction ends, so at 10 m he is a statue (about 4.8 m of goal open). From the owner's range of 15-21 m he leaves 1-4 m |
 

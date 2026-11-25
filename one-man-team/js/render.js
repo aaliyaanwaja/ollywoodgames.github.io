@@ -500,13 +500,16 @@
   }
 
   // ---------- goal ----------
+  // how hard the ball hit the net: 0 for a tap-in, 1 for a full-power shot (sets the bulge and the camera kick)
+  const netHit = () => clamp((Math.hypot(gVX, gVY) - 12) / 22, 0, 1);
   const NU = 16, NV = 5, netX = new Float32Array((NU + 1) * (NV + 1)), netY = new Float32Array((NU + 1) * (NV + 1));
   function drawGoal(now) {
     let B = 0, bx = P.cx;
     if (goalT > -1e8) {
       const t = (now - goalT) / 1000; bx = ballDX;
       const depth = clamp((-ballDY - 0.5) / 1.2, 0, 1);
-      B = depth * (reduced ? 0.6 : 0.6 + 0.8 * Math.exp(-4.5 * t) * Math.cos(17 * t));
+      const h = netHit();
+      B = depth * (reduced ? 0.6 : 0.6 + (0.5 + 0.7 * h) * Math.exp(-4.5 * t) * Math.cos(17 * t));
     }
     for (let j = 0; j <= NV; j++) for (let i = 0; i <= NU; i++) {
       const v = j / NV, xl = GX0 + NET_IN * v, xr = GX1 - NET_IN * v, x = xl + (xr - xl) * i / NU;
@@ -573,7 +576,10 @@
         const sp = Math.hypot(b.vx, b.vy) || 1, pw = clamp(sp / C.kickMax, 0.2, 1);
         kickWho = b.lastKicker; kickT = now; kickDX = b.vx / sp; kickDY = b.vy / sp;
         fx(1, b.x - kickDX * 0.3, b.y - kickDY * 0.3, now, pw); fx(4, b.x, b.y, now, Math.atan2(kickDY, kickDX));
-        punch(now, -kickDX * 3.2 * pw, -kickDY * 3.2 * pw);
+        if (b.shot) {                                                // a shot: a ring off the boot and a harder kick of the camera
+          fx(5, b.x, b.y, now, 0);
+          punch(now, -kickDX * 5.5, -kickDY * 5.5);
+        } else punch(now, -kickDX * 3.2 * pw, -kickDY * 3.2 * pw);
       }
     }
     if (b.recvTick !== seenRecv) { seenRecv = b.recvTick; if (b.recvTick >= 0) fx(2, b.x, b.y, now, 0); }
@@ -581,7 +587,7 @@
       seenStatus = S.status;
       if (S.status === 'goal') {
         goalT = now; gBX = b.x; gBY = b.y; gVX = b.vx; gVY = Math.min(b.vy, -4);
-        spawnConfetti(clamp(b.x, GX0 + 1, GX1 - 1)); punch(now, 0, -6);
+        spawnConfetti(clamp(b.x, GX0 + 1, GX1 - 1)); punch(now, clamp(gVX * 0.12, -2, 2), -4 - 4 * netHit());
       } else if (S.status === 'fail') {
         const r = S.reason; failT = now; failX = ballDX; failY = ballDY; failKind = 0; failRing = -1;
         const by = S.failBy;
@@ -620,6 +626,10 @@
         const e = t / 280; if (e >= 1) { fxType[i] = 0; continue; }
         ctx.strokeStyle = CHALK; ctx.globalAlpha = 0.85 * (1 - e); ctx.lineWidth = 0.2 * (1 - e) + 0.04;
         disc(x, y, 0.7 + 1.1 * (1 - (1 - e) * (1 - e))); ctx.stroke(); ctx.globalAlpha = 1;
+      } else if (ty === 5) {                                        // shot: a chalk ring thrown off the boot
+        const e = t / 200; if (e >= 1) { fxType[i] = 0; continue; }
+        ctx.strokeStyle = CHALK; ctx.globalAlpha = 0.75 * (1 - e); ctx.lineWidth = 0.22 * (1 - e) + 0.05;
+        disc(x, y, 0.6 + 1.9 * (1 - (1 - e) * (1 - e))); ctx.stroke(); ctx.globalAlpha = 1;
       } else if (ty === 4) {                                        // kick: three short strike marks behind the ball
         const e = t / 170; if (e >= 1) { fxType[i] = 0; continue; }
         ctx.strokeStyle = CHALK; ctx.globalAlpha = 1 - e; ctx.lineWidth = 0.13; ctx.lineCap = 'round';
@@ -682,9 +692,10 @@
     if (b.owner < 0 && sp > 5 && trN > 1 && S.status === 'play' && !reduced) {   // motion streak
       ctx.strokeStyle = CHALK; ctx.lineCap = 'round';
       let px = x, py = y;
+      const al = b.shot ? 0.5 : 0.34, wd = b.shot ? 1.9 : 1.7;       // a shot leaves a brighter, wider streak
       for (let i = 1; i < trN; i++) {
         const j = (trH - i + TR * 2) % TR, f = 1 - i / trN;
-        ctx.globalAlpha = 0.34 * f; ctx.lineWidth = BALL_R * 1.7 * f;
+        ctx.globalAlpha = al * f; ctx.lineWidth = BALL_R * wd * f;
         ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(trX[j], trY[j]); ctx.stroke(); px = trX[j]; py = trY[j];
       }
       ctx.globalAlpha = 1; ctx.lineCap = 'butt';

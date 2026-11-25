@@ -377,11 +377,11 @@ scenario('keeper: a tame shot at him is saved, and so is a shot from 26 m or mor
 });
 
 scenario('keeper: human reaction, and a shot hit before he has set gives him less time', () => {
-  // he must not move towards the shot during his reaction time
+  // he must not move towards the shot during his reaction time (gkReact ticks on the shot's clock: shotPace, see 16)
   let moved = 0, kt = -1, x0 = 0;
   run(shotLvl(25, 14), (S, me, t) => kick(me, 21.6, 0, 1, t, 45), { ticks: 400, each: S => {
     if (S.ball.owner < 0 && kt < 0) { kt = S.tick; x0 = S.gk.x; }
-    if (kt >= 0 && S.tick === kt + C.gkReact - 2) moved = Math.abs(S.gk.x - x0);
+    if (kt >= 0 && S.tick === kt + Math.floor(C.gkReact / (C.shotPace || 1)) - 2) moved = Math.abs(S.gk.x - x0);
   } });
   // same strike from a moving run-up (no time to set): the keeper is still adjusting, so it is harder for him
   const setShot = shoot(25, 15, 23.2, 1, 45);

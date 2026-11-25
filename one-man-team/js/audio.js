@@ -82,6 +82,15 @@
       noise({ dur: 0.022, f: 3400, q: 1.5, vol: 0.07 + 0.06 * p });                         // click of contact
       buzz(10 + Math.round(14 * p));
     },
+    /* a shot: struck through, not passed. A deeper thump, a harder crack, the air it leaves behind, a firmer buzz */
+    strike(power) {
+      const p = power || 0;
+      tone(150 + 40 * p, 40, 0.2, 'sine', 0.5 + 0.25 * p);                                // boot through the ball
+      noise({ dur: 0.06, f: 1300 + 600 * p, q: 0.6, vol: 0.3 + 0.15 * p, type: 'lowpass' }); // leather slap
+      noise({ dur: 0.03, f: 4200, q: 1.2, vol: 0.13 + 0.07 * p });                          // the crack of contact
+      noise({ dur: 0.22, f: 2600, f1: 900, q: 0.9, vol: 0.05 + 0.04 * p, attack: 0.02 });   // whoosh
+      buzz(26 + Math.round(14 * p));
+    },
     touch() { tone(230, 120, 0.07, 'sine', 0.16); noise({ dur: 0.035, f: 1300, q: 1, vol: 0.06 }); buzz(8); },
     lock() { tone(392, 0, 0.09, 'triangle', 0.13); tone(587, 0, 0.16, 'triangle', 0.13, 0.085); noise({ dur: 0.03, f: 3000, q: 1.5, vol: 0.05 }); buzz(18); },
     whistle(n) {

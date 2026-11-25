@@ -23,6 +23,11 @@
     kickMin: 9, kickMax: 28, chargeTime: 0.7, fric: 0.8, stopV: 1.2,
     // a shot (any kick by the last player in the move) is struck, not rolled: faster off the boot and it holds its pace
     shotMin: 17, shotMax: 34, shotFric: 0.28,
+    // shot pace (docs/foundation/16-shot-pace.md): the shot and the keeper's answer to it run on a clock shotPace times
+    // faster. Speed and friction are multiplied by it (20.4-40.8 m/s, 0.336/s: the same path, covered in 1/shotPace of
+    // the time), and so are the keeper's reaction clock, dive speed and stretch, so he gets to the same places on the
+    // same shots. 1 is the engine before 16.
+    shotPace: 1.2,
     bumpR: 0.85, passSettle: 54, touchShield: 20,
     // defenders: movement
     defMax: 5.8,          // hard cap on any defender's speed, whatever the level says
@@ -150,7 +155,7 @@
         sweeper: !!gkc.sweeper, reactT: gkc.react === undefined ? C.gkReact : gkc.react,
         fx: 0, fy: 1, lunge: 0, offBalance: 0, intent: 'angle'
       },
-      ball: { x: 0, y: 0, vx: 0, vy: 0, owner: chain[0], kickTick: -999, lastKicker: -1, recvTick: -999 },
+      ball: { x: 0, y: 0, vx: 0, vy: 0, owner: chain[0], kickTick: -999, lastKicker: -1, recvTick: -999, shot: false },
       status: 'play', reason: '', failWho: -1, failLive: false,
       liveKickTick: -1,
       liveRec: { x: [], y: [], fx: [], fy: [], kick: null },
@@ -201,10 +206,10 @@
     const a = S.att[i], b = S.ball;
     const dx = a.hasAim ? a.ax : a.fx, dy = a.hasAim ? a.ay : a.fy;
     const isShot = S.chain[S.chain.length - 1] === i;
-    b.fric = isShot ? C.shotFric : C.fric;
+    b.fric = isShot ? C.shotFric * C.shotPace : C.fric; b.shot = isShot;
     if (kk) { b.x = kk.bx; b.y = kk.by; b.vx = kk.vx; b.vy = kk.vy; }
     else {
-      const sp = isShot ? C.shotMin + (C.shotMax - C.shotMin) * charge : C.kickMin + (C.kickMax - C.kickMin) * charge;
+      const sp = isShot ? (C.shotMin + (C.shotMax - C.shotMin) * charge) * C.shotPace : C.kickMin + (C.kickMax - C.kickMin) * charge;
       b.x = a.x + dx * C.ballOff; b.y = a.y + dy * C.ballOff;
       b.vx = dx * sp; b.vy = dy * sp; a.hasAim = false;
       S.liveRec.kick = { tick: S.tick, bx: b.x, by: b.y, vx: b.vx, vy: b.vy };
@@ -597,7 +602,8 @@
        moving he reacts gkLate ticks later
      - a pass he will reach before any attacker, inside his zone (six-yard area; the whole box for a sweeper): he comes
        for it. Attackers not yet played are assumed to have started running when the pass was hit.
-     - a shot: stands for reactT ticks, then goes for the nearest point of the ball's path */
+     - a shot: stands for reactT ticks, then goes for the nearest point of the ball's path. Against a shot (the last
+       player's kick) his clock runs shotPace times faster: reaction, dive speed and stretch, matching the ball */
   function thinkKeeper(S, future) {
     const g = S.gk, b = S.ball, t = S.tick, carried = b.owner >= 0;
     let tx = g.x, ty = g.y, sp = C.gkSpd;
@@ -608,13 +614,14 @@
       shot = Math.abs(xg - P.cx) < P.goalHalf + 1.2 && hyp(b.vx, b.vy) / (b.fric || C.fric) > b.y * 0.9;
     }
     if (shot) {
+      const pace = b.shot ? C.shotPace : 1;
       if (g.react === 0) g.late = g.set ? 0 : C.gkLate;
-      g.react++; g.sweeping = false;
-      if (g.react > g.reactT + g.late) {
+      g.react += pace; g.sweeping = false;
+      if (g.react - pace >= g.reactT + g.late - 1e-9) {   // reactT + late ticks after he saw it (on the shot's clock)
         const sl = hyp(b.vx, b.vy), ux = b.vx / sl, uy = b.vy / sl;
         const al = Math.max(0, (g.x - b.x) * ux + (g.y - b.y) * uy);
-        tx = b.x + ux * al; ty = Math.max(0.6, b.y + uy * al); sp = C.gkDive;
-        g.dive = Math.min(1, g.dive + 0.125); g.intent = 'dive';
+        tx = b.x + ux * al; ty = Math.max(0.6, b.y + uy * al); sp = C.gkDive * pace;
+        g.dive = Math.min(1, g.dive + 0.125 * pace); g.intent = 'dive';
       } else g.intent = 'set';
     } else {
       g.react = 0; g.dive = Math.max(0, g.dive - 0.1);
