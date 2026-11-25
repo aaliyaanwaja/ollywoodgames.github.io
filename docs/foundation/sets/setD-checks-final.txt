@@ -1,0 +1,50 @@
+== 1 A4 Up, back and through  clock 9s bot 4.87s ratio 0.54 slack 4.13  line y 28
+   roles: press hunts #6 at 8.6 m; zone screens #6-#7 0.6 m; mark marks #9; line; line; line; line
+   static: pass
+   J1 lanes 2.8, 2.8, 2.2 | receiver press 1.4, 2.7 | tight touches 2
+   J2 1: r4 timing 0.67s
+   J3 onside by 0.5 ahead true, run window 0.67s, passer's nearest def 2.7 m, line step
+   J4 control 26.9 m; owner probe: got it 26.9 m, lost 0.43s after standing at 18 m / 1.83s after control (tackled), open 3.6 m, corner open 0.2s
+   J5 nearest defender after control 3 m | J6 dwell 1.25, 0.5 zone-on-lane false
+   J10 bot shot 15.6 m, open 3 m, corner open 0.4s
+   dynamic: pass
+== 2 A7 Short then long  clock 10s bot 5.22s ratio 0.52 slack 4.78  line y 25.5
+   roles: press hunts #4 at 7.4 m; zone screens #8-#9 0.6 m; press hunts #8 at 10.6 m; mark marks #9; line; line; line
+   static: pass
+   J1 lanes 2.9, 4.6, 2.6 | receiver press 4.1, 2.8 | tight touches 1
+   J2 2: r3 aim 11°, r4 timing 0.9s
+   J3 onside by 2.6 ahead true, run window 0.9s, passer's nearest def 2.7 m, line hold
+   J4 control 22.1 m; owner probe: got it 22.1 m, lost 0.67s after standing at 18 m / 1.33s after control (tackled), open 2.4 m, corner open 0.4s
+   J5 nearest defender after control 2.1 m | J6 dwell 1.45, 0.75 zone-on-lane false
+   J10 bot shot 14.7 m, open 3 m, corner open 0.6s
+   dynamic: pass
+== 3 C2 Bend the run  clock 10s bot 5.45s ratio 0.55 slack 4.55  line y 30
+   roles: press hunts #4 at 8.5 m; zone screens #4-#11 0.3 m; mark marks #10; line; line; line; line
+   static: pass
+   J1 lanes 8.6, 3.3, 1.3 | receiver press 7.9, 3.2 | tight touches 2
+   J2 2: r3 aim 13.5°, r3 timing 0.93s
+   J3 onside by 1.8 ahead true, run window 1.63s, passer's nearest def 3.2 m, line hold
+   J4 control 18.8 m; owner probe: got it 18.8 m, lost 0.72s after standing at 18 m / 0.83s after control (tackled), open 3.8 m, corner open 0.5s
+   J5 nearest defender after control 1.9 m | J6 dwell 1.65, 1.2 zone-on-lane false
+   J10 bot shot 14.2 m, open 4 m, corner open 0.3s
+   dynamic: pass  (notes: J3 (should): passer's nearest defender 3.2 m, line hold)
+== 4 C6 Commit the centre-half  clock 10s bot 5.38s ratio 0.54 slack 4.62  line y 26
+   roles: press hunts #6 at 8.5 m; zone screens #6-#10 2.1 m; line; line; line; line
+   static: pass
+   J1 lanes 3, 2.3 | receiver press 3.3 | tight touches 1
+   J2 2: r2 aim 13.5°, r3 timing 0.47s
+   J3 onside by 1.6 ahead true, run window 0.47s, passer's nearest def 3.3 m, line drop
+   J4 control 21.3 m; owner probe: got it 21.3 m, lost 0.37s after standing at 18 m / 0.88s after control (tackled), open 2.4 m, corner open 0.1s
+   J5 nearest defender after control 2.7 m | J6 dwell 1.35, 1.35 zone-on-lane true
+   J10 bot shot 16.5 m, open 2.8 m, corner open 0.1s
+   dynamic: pass  (notes: J3 (should): passer's nearest defender 3.3 m, line drop)
+== 5 B4 Ball inside the full-back  clock 9s bot 5s ratio 0.56 slack 4  line y 25
+   roles: press hunts #6 at 8.1 m; zone screens #6-#10 0.2 m; mark marks #10; line; line; line; line
+   static: pass
+   J1 lanes 8.2, 3.3, 2 | receiver press 9.5, 2.5 | tight touches 2
+   J2 5: r1 aim 14°, r2 aim 14.5°, r2 timing 0.97s, r3 aim 12°, r3 power 0.24
+   J3 onside by 1.8 ahead true, run window 2.33s, passer's nearest def 2.5 m, line step
+   J4 control 23.6 m; owner probe: got it 23.6 m, lost 0.87s after standing at 18 m / 1.73s after control (tackled), open 3.6 m, corner open 0.6s
+   J5 nearest defender after control 2.6 m | J6 dwell 1.55, 0 zone-on-lane false
+   J10 bot shot 15.9 m, open 2 m, corner open 0.3s
+   dynamic: pass
