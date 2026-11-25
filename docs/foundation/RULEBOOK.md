@@ -237,7 +237,8 @@ Fun scores from sets A / B / C (the different versions listed). Takes are first 
 | 3 | Through ball (2), Lay-off (6), Overlap (8), Push them back (12) | | fun 3: his least fun | 0. Tutorial only for Through ball |
 | 2 | Sweeper-keeper (16) | | fun 3 once; the owner chose to keep it as is (25 Nov) | 1 |
 | Banned | Any double decoy: Clear the channel (14), Far post (17), today's 60 | | "The double decoy is always the least fun because it's the easiest to create space" | 0 |
-| Trial | Up, back and through (A4); Short then long (A7); Bend the run (C2); Commit the centre-half (C6); Ball inside the full-back (B4) | | Not rated. [F]: they share the tier-1 spine (hunter early, timed run against a holding line) | 0 until rated |
+| 1 | Bend the run (C2) | | Set D: fun 5, fair 5, real football 5, 10 takes | 3 |
+| 2 | Up, back and through (A4); Short then long (A7); Commit the centre-half (C6); Ball inside the full-back (B4) | | Set D: fun 4, fair 4-5, real football 4. Commit the centre-half took 1 take: shorten its clock | 2 |
 
 What the tier-1 templates share [O/M]: a hunter or screen forcing the early passes; 4-5 ball players; a final pass to a
 runner timing a holding line (onside by 0.3-3.6 m); then a long run on goal (control 24-27 m out, carry 14-17 m). What the
