@@ -42,3 +42,8 @@ The game is about arranging a move, so it looks like a tabletop football set and
 Consistent spacing on a 4px grid; one type scale; every state designed (empty, locked, pressed, disabled, failed);
 nothing overlapping or clipped at 360x640 and at 430x932; no default browser styling visible anywhere; transitions between
 screens rather than hard cuts; the first ten seconds teach the game without a wall of text.
+
+## Teams separate by shape
+Their figures always keep the banded rim; ours always keep the solid rim and number. Teams separate by shape, not only
+colour. A kit that pairs a near-white with a near-black reads as the ball: the renderer draws it with a dark base and a
+silver rim in six wide bands, and `node tools/kit-check.js` warns the campaign team before such a kit ships.

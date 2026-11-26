@@ -54,10 +54,10 @@
   let shadowSpr = null, feltTile = null, speckTile = null, tileDpr = 0;
   let numFont = '', ghostFont = '', tagFont = '', numPx = 11;
   let punchX = 0, punchY = 0, pAX = 0, pAY = 0, pT = -1e9;
-  let reduced = false;
+  let reduced = false, phoneReduced = false, gameReduced = false, textK = 1;
   try {
-    const mq = root.matchMedia('(prefers-reduced-motion: reduce)'); reduced = mq.matches;
-    const on = e => { reduced = e.matches; };
+    const mq = root.matchMedia('(prefers-reduced-motion: reduce)'); phoneReduced = reduced = mq.matches;
+    const on = e => { phoneReduced = e.matches; reduced = phoneReduced || gameReduced; };
     if (mq.addEventListener) mq.addEventListener('change', on); else if (mq.addListener) mq.addListener(on);
   } catch (e) {}
   try {
@@ -65,7 +65,7 @@
   } catch (e) {}
 
   // ---------- kit ----------
-  const kit = { usP: TOMATO, usS: PAPER, usNum: INK, thP: INK, thS: SKY, gk: MUSTARD, c0: TOMATO, c1: PAPER, c2: MUSTARD };
+  const kit = { usP: TOMATO, usS: PAPER, usNum: INK, thP: INK, thS: SKY, gk: MUSTARD, c0: TOMATO, c1: PAPER, c2: MUSTARD, band: [0.48, 0.5] };
   function lum(hex) {
     const h = String(hex).replace('#', ''); if (h.length < 6) return 0.5;
     const f = i => { const v = parseInt(h.substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
@@ -74,7 +74,11 @@
   function setKit(level) {
     const kt = level.kit || {}, us = kt.us || [], th = kt.them || [];
     kit.usP = us[0] || TOMATO; kit.usS = us[1] || PAPER;
-    kit.thP = th[0] || INK; kit.thS = th[1] || SKY; kit.gk = kt.gk || MUSTARD;
+    kit.thP = th[0] || INK; kit.thS = th[1] || SKY; kit.gk = kt.gk || MUSTARD; kit.band = [0.48, 0.5];
+    // legibility guard (design plan, change 4): near-white with near-black reads as the ball. The base goes dark and the
+    // banded rim silver, in six wide bands instead of fourteen narrow ones. Their figures always keep the banded rim.
+    const lp = lum(kit.thP), ls = lum(kit.thS);
+    if ((lp > 0.8 && ls < 0.03) || (ls > 0.8 && lp < 0.03)) { kit.thP = lp < ls ? kit.thP : kit.thS; kit.thS = '#B8BEC6'; kit.band = [0.69, 0.69]; }
     kit.usNum = lum(kit.usS) > 0.32 ? INK : CHALK;
     kit.c0 = kit.usP; kit.c1 = kit.usS; kit.c2 = MUSTARD;
   }
@@ -88,7 +92,7 @@
   let kickWho = -1, kickT = -1e9, kickDX = 0, kickDY = -1;
   let failT = -1e9, failX = 0, failY = 0, failKind = 0, failRing = -1, tackler = -1, keeperHold = false;
   let goalT = -1e9, gBX = 0, gBY = 0, gVX = 0, gVY = 0, ballDX = 0, ballDY = 0;
-  let passLabel = '', passLabelNum = null;
+  let passLabel = '', passLabelNum = null, recvT = -1e9, rockWho = -1;
   // pose of the figure about to be drawn (set by the caller, reset by figure)
   let pPlant = 0, pDown = 0, pSide = 0, pFoot = false, pFootX = 0, pFootY = 0, pStrike = false;
   const obSeen = new Int16Array(MAXF);
@@ -174,10 +178,10 @@
     vx0 = vw >= full1 - full0 ? P.cx - vw / 2 : clamp((x0 + x1) / 2 - vw / 2, full0, full1 - vw);
     vy0 = y0;
     k = sc * dpr;
-    numPx = Math.max(11, 1.24 * sc);
+    numPx = Math.max(11, 1.24 * sc) * textK;
     numFont = '700 ' + numPx.toFixed(1) + 'px ' + FONT;
     ghostFont = '700 ' + (numPx * 1.15).toFixed(1) + 'px ' + FONT;
-    tagFont = '700 ' + clamp(sc * 1.05, 11, 13).toFixed(1) + 'px ' + FONT;
+    tagFont = '700 ' + (clamp(sc * 1.05, 11, 13) * textK).toFixed(1) + 'px ' + FONT;
     tagW.clear();
   }
 
@@ -399,7 +403,8 @@
     const fxu = Math.cos(ang), fyu = Math.sin(ang);
     const tilt = Math.min(0.42, Math.abs(ext) * 0.2 + Math.abs(rock) * 0.16 + Math.hypot(lx, ly) * 0.25 + pDown * 0.4 + (pFoot ? 0.14 : 0));
     if (live) {                                                     // the live player's mustard ring
-      const rr = R + 0.46 + (reduced ? 0 : 0.05 * Math.sin(now / 240));
+      const rt = now - recvT, snap = !reduced && rt >= 0 && rt < 90 ? 1 + 0.12 * (1 - rt / 90) : 1;   // the ball sticks: the ring snaps 12% larger for 90ms
+      const rr = (R + 0.46 + (reduced ? 0 : 0.05 * Math.sin(now / 240))) * snap;
       disc(x, y, rr + 0.09); ctx.fillStyle = INK; ctx.fill();
       disc(x, y, rr); ctx.fillStyle = MUSTARD; ctx.fill();
       disc(x, y, R + 0.1); ctx.fillStyle = INK; ctx.fill();
@@ -410,7 +415,7 @@
     ctx.beginPath(); ctx.ellipse(x - fxu * tilt * 0.3, y - fyu * tilt * 0.3, (R - RIM) * (1 - tilt), R - RIM, ang, 0, TAU);
     ctx.fillStyle = kind === 0 ? sec : pPlant > 0 && kind === 1 && pSide === 0 ? TOMATO : prim; ctx.fill();
     if (kind === 1) {                                               // their base: a banded rim, so they never read as ours
-      ctx.strokeStyle = prim; ctx.lineWidth = RIM - 0.06; ctx.setLineDash([0.48, 0.5]);
+      ctx.strokeStyle = prim; ctx.lineWidth = RIM - 0.06; ctx.setLineDash(kit.band);
       ctx.beginPath(); ctx.ellipse(x, y, (R - RIM / 2) * (1 - tilt), R - RIM / 2, ang, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
     }
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.09; ctx.lineCap = 'round';
@@ -509,11 +514,11 @@
       const t = (now - goalT) / 1000; bx = ballDX;
       const depth = clamp((-ballDY - 0.5) / 1.2, 0, 1);
       const h = netHit();
-      B = depth * (reduced ? 0.6 : 0.6 + (0.5 + 0.7 * h) * Math.exp(-4.5 * t) * Math.cos(17 * t));
+      B = depth * (reduced ? 0.7 : 0.7 + (0.9 + 0.9 * h) * Math.exp(-7.5 * t) * Math.cos(15.7 * t));
     }
     for (let j = 0; j <= NV; j++) for (let i = 0; i <= NU; i++) {
       const v = j / NV, xl = GX0 + NET_IN * v, xr = GX1 - NET_IN * v, x = xl + (xr - xl) * i / NU;
-      const dx = (x - bx) / 1.7, g = Math.exp(-dx * dx) * v * B, n = j * (NU + 1) + i;
+      const dx = (x - bx) / 2.1, g = Math.exp(-dx * dx) * v * B, n = j * (NU + 1) + i;
       netX[n] = x - (x - bx) * 0.12 * g; netY[n] = -NET_D * v - g;
     }
     ctx.strokeStyle = 'rgba(251,248,240,.8)'; ctx.lineWidth = Math.max(0.07, 0.95 / sc); ctx.lineJoin = 'round';
@@ -545,11 +550,11 @@
   function tag(px, py, str, fill, ink) {
     pixels(); ctx.font = tagFont;
     let tw = tagW.get(str); if (tw === undefined) { tw = Math.ceil(ctx.measureText(str).width); tagW.set(str, tw); }
-    const w = tw + 12, h = 18, x = Math.round(clamp(px - w / 2, 4, W - w - 6)), y = Math.round(clamp(py, 4, H - h - 6));
+    const w = tw + 12, h = Math.round(18 * textK), x = Math.round(clamp(px - w / 2, 4, W - w - 6)), y = Math.round(clamp(py, 4, H - h - 6));
     ctx.fillStyle = INK; ctx.fillRect(x + 2, y + 2, w, h);
     ctx.fillStyle = fill; ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.strokeRect(x + 0.25, y + 0.25, w - 0.5, h - 0.5);
-    ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(str, x + w / 2, y + h - 5);
+    ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(str, x + w / 2, y + h - Math.round(5 * textK));
     world();
   }
 
@@ -561,7 +566,7 @@
     for (let i = 0; i < S.att.length && i < MAXF; i++) { attAng[i] = Math.atan2(S.att[i].fy, S.att[i].fx); attLx[i] = attLy[i] = 0; }
     for (let i = 0; i < S.def.length && i < MAXF; i++) { const d = S.def[i]; defAng[i] = Math.atan2(b.y - d.y, b.x - d.x); defLx[i] = defLy[i] = 0; }
     gkAng = Math.atan2(b.y - S.gk.y, b.x - S.gk.x); gkPrevX = S.gk.x; gkVx = 0; gkDive = 0;
-    obSeen.fill(0); kickWho = -1; kickT = -1e9; failT = -1e9; failRing = -1; tackler = -1; keeperHold = false; goalT = -1e9;
+    obSeen.fill(0); kickWho = -1; kickT = -1e9; failT = -1e9; failRing = -1; tackler = -1; keeperHold = false; goalT = -1e9; recvT = -1e9; rockWho = -1;
     trN = 0; trH = 0; lead = b.owner >= 0 ? R + 0.12 - C.ballOff : 0; if (b.owner >= 0) { leadX = S.att[b.owner].fx; leadY = S.att[b.owner].fy; } rollX = b.x + leadX * lead; rollY = b.y + leadY * lead; ballDX = b.x; ballDY = b.y;
     pT = -1e9; clearFx();
     if (view.state !== 'goal' && view.state !== 'goalhold') clearConfetti();
@@ -582,7 +587,7 @@
         } else punch(now, -kickDX * 3.2 * pw, -kickDY * 3.2 * pw);
       }
     }
-    if (b.recvTick !== seenRecv) { seenRecv = b.recvTick; if (b.recvTick >= 0) fx(2, b.x, b.y, now, 0); }
+    if (b.recvTick !== seenRecv) { seenRecv = b.recvTick; if (b.recvTick >= 0) { fx(2, b.x, b.y, now, 0); if (b.owner === S.live) recvT = now; } }
     if (S.status !== seenStatus) {
       seenStatus = S.status;
       if (S.status === 'goal') {
@@ -601,6 +606,7 @@
             failX = ballDX + (tx - ballDX) * 0.3; failY = ballDY + (ty - ballDY) * 0.3;
           }
           failKind = 1; punch(now, 4.5, 2.5);
+          rockWho = typeof S.failWho === 'number' && S.failWho >= 0 ? S.failWho : S.live;   // the man who lost it rocks on his base
         }
         else if (r === 'bump') {
           const o = S.att[S.failWho], me = S.att[S.live];
@@ -689,10 +695,10 @@
     ballDX = x; ballDY = y;
     rollBall(x - rollX, y - rollY); rollX = x; rollY = y;
     const sp = Math.hypot(b.vx, b.vy);
-    if (b.owner < 0 && sp > 5 && trN > 1 && S.status === 'play' && !reduced) {   // motion streak
+    if (b.owner < 0 && b.shot && sp > 5 && trN > 1 && S.status === 'play' && !reduced) {   // a chalk streak behind shots only
       ctx.strokeStyle = CHALK; ctx.lineCap = 'round';
       let px = x, py = y;
-      const al = b.shot ? 0.5 : 0.34, wd = b.shot ? 1.9 : 1.7;       // a shot leaves a brighter, wider streak
+      const al = 0.55 * Math.max(0, 1 - (now - kickT) / 250) + 0.25, wd = 1.9;   // bright off the boot, settling after 250ms
       for (let i = 1; i < trN; i++) {
         const j = (trH - i + TR * 2) % TR, f = 1 - i / trN;
         ctx.globalAlpha = al * f; ctx.lineWidth = BALL_R * wd * f;
@@ -829,6 +835,13 @@
 
     drawGoal(now);
 
+    // the incident stays readable under the fail card: a mustard halo on the defender or keeper who won it
+    if (failT > -1e8 && (tackler >= 0 || keeperHold)) {
+      const hx = keeperHold ? g.x : S.def[tackler].x, hy = keeperHold ? g.y : S.def[tackler].y, e = reduced ? 1 : Math.min(1, (now - failT) / 140);
+      disc(hx, hy, (R + 0.95) * (keeperHold ? GK_SCALE + 0.1 : 1)); ctx.strokeStyle = INK; ctx.lineWidth = 0.5; ctx.globalAlpha = e; ctx.stroke();
+      ctx.strokeStyle = MUSTARD; ctx.lineWidth = 0.32; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+
     // defenders (whoever just won the ball is drawn last, on top)
     for (let i = 0; i < S.def.length && i < MAXF; i++) if (i !== tackler && !(S.def[i].lunge > 0)) drawDef(S, i, now, f);
     // goalkeeper
@@ -858,7 +871,8 @@
       let ext = 0, ang = attAng[i];
       if (i === kickWho) { const t = (now - kickT) / 190; if (t < 1 && !reduced) { ext = 0.42 * pulse(t); ang = turn(ang, Math.atan2(kickDY, kickDX), 0.8 * pulse(t)); } }
       if (i === failRing) { disc(a.x, a.y, R + 0.52); ctx.fillStyle = INK; ctx.fill(); disc(a.x, a.y, R + 0.42); ctx.fillStyle = TOMATO; ctx.fill(); }
-      figure(a.x, a.y, ang, 0, a.num, i * 3 + a.num, i === live, attLx[i], attLy[i], ext, 0, now);
+      const rk = i === rockWho && !reduced ? Math.sin((now - failT) / 38) * Math.exp(-(now - failT) / 260) : 0;
+      figure(a.x, a.y, ang, 0, a.num, i * 3 + a.num, i === live, attLx[i], attLy[i], ext, rk, now);
     }
 
     // defenders in a tackle go on top, with the tell, so the warning is never hidden behind the man on the ball
@@ -927,6 +941,13 @@
 
   root.Render = {
     resize, draw,
+    /* in-game settings: text scale for squad numbers and tags (1 or 1.15), and Reduce motion forced on */
+    prefs(o) {
+      const k = o && o.text ? o.text : 1; if (k !== textK) { textK = k; layerDirty = true; tagW.clear(); }
+      gameReduced = !!(o && o.reduced); reduced = phoneReduced || gameReduced;
+    },
+    /* where the move broke down, in css px from the stage's top left (for placing the fail card away from it) */
+    incident() { return failT > -1e8 ? { x: X(failX), y: Y(failY) } : null; },
     invalidate() { layerDirty = true; },
     viewRect() { return { x0: vx0, y0: vy0, x1: vx0 + W / sc, y1: vy0 + H / sc, scale: sc }; }
   };
