@@ -61,7 +61,8 @@
   function logPlay(outcome) {
     try {
       if (!save.log) save.log = [];
-      save.log.push([prac >= 0 ? 'P' + (prac + 1) : li + 1, round + 1, outcome, sim ? +(sim.tick / 60).toFixed(1) : 0]);
+      save.log.push([prac >= 0 ? 'P' + (prac + 1) : dly ? 'D' + dly.n : li + 1, round + 1, outcome, sim ? +(sim.tick / 60).toFixed(1) : 0]);
+      stat.outcome(outcome);
       if (save.log.length > 1500) save.log.splice(0, save.log.length - 1500);
       if (outcome === 'goal' || save.log.length % 10 === 0) persist();
     } catch (e) {}
@@ -82,9 +83,18 @@
     LEVELS.forEach((lv, i) => { const r = lv.oldName && old[lv.oldName]; if (r) save.done[lid(i)] = r; });
     if (n) { save.reach = Math.min(LEVELS.length - 1, n); persist(); }
   }
-  const rec = i => save.done[lid(i)];
-  const unlocked = i => save.all || CFG.unlock || i === 0 || !!rec(i - 1) || i <= (save.reach || 0);
-  const nextLevel = () => { for (let i = 0; i < LEVELS.length; i++) if (!rec(i)) return i; return -1; };
+  const rec = i => LEVELS[i] ? save.done[lid(i)] : undefined;
+  /* "Move on" (retention plan, proposal 2): after 16 failures a player may leave one fixture per season behind. It keeps
+     an open ticket and no stars; save.owed maps its id to the number of fixtures won when it was left, so the home
+     button sends the player back to it after their next win. */
+  const owed = i => LEVELS[i] && save.owed && Object.prototype.hasOwnProperty.call(save.owed, lid(i));
+  const wins = () => LEVELS.reduce((a, _, i) => a + (rec(i) ? 1 : 0), 0);
+  const unlocked = i => save.all || CFG.unlock || i === 0 || !!rec(i - 1) || owed(i - 1) || i <= (save.reach || 0);
+  const nextLevel = () => {
+    for (let i = 0; i < LEVELS.length; i++) if (!rec(i) && !(owed(i) && wins() <= save.owed[lid(i)])) return i;
+    for (let i = 0; i < LEVELS.length; i++) if (!rec(i)) return i;
+    return -1;
+  };
   /* Stars grade the finished move, never the number of takes: one for scoring, a second for beating par (the bot's time
      x 1.5), a third for the gaffer's time (x 1.2). The bot times live in js/levels/pars.js. */
   const parOf = (i, k) => { const b = LEVELS[i] && LEVELS[i].bot; return b ? Math.ceil(b * k * 10) / 10 : 0; };
@@ -181,8 +191,11 @@
   const CFG = window.OMT_CONFIG || {};
   const PRACTICE = CFG.practice === false ? [] : window.OMT_PRACTICE || [];
   let prac = -1, pracLv = null, pracRep = 0;   // practice drill being played, or -1
-  const L = () => prac >= 0 ? pracLv : LEVELS[li];
+  let dly = null;      // the Daily Move being played: { n, date, lv, bot }, or null
+  let bonus = 0;       // extra seconds on the clock for this attempt series (help when stuck)
+  const L = () => prac >= 0 ? pracLv : dly ? dly.lv : LEVELS[li];
   const liveIdx = () => L().order[round];
+  function mkSim(live) { const S = FB.makeSim(L(), recs, live); if (bonus && prac < 0) S.limit += Math.round(bonus * 60); return S; }
   function screen(id) {
     seq++;
     $('home').classList.toggle('on', id === 'home'); $('play').classList.toggle('on', id === 'play');
@@ -246,7 +259,7 @@
   }
   function stubHtml(i) {
     const lv = LEVELS[i], r = rec(i), open = unlocked(i);
-    const end = r ? stars(r.stars) : !open ? IC.lock : (save.owed && save.owed[lid(i)] ? '<i class="owed">Left open</i>' : '');
+    const end = r ? stars(r.stars) : !open ? IC.lock : owed(i) ? '<i class="owed">Left open</i>' : '';
     return '<button class="stub' + (open || r ? '' : ' lock') + (r ? ' done' : '') + '" data-l="' + i + '" aria-label="' + esc('Fixture ' + (i + 1) + ', ' + lv.name + (open ? (r ? ', ' + r.stars + ' of 3 stars' : ', not won yet') : ', locked')) + '">' +
       '<b>' + no(i) + '</b><span>' + esc(lv.name) + '</span>' + end + '</button>';
   }
@@ -268,7 +281,7 @@
   }
   function showHome() {
     if (!save.cover && !save.all && !CFG.unlock && nextLevel() === 0) return showCover();
-    state = 'home'; hideOv(); sim = null; rsim = null; prac = -1;
+    state = 'home'; hideOv(); sim = null; rsim = null; prac = -1; dly = null; stat.screen('home');
     const nx = nextLevel(), total = totalStars(), won = LEVELS.filter((_, i) => rec(i)).length;
     let chase = -1; if (nx < 0) chase = LEVELS.findIndex((_, i) => rec(i).stars < 3);
     const target = nx >= 0 ? nx : chase >= 0 ? chase : 0;
@@ -382,7 +395,7 @@
   }
   function startPractice(n, repN) {
     if (!PRACTICE[n]) { save.practised = true; persist(); prac = -1; return startLevel(0); }
-    prac = n; pracRep = repN || 0; pracLv = JSON.parse(JSON.stringify(PRACTICE[n])); pracNote = null;
+    prac = n; pracRep = repN || 0; pracLv = JSON.parse(JSON.stringify(PRACTICE[n])); pracNote = null; dly = null; bonus = 0;
     if (pracLv.reps) { pracLv.att[0].x = pracLv.reps[pracRep][0]; pracLv.att[0].y = pracLv.reps[pracRep][1]; }
     round = pracLv.feed ? 1 : 0; recs = pracLv.att.map(() => null); if (pracLv.feed) recs[0] = feedRec(pracLv);
     fails = 0; rsim = null; sim = FB.makeSim(pracLv, recs, liveIdx());
@@ -398,17 +411,17 @@
   }
   function startLevel(i) {
     if (!LEVELS[i]) return;
-    prac = -1; li = i; round = 0; recs = L().att.map(() => null); fails = 0; rsim = null; sim = FB.makeSim(L(), recs, liveIdx());
+    prac = -1; dly = null; bonus = 0; li = i; stat.level(i + 1); round = 0; recs = L().att.map(() => null); fails = 0; rsim = null; sim = mkSim(liveIdx());
     stampOff(); $('ready').className = ''; screen('play'); hud(); showBrief();
   }
   function beginRound() {
     seq++;
-    sim = FB.makeSim(L(), recs, liveIdx()); rsim = null; state = 'ready'; lastKick = -999; lastRecv = -999; tempo = 1; coachKey = null; aimLeft = 1.5; holdUntil = 0;
+    sim = mkSim(liveIdx()); rsim = null; state = 'ready'; lastKick = -999; lastRecv = -999; tempo = 1; coachKey = null; aimLeft = 1.5; holdUntil = 0;
     $('dragchip').className = ''; $('play').classList.remove('replay'); $('skip').className = 'chip';
     inp.charging = false; inp.release = false; inp.done = false; inp.aim = false; aimP = null; joy = null;
     $('aim').style.display = 'none'; $('joy').style.display = 'none'; $('kick').classList.remove('down');
     hideOv(); stampOff(); hud();
-    auto = autoFactory ? autoFactory(prac >= 0 ? 'p' + prac : li, round) : null; if (auto) kickoff();
+    auto = autoFactory ? autoFactory(prac >= 0 ? 'p' + prac : dly ? 'd' + dly.n : li, round) : null; if (auto) kickoff();
   }
   function kickoff() { if (state === 'ready') { state = 'play'; SFX.unlock(); SFX.crowd(0.016, 0.6); if (sim.tick === 0 && pracNote) pracNote = null; } }
   function freeze() { if (state === 'play') { state = 'ready'; joy = null; $('joy').style.display = 'none'; kickUp(true); SFX.crowd(0, 0.2); } }
@@ -422,23 +435,23 @@
         PRACTICE.map((_, i) => '<i class="' + (i < prac ? 'done' : i === prac ? 'on' : '') + '"></i>').join('') + '</span></div>';
     } else {
       // the team sheet: the move in figure bases. Recorded ones ticked, the live one ringed, the ones to come dashed, decoys in sky
-      $('who').innerHTML = '<div class="who-in sheet" role="img" aria-label="' + esc('Player ' + (round + 1) + ' of ' + lv.order.length + ', the ' + a.num + ', ' + a.name) + '">' +
+      $('who').innerHTML = '<div class="who-in sheet' + (lv.order.length >= 5 ? ' many' : '') + '" role="img" aria-label="' + esc('Player ' + (round + 1) + ' of ' + lv.order.length + ', the ' + a.num + ', ' + a.name) + '">' +
         lv.order.map((ai, n) => {
           const p = lv.att[ai], st = n < round ? 'done' : n === round ? 'live' : 'todo', dec = p.role === 'decoy';
           return (n ? '<i class="ar">' + IC.chev + '</i>' : '') + '<span class="tsb ' + st + (dec ? ' dec' : '') + '">' + base(p.num, dec ? ['#8EC5D6', '#F2EAD8'] : k.us) + (st === 'done' ? '<i class="tck">' + IC.tick + '</i>' : '') + '</span>';
         }).join('') + '</div>';
     }
-    $('ctl').classList.toggle('quiet', prac < 0 && !(li < 2 && !rec(li) && !CFG.rate));
+    $('ctl').classList.toggle('quiet', prac < 0 && !(!dly && li < 2 && !rec(li) && !CFG.rate));
     $('play').classList.toggle('prac', prac >= 0);
     $('bPrev').disabled = round === 0; $('bPrev').classList.toggle('gone', round === 0 || prac >= 0); $('bRetry').disabled = false;
     $('bRetry').classList.toggle('skip', prac >= 0); $('bRetry').innerHTML = prac >= 0 ? '<span>Skip</span>' : IC.retry;
     $('bRetry').setAttribute('aria-label', prac >= 0 ? 'Skip practice' : 'Retry this player');
     const kb = $('kick'); kb.textContent = decoy ? 'DONE' : (sim && sim.isLast ? 'SHOOT' : 'PASS'); kb.classList.toggle('decoy', decoy);
     $('klabel').innerHTML = decoy ? 'Press when<br>your marker<br>has moved' : 'Press<br>drag to aim<br>release';
-    const sc = prac >= 0 ? '<span class="pr">Practice</span>' : scoreHtml(lv, false); $('score').innerHTML = sc; $('score').className = sc ? 'on' : '';
-    $('bar').style.setProperty('--secs', prac >= 0 ? 10 : lv.time);
+    const sc = prac >= 0 ? '<span class="pr">Practice</span>' : dly ? '<span class="pr">Daily ' + dly.n + '</span>' : scoreHtml(lv, false); $('score').innerHTML = sc; $('score').className = sc ? 'on' : '';
+    $('bar').style.setProperty('--secs', prac >= 0 ? 10 : lv.time + bonus);
     let m = '';
-    recs.forEach((r, i) => { if (r && r.kick) m += '<i style="left:' + (100 * r.kick.tick / (lv.time * 60)).toFixed(2) + '%" title="No. ' + lv.att[i].num + ' plays the pass"></i>'; });
+    recs.forEach((r, i) => { if (r && r.kick) m += '<i style="left:' + (100 * r.kick.tick / ((lv.time + bonus) * 60)).toFixed(2) + '%" title="No. ' + lv.att[i].num + ' plays the pass"></i>'; });
     $('marks').innerHTML = prac >= 0 ? '' : m; secsTxt = '';
     // the round-start card: who you are and what to do, once, before the first touch (coach() shows and folds it)
     $('rcard').innerHTML = '<b>You are the ' + esc(a.num) + ' · ' + esc(a.name) + '</b><span>' + esc(a.tip || '') + '</span>';
@@ -484,6 +497,7 @@
     return '<svg class="lineup" viewBox="' + x0 + ' ' + y0 + ' ' + w + ' ' + h + '" role="img" aria-label="Starting positions" font-family="Barlow Condensed, Arial Narrow, sans-serif">' + g + '</svg>';
   }
   function showBrief() {
+    if (dly) return showDailyBrief();
     state = 'brief';
     const lv = L(), k = kit(lv), st = story(lv), ch = chapterOf(li), sc = scoreHtml(lv, false);
     const legend = lv.order.map((ai, n) => {
@@ -543,22 +557,36 @@
     const lv = L(), why = failWhy(), f = FAIL[why] || ['Lost it', 'The move broke down. <b>Have another go.</b>', 'thud'], live = liveIdx();
     let line = f[1], redo = null;
     if (why === 'gathered') { /* his own run was too slow to the ball: the card's own words fit */ }
-    else if (sim.failWho >= 0 && sim.failWho !== live && sim.reason !== 'bump' && recs[sim.failWho]) {
+    else if (sim.failWho >= 0 && sim.failWho !== live && recs[sim.failWho] && (why === 'out' || why === 'wide')) {
+      const w = lv.att[sim.failWho]; line = 'The ' + esc(w.num) + '\u2019s pass ran out of play. <b>Redo the ' + esc(w.num) + '</b> and play it shorter.'; redo = round > 0 ? lv.att[lv.order[round - 1]] : null;
+    } else if (sim.failWho >= 0 && sim.failWho !== live && sim.reason !== 'bump' && recs[sim.failWho]) {
       // the one case where redoing an earlier part is the right advice
       const w = lv.att[sim.failWho];
       line = 'It happened to the ' + esc(w.num) + ', a part you already recorded: your new run moved the defence. <b>Change this run</b>, or redo the ' + esc(w.num) + '.';
       redo = round > 0 ? lv.att[lv.order[round - 1]] : null;
-      if (li < 4 && !rec(li) && !CFG.rate && round === lv.order.length - 1) { line = 'You went early, so the defenders dropped back with you and cut out the pass. <b>Hold your run</b> until the pass is hit.'; redo = null; }
-    } else if (sim.failWho >= 0 && sim.failWho !== live && recs[sim.failWho] && (why === 'out' || why === 'wide')) {
-      const w = lv.att[sim.failWho]; line = 'The ' + esc(w.num) + '\u2019s pass ran out of play. <b>Redo the ' + esc(w.num) + '</b> and play it shorter.'; redo = round > 0 ? lv.att[lv.order[round - 1]] : null;
+      if (!dly && li < 4 && !rec(li) && !CFG.rate && round === lv.order.length - 1) { line = 'You went early, so the defenders dropped back with you and cut out the pass. <b>Hold your run</b> until the pass is hit.'; redo = null; }
     } else if (sim.reason === 'time' && round > 0) line += ' If the pass cannot be reached in time, redo the previous player with the rewind button.';
-    const oKey = li + ':' + seq, offer = CFG.slow !== false && !save.slow && fails === 8 && (offerKey === oKey || (save.slowAsk || 0) < 3);
-    if (offer && offerKey !== oKey) { offerKey = oKey; save.slowAsk = (save.slowAsk || 0) + 1; persist(); }
-    showOv('fail', '<div class="fc-top"><h2>' + f[0] + '</h2><span class="lbl soft">Take ' + fails + ' · ' + (sim.tick / 60).toFixed(1) + 's</span></div>' +
+    // help when stuck (retention plan, proposal 2): at 8 failures two more seconds on the clock for this attempt series;
+    // at 12 slow aim; at 16 "Move on" (free, one fixture per season, no stars). One line at most, the latest that applies.
+    const ch = !dly ? chapterOf(li) : null;
+    let seasonOwes = false; if (ch) for (let i = ch.from; i <= ch.to; i++) if (owed(i)) seasonOwes = true;
+    const canMoveOn = !dly && !CFG.rate && li < LEVELS.length - 1 && !rec(li) && !owed(li) && !seasonOwes;
+    const canSlow = CFG.slow !== false && !save.slow;
+    const offer = fails >= 16 && canMoveOn ? 'move' : fails >= 12 && canSlow ? 'slow' : fails >= 8 && !bonus ? 'time' : '';
+    const oKey = (dly ? 'd' + dly.n : li) + ':' + offer;
+    if (offer && offerKey !== oKey) { offerKey = oKey; stat.offer(offer, false); }
+    const OFFER = {
+      time: ['<b>Two more seconds?</b> The clock gets 2 s longer for this move. Stars still go on your move time.', IC.clock + 'Add 2 seconds', 'ex'],
+      slow: ['<b>Finding this one tough?</b> Slow aim slows time for a moment while you aim. Best: two stars. You can switch it off in Options.', IC.clock + 'Turn on slow aim', 'sl'],
+      move: ['<b>Move on?</b> Play the next fixture. This one stays open, and the home button brings you back to it after your next win.', 'Move on' + IC.next, 'mo']
+    }[offer];
+    showOv('fail', '<div class="fc-top"><h2>' + f[0] + '</h2><span class="lbl soft">Take ' + fails + ' · ' + (sim.tick / 60).toFixed(1) + 's' + (bonus ? ' · +' + bonus + 's' : '') + '</span></div>' +
       '<p>' + line + '</p>' +
-      (offer ? '<div class="offer"><p><b>Finding this one tough?</b> Slow aim slows time for a moment while you aim. You can switch it off in Options.</p><button class="btn" id="sl">' + IC.clock + 'Turn on slow aim</button></div>' : '') +
+      (OFFER ? '<div class="offer"><p>' + OFFER[0] + '</p><button class="btn sky" id="' + OFFER[2] + '">' + OFFER[1] + '</button></div>' : '') +
       '<div class="btns">' + (CFG.rate && fails >= 3 ? '<button class="btn" id="gu">Give up and rate</button>' : '') + (redo ? '<button class="btn" id="pv">Redo the ' + esc(redo.num) + '</button>' : '') + '<button class="btn p" id="re">Try again</button></div>',
-      { re: beginRound, pv: redoPrev, gu: () => showRate(true, () => { if (li + 1 < LEVELS.length) startLevel(li + 1); else showHome(); }), sl: () => { save.slow = true; persist(); toast('Slow aim on'); beginRound(); } });
+      { re: beginRound, pv: redoPrev, gu: () => showRate(true, () => { if (li + 1 < LEVELS.length) startLevel(li + 1); else showHome(); }), sl: () => { save.slow = true; persist(); stat.offer('slow', true); beginRound(); toast('Slow aim on'); },
+        ex: () => { bonus = 2; stat.offer('time', true); beginRound(); toast('Two more seconds'); },
+        mo: () => { if (!save.owed) save.owed = {}; save.owed[lid(li)] = wins(); persist(); stat.offer('move', true); startLevel(li + 1); } });
     placeFail();
   }
   /* The card goes on the side of the pitch away from the incident; the drag chip on the other side. */
@@ -594,6 +622,9 @@
     result = recordWin();
   }
   function recordWin() {
+    if (dly) return recordDaily();
+    stat.cleared(fails + 1);
+    if (owed(li)) { delete save.owed[lid(li)]; }
     const t = sim.tick / 60, st = Math.min(starsFor(li, t), save.slow ? 2 : 3), old = rec(li), firstWin = !old;
     if (!old || st > old.stars || (st === old.stars && t < old.time)) { save.done[lid(li)] = { stars: st, time: +t.toFixed(2), retries: fails, slow: save.slow ? 1 : 0 }; persist(); }
     logPlay('goal');
@@ -603,13 +634,13 @@
   /* After the GOAL stamp: on a first win or a new best, one full-height loop of the move (tap to skip), then the result
      card. Any other win: the card at once, over the looping replay, to keep the retry loop quick. */
   function afterGoal() {
-    if (prac >= 0) { seq++; return pracDone(); }
+    if (prac >= 0) { seq++; stat.drill(); return pracDone(); }
     const rKey = li + ':' + fails + ':' + sim.tick;
-    if (CFG.rate && lastRate !== rKey) { seq++; rsim = FB.makeSim(L(), recs, -1); rhold = 0; stampOff(); state = 'goal'; hudReplay(); return showRate(false, () => { lastRate = rKey; showResult(); }); }
+    if (CFG.rate && !dly && lastRate !== rKey) { seq++; rsim = mkSim(-1); rhold = 0; stampOff(); state = 'goal'; hudReplay(); return showRate(false, () => { lastRate = rKey; showResult(); }); }
     if (result && result.full) startReplay(); else showResult();
   }
   function startReplay() {
-    state = 'replay'; seq++; stampOff(); hudReplay(); rsim = FB.makeSim(L(), recs, -1); rhold = 0;
+    state = 'replay'; seq++; stampOff(); hudReplay(); rsim = mkSim(-1); rhold = 0;
     $('skip').className = 'chip on';
   }
   const SCALES = (CFG.scales || []).length ? [
@@ -662,8 +693,9 @@
   }
   function showResult() {
     if (prac >= 0) return;
+    if (dly) return showDailyResult();
     state = 'goal'; seq++; $('skip').className = 'chip'; stampOff(); hudReplay();
-    if (!rsim) { rsim = FB.makeSim(L(), recs, -1); rhold = 0; }
+    if (!rsim) { rsim = mkSim(-1); rhold = 0; }
     const R = result || recordWin(), lv = L(), t = R.t, st = R.st, stry = story(lv), ch = chapterOf(li), last = li === LEVELS.length - 1;
     let seasonDone = li === ch.to; for (let i = ch.from; i <= ch.to && seasonDone; i++) if (!rec(i)) seasonDone = false;
     const sc = parseScore(stry && stry.score);
@@ -678,7 +710,7 @@
     showOv('sheet', '<div class="rs-top"><span class="lbl soft">No. ' + no(li) + (stry && stry.opp ? ' · v ' + esc(stry.opp) : ' · ' + esc(lv.name)) + '</span><span class="lbl soft">Take ' + (R.fails + 1) + '</span></div>' +
       score + '<div class="rs-row">' + stars(st, 'big stampin') + '<div class="rs-time"><b>' + t.toFixed(1) + 's</b><small>' + esc(target) + '</small></div></div>' + nextRow +
       '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="nx">' + nxt + IC.next + '</button></div>',
-      { ag: () => startLevel(li), mv: showHome, nx: () => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1) });
+      { ag: () => startLevel(li), mv: () => askStats(showHome), nx: () => askStats(() => seasonDone ? showSeason(ch) : last ? showHome() : startLevel(li + 1)) });
     if (reduced()) return;
     for (let i = 0; i < st; i++) later(() => SFX.stamp(i), 260 + 300 * i);
   }
@@ -710,6 +742,200 @@
     if (!reduced()) later(() => SFX.stamp(2), 420);
   }
 
+  /* ---------- the Daily Move (retention plan, proposal 4) ----------
+     One generated move a day, the same for everyone, made ahead of time by tools/gen/daily.js. The first 90 days ship in
+     js/levels/daily.js; later ones come from the website as one small file per month (a monthly file also replaces a bad
+     day of the bundle). Chosen by the phone's local date. Opens after season 1. A daily made for a newer engine than this
+     build is skipped. Unlimited takes; the best time counts; the stars are the usual ones against the bot's time. */
+  const DAILY_ENGINE = 1;
+  const SET = window.OMT_SETTINGS || {};
+  const SITE = String(SET.site || 'https://ollywoodgames.github.io/one-man-team/');
+  const DAILY = window.OMT_DAILY || { epoch: '2026-11-30', days: [] };
+  const dailyDays = {};   // date -> entry
+  (DAILY.days || []).forEach(d => { dailyDays[d.date] = d; });
+  let todayOverride = null;
+  const pad2 = n => (n < 10 ? '0' : '') + n;
+  const ymd = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  const today = () => todayOverride || ymd(new Date());
+  const dateAt = s0 => { const p = s0.split('-'); return new Date(+p[0], +p[1] - 1, +p[2], 12); };
+  const addDays = (s0, k) => { const d = dateAt(s0); d.setDate(d.getDate() + k); return ymd(d); };
+  const daysBetween = (a, b) => Math.round((dateAt(b) - dateAt(a)) / 864e5);
+  const dailyNo = date => daysBetween(DAILY.epoch, date) + 1;
+  const dateOfNo = n => addDays(DAILY.epoch, n - 1);
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const nice = date => { const d = dateAt(date); return DOW[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()]; };
+  const dailyOf = date => { const d = dailyDays[date]; return d && (d.engine || 1) <= DAILY_ENGINE && d.level ? d : null; };
+  const dailyRec = date => (save.daily || {})[date];
+  function dailyUnlocked() { if (save.all || CFG.unlock) return true; const c = chapters()[0]; for (let i = c.from; i <= c.to; i++) if (!rec(i)) return false; return true; }
+  /* months fetched from the website, kept in a cache of their own (not in the save, which goes to the app on every change) */
+  const monthKey = m => 'omt.daily.' + m, tried = {};
+  function addMonth(j) { try { (j.days || []).forEach(d => { if (d && d.date && d.level) dailyDays[d.date] = d; }); } catch (e) {} }
+  try { for (let k = 0; k < localStorage.length; k++) { const key = localStorage.key(k); if (/^omt\.daily\./.test(key)) addMonth(JSON.parse(localStorage.getItem(key))); } } catch (e) {}
+  function fetchMonth(m) {
+    if (tried[m] || typeof fetch !== 'function') return Promise.resolve(false); tried[m] = true;
+    const base = /^https?:/.test(location.protocol) && /ollywoodgames\.github\.io$/.test(location.hostname) ? 'daily/' : SITE + 'daily/';
+    return fetch(base + m + '.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => {
+      if (!j || !j.days) return false; addMonth(j); try { localStorage.setItem(monthKey(m), JSON.stringify(j)); } catch (e) {} return true;
+    }).catch(() => false);
+  }
+  /* today's month from the site when the bundle has no move for today or the coming week (quietly, in the background) */
+  function refreshDaily() {
+    const t = today(), need = [t, addDays(t, 6)].filter(d => d >= DAILY.epoch && !dailyOf(d)).map(d => d.slice(0, 7));
+    const months = need.filter((m, i) => need.indexOf(m) === i);
+    if (!months.length) return Promise.resolve(false);
+    return Promise.all(months.map(fetchMonth)).then(r => r.some(Boolean));
+  }
+  function weekOf(date) { const d = dateAt(date), back = (d.getDay() + 6) % 7; return Array.from({ length: 7 }, (_, k) => addDays(date, k - back)); }
+  function noteFullWeek(date) {
+    const wk = weekOf(date); if (!wk.every(d => dailyRec(d))) return;
+    if (!save.fullWeeks) save.fullWeeks = []; if (save.fullWeeks.indexOf(wk[0]) < 0) save.fullWeeks.push(wk[0]);
+  }
+  function dailyTicket() {
+    const el = $('daily'); if (!el) return;
+    const t = today(), d = dailyOf(t);
+    if (!dailyUnlocked() || !d) { el.innerHTML = ''; return; }
+    const r = dailyRec(t), lv = d.level, ballers = lv.order.length, gaffer = Math.ceil(d.bot * 1.2 * 10) / 10;
+    const sub = (['', 'One player', 'Two players', 'Three players', 'Four players', 'Five players', 'Six players'][ballers] || ballers + ' players') + ' · ' + esc(d.template || '');
+    const days = weekOf(t).map((day, k) => {
+      const won = dailyRec(day), past = day < t, isToday = day === t, open = dailyOf(day) && daysBetween(day, t) < 7 && day <= t;
+      const cls = won ? 'won' : isToday ? 'today' : past && dailyOf(day) ? 'miss' : 'future';
+      return '<button class="dd ' + cls + '"' + (open ? ' data-d="' + day + '"' : ' disabled') + ' aria-label="' + esc(nice(day) + (won ? ', won' : open ? ', play' : '')) + '"><i>' + (won ? IC.tick : '') + '</i><small>' + 'MTWTFSS'[k] + '</small></button>';
+    }).join('');
+    const full = (save.fullWeeks || []).length;
+    el.innerHTML = '<div class="dly"><span class="flag">Daily Move · ' + esc(nice(t)) + '</span>' +
+      '<button class="dly-main" data-d="' + t + '" aria-label="' + esc('Daily Move number ' + d.n + ', ' + lv.name) + '"><span class="tk-stub"><small>No.</small><b>' + d.n + '</b></span>' +
+      '<span class="tk-body"><small>' + sub + '</small><b>' + esc(lv.name) + '</b><em>Gaffer <b>' + gaffer.toFixed(1) + 's</b>   Your best <b>' + (r ? r.t.toFixed(1) + 's' : '–') + '</b></em></span><span class="go">' + IC.next + '</span></button>' +
+      '<div class="week"><span class="lbl soft">This week' + (full ? '<br>Full weeks: ' + full : '') + '</span><div class="days">' + days + '</div></div></div>';
+    el.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { SFX.tap(); startDaily(b.dataset.d); });
+  }
+  function startDaily(date, shared) {
+    const d = dailyOf(date); if (!d) return showHome();
+    prac = -1; bonus = 0; li = 0; dly = { n: d.n, date, lv: JSON.parse(JSON.stringify(d.level)), bot: d.bot, shared: !!shared };
+    dly.lv.name = d.level.name; round = 0; recs = L().att.map(() => null); fails = 0; rsim = null; sim = mkSim(liveIdx());
+    stat.daily(); stat.level('D');
+    stampOff(); $('ready').className = ''; screen('play'); hud(); showDailyBrief();
+  }
+  const dailyPar = k => Math.ceil(dly.bot * k * 10) / 10;
+  const dailyStars = t => t <= dailyPar(1.2) ? 3 : t <= dailyPar(1.5) ? 2 : 1;
+  function showDailyBrief() {
+    state = 'brief';
+    const lv = L(), r = dailyRec(dly.date), k = kit(lv);
+    const legend = lv.order.map((ai, n) => { const a = lv.att[ai], dec = a.role === 'decoy'; return '<li><i class="ono">' + (n + 1) + '</i>' + base(a.num, dec ? ['#8EC5D6', '#F2EAD8'] : k.us) + '<b>' + esc(dec ? 'Decoy' : a.name) + '</b></li>'; }).join('');
+    showOv('page', '<div class="pg brief lean"><div class="strip"><span>Daily Move · ' + esc(nice(dly.date)) + '</span><span>No. ' + dly.n + '</span></div>' +
+      '<div class="fx slim"><b>The same move for everyone today</b><span class="board sm"><span class="min">Gaffer</span><span class="sc">' + dailyPar(1.2).toFixed(1) + 's</span></span></div>' +
+      '<h1>' + esc(lv.name) + '</h1><p class="lede">' + esc(lv.brief) + '</p><p class="sline">' + (r ? 'Your best today: ' + r.t.toFixed(1) + 's in ' + r.takes + (r.takes === 1 ? ' take' : ' takes') + '. Beat it, or the gaffer.' : 'Beat the gaffer’s time for the third star. Take as many goes as you like.') + '</p>' +
+      lineupSvg(lv) + '<ol class="legend">' + legend + '</ol></div>' +
+      '<div class="pg-foot"><button class="btn sq" id="bk" aria-label="Back to fixtures">' + IC.back + '</button><button class="btn p" id="go">Kick off</button></div>',
+      { go: () => { SFX.whistle(); beginRound(); }, bk: showHome });
+  }
+  function recordDaily() {
+    const t = sim.tick / 60, st = Math.min(dailyStars(t), save.slow ? 2 : 3), old = dailyRec(dly.date), firstWin = !old, takes = fails + 1;
+    if (!save.daily) save.daily = {};
+    if (!old || t < old.t - 0.004) save.daily[dly.date] = { t: +t.toFixed(2), st: Math.max(st, old ? old.st : 0), takes: old ? old.takes + takes : takes };
+    else old.takes += takes;
+    noteFullWeek(dly.date); persist(); logPlay('goal'); stat.cleared(takes);
+    const isBest = !firstWin && t < old.t - 0.004;
+    return { t, st, old, firstWin, isBest, full: firstWin || isBest, li, fails, daily: dly.n };
+  }
+  function showDailyResult() {
+    state = 'goal'; seq++; $('skip').className = 'chip'; stampOff(); hudReplay();
+    if (!rsim) { rsim = mkSim(-1); rhold = 0; }
+    const R = result && result.daily === dly.n ? result : recordDaily(), lv = L(), best = dailyRec(dly.date), nextN = dly.n + 1, nextDate = dateOfNo(nextN);
+    const when = nextDate === addDays(today(), 1) ? 'tomorrow' : nextDate <= today() ? 'ready now' : nice(nextDate);
+    showOv('sheet', '<div class="rs-top"><span class="lbl soft">Daily Move No. ' + dly.n + ' · ' + esc(lv.name) + '</span><span class="datechip">' + esc(nice(dly.date)) + '</span></div>' +
+      '<div class="rs-row dl">' + stars(R.st, 'big stampin') + '<dl class="stats dstats"><div><dd>' + R.t.toFixed(1) + 's</dd><dt>' + (R.isBest || R.firstWin ? 'New best' : 'Best ' + best.t.toFixed(1) + 's') + '</dt></div>' +
+      '<div class="soft"><dd>' + dailyPar(1.2).toFixed(1) + 's</dd><dt>Gaffer</dt></div><div><dd>' + (R.fails + 1) + '</dd><dt>' + (R.fails ? 'Takes' : 'Take') + '</dt></div></dl></div>' +
+      '<p class="nextd"><b>Next daily:</b> No. ' + nextN + ', ' + esc(when) + '</p>' +
+      '<div class="btns"><button class="btn sq" id="mv" aria-label="Fixtures">' + IC.list + '</button><button class="btn sq" id="ag" aria-label="Play this move again">' + IC.retry + '</button><button class="btn p" id="sh"><span>Share</span>' + IC.share + '</button></div>',
+      { ag: () => startDaily(dly.date), mv: showHome, sh: () => shareDaily(R) });
+    if (reduced()) return;
+    for (let i = 0; i < R.st; i++) later(() => SFX.stamp(i), 260 + 300 * i);
+  }
+
+  /* ---------- one-tap text share (retention plan, proposal 5) ----------
+     Plain text and a link that opens the same move in the web build, so a friend can play it without installing
+     anything. In the app the shell's own share sheet is used (bridge message `share`); in a browser the system share
+     sheet, or the clipboard where there is none. */
+  function shareText(R) {
+    return GAME_NAME + ' · Daily ' + dly.n + '\n' + L().name + ' · ' + R.t.toFixed(1) + ' s · ' + (R.fails + 1) + (R.fails ? ' takes' : ' take') + '\n' +
+      'Gaffer’s time ' + dailyPar(1.2).toFixed(1) + ' s. Your turn:\n' + SITE + '?daily=' + dly.n;
+  }
+  function shareDaily(R) {
+    const text = shareText(R); stat.share();
+    if (window.ReactNativeWebView) { toNative({ t: 'share', text }); return; }
+    if (navigator.share) { navigator.share({ text }).catch(() => {}); return; }
+    try { navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it anywhere'), () => showShareText(text)); } catch (e) { showShareText(text); }
+  }
+  function showShareText(text) {
+    showOv('dlg', '<div class="lbl">Share</div><h2>Copy and send</h2><pre class="log">' + esc(text) + '</pre><div class="btns"><button class="btn p" id="x">Done</button></div>', { x: showDailyResult });
+  }
+
+  /* ---------- anonymous measurement (retention plan, proposal 1; privacy.html) ----------
+     Two kinds of message, no identifiers of any kind: one "day" message on the first open of each local day, and one
+     session summary when the game goes to the background. Nothing is collected, kept or sent while statsUrl in
+     js/config.js is empty, or when the player switches it off in Options. In the UK and EU the switch starts off and the
+     game asks once, after the first fixture (only when an endpoint is set, since before that there is nothing to ask). */
+  const STATS_URL = String(SET.statsUrl || CFG.statsUrl || '');
+  const europe = (() => { try { return /^Europe\//.test(Intl.DateTimeFormat().resolvedOptions().timeZone || ''); } catch (e) { return false; } })();
+  const statsOn = () => save.stats === undefined ? !europe : !!save.stats;
+  const OS = window.__OMT_NATIVE__ ? (window.__OMT_NATIVE__.platform === 'ios' ? 'ios' : 'android') : 'web';
+  const stat = (() => {
+    let S = null;
+    const fresh = () => ({ t0: Date.now(), ls: 0, lc: 0, tk: [], fr: {}, dr: 0, dly: 0, sn: {}, sh: 0, last: { s: 'home', l: 0, k: 0, o: '' } });
+    const live = () => !!STATS_URL && statsOn();
+    function queue(m) {
+      if (!live()) return;
+      m.v = BUILD; m.c = save.inst; m.d = daysBetween(save.inst, today()); if (save.all) m.t = 1;
+      if (!save.statsQ) save.statsQ = []; save.statsQ.push(m); if (save.statsQ.length > 20) save.statsQ.splice(0, save.statsQ.length - 20);
+      persist(); flush();
+    }
+    let sending = false;
+    function flush() {
+      if (!live() || sending || !save.statsQ || !save.statsQ.length || typeof fetch !== 'function') return;
+      const batch = save.statsQ.slice(); sending = true;
+      // text/plain keeps it a "simple" request (no CORS preflight); keepalive lets it finish as the app goes to the background
+      fetch(STATS_URL, { method: 'POST', body: JSON.stringify(batch), headers: { 'Content-Type': 'text/plain' }, keepalive: true, credentials: 'omit', referrerPolicy: 'no-referrer' })
+        .then(r => { if (r.ok) { save.statsQ.splice(0, batch.length); persist(); } }).catch(() => {}).then(() => { sending = false; });
+    }
+    const bucket = m => m < 1 ? '<1' : m < 3 ? '1-3' : m < 10 ? '3-10' : m < 30 ? '10-30' : '30+';
+    function summary() {
+      if (!S || (!S.ls && !S.dr && Date.now() - S.t0 < 20000)) return;
+      queue({ k: 'session', mins: bucket((Date.now() - S.t0) / 60000), ls: S.ls, lc: S.lc, tk: S.tk, fr: S.fr, dr: S.dr, dly: S.dly, sn: S.sn, sh: S.sh, last: S.last });
+      S = fresh();
+    }
+    function day() {
+      const t = today(); if (save.lastDay === t) return; const yesterday = addDays(t, -1);
+      save.lastDay = t; persist();
+      let fx = 0; LEVELS.forEach((_, i) => { if (rec(i)) fx = i + 1; });
+      queue({ k: 'day', os: OS, fx, dm: dailyRec(yesterday) ? 1 : 0 });
+    }
+    return {
+      boot() { if (!save.inst) { save.inst = today(); persist(); } S = fresh(); day(); flush(); },
+      hidden() { summary(); flush(); },
+      shown() { if (!S) S = fresh(); day(); },
+      level(l) { if (S) { S.ls++; S.last = { s: 'play', l, k: 0, o: '' }; } },
+      outcome(o) { if (S) { if (o !== 'goal') S.fr[o] = (S.fr[o] || 0) + 1; S.last.k++; S.last.o = o; } },
+      cleared(takes) { if (S) { S.lc++; S.tk.push(takes); } },
+      drill() { if (S) S.dr++; }, daily() { if (S) S.dly = 1; }, share() { if (S) S.sh++; },
+      offer(kind, taken) { if (S) { const k = kind + (taken ? '+' : ''); S.sn[k] = (S.sn[k] || 0) + 1; } },
+      screen(n) { if (S) S.last.s = n; },
+      live
+    };
+  })();
+  function statsRow() { return toggle('oStat', IC.chart, 'Play statistics', statsOn(), STATS_URL ? 'Anonymous. Two small messages a day at most.' : 'Anonymous. No statistics service yet, so nothing is sent.'); }
+  function statsNote() {
+    return STATS_URL
+      ? 'Progress is kept on this phone. ' + (statsOn() ? 'Anonymous play statistics are on: no account, no identifiers, no adverts.' : 'Nothing is sent: play statistics are off.')
+      : 'Progress is kept on this phone only. No account, no adverts, no tracking.';
+  }
+  /* UK and EU: ask once, after the first fixture, in one sentence */
+  function askStats(then) {
+    if (!STATS_URL || !europe || save.stats !== undefined) return then();
+    showOv('dlg', '<div class="lbl">Play statistics</div><h2>Help improve the game?</h2><p>Send two small anonymous messages a day about how far you got and where moves broke down. No account, no identifiers. You can change this in Options.</p>' +
+      '<div class="btns"><button class="btn" id="n">No thanks</button><button class="btn p" id="y">Yes</button></div>',
+      { n: () => { save.stats = false; persist(); then(); }, y: () => { save.stats = true; persist(); then(); } });
+  }
+
   /* ---------- pause ---------- */
   function showPause() {
     if (state === 'home' || state === 'goalhold' || state === 'season' || state === 'failhold') return;
@@ -717,14 +943,14 @@
     freeze();
     const was = state, lv = L(), a = lv.att[liveIdx()], inRound = was === 'ready' || was === 'failed' || was === 'play';
     const back = () => { hideOv(); if (was === 'goal') showGoalAgain(); else if (was === 'failed') showFailAgain(); else if (was === 'brief') showBrief(); };
-    const title = prac >= 0 ? 'Drill ' + (prac + 1) + ' · ' + esc(pracLv.name) : 'No. ' + no(li) + ' · ' + esc(lv.name) + (was !== 'goal' ? ' · Take ' + (fails + (was === 'failed' ? 0 : 1)) : '');
+    const title = prac >= 0 ? 'Drill ' + (prac + 1) + ' · ' + esc(pracLv.name) : dly ? 'Daily Move No. ' + dly.n + ' · ' + esc(lv.name) + (was !== 'goal' ? ' · Take ' + (fails + (was === 'failed' ? 0 : 1)) : '') : 'No. ' + no(li) + ' · ' + esc(lv.name) + (was !== 'goal' ? ' · Take ' + (fails + (was === 'failed' ? 0 : 1)) : '');
     const ib = (id, icon, label) => '<button class="pib" id="' + id + '">' + icon + '<small>' + label + '</small></button>';
     showOv('dlg', '<div class="lbl">' + title + '</div><h2>Paused</h2>' +
       (inRound ? '<div class="you">' + base(a.num, kit(lv).us) + '<div><b>' + esc(a.name) + '</b><p>' + esc(a.tip) + '</p></div></div>' : '') +
       '<button class="btn p wide" id="ct">Resume</button>' +
       '<div class="btns"><button class="btn" id="rs">' + (prac >= 0 ? 'Restart drill' : 'Restart move') + '</button><button class="btn" id="mv">Fixtures</button></div>' +
       '<div class="pibs">' + ib('pS', IC.sound, 'Sound ' + (save.sound ? 'on' : 'off')) + ib('pH', IC.buzz, 'Buzz ' + (save.haptics ? 'on' : 'off')) + ib('hw', IC.book, 'How to play') + '</div>',
-      { mv: showHome, rs: () => prac >= 0 ? startPractice(prac) : startLevel(li), ct: back, hw: () => showHow(showPause) });
+      { mv: showHome, rs: () => prac >= 0 ? startPractice(prac) : dly ? startDaily(dly.date) : startLevel(li), ct: back, hw: () => showHow(showPause) });
     $('pS').onclick = () => { flipSound(); showPause(); };
     $('pH').onclick = () => { flipBuzz(); SFX.tap(); showPause(); };
     $('pS').setAttribute('aria-pressed', save.sound ? 'true' : 'false'); $('pH').setAttribute('aria-pressed', save.haptics ? 'true' : 'false');
@@ -749,7 +975,7 @@
     d0: ['No ball for you this time. Drag to pull your marker away.', 'pad', 'top'],
     d1: ['When he has gone far enough, press <b>DONE</b>.', 'kick', 'top']
   };
-  const tutorial = () => prac < 0 && li === 0 && !rec(0) && L().order.length === 2;
+  const tutorial = () => prac < 0 && !dly && li === 0 && !rec(0) && L().order.length === 2;
   /* Moves 2-4, first time through: one prompt per situation. r ready, w waiting for the pass, i pass on its way,
      h on the ball, a aiming, k played. Keyed by round within the move. */
   const TUT = {
@@ -769,7 +995,7 @@
     ]
   };
   function tutKey(me, b) {
-    const t = prac >= 0 ? (pracLv.coach || [])[round] || {} : TUT[li] && !rec(li) && !CFG.rate ? TUT[li][round] : null; if (!t) return null;
+    const t = prac >= 0 ? (pracLv.coach || [])[round] || {} : !dly && TUT[li] && !rec(li) && !CFG.rate ? TUT[li][round] : null; if (!t) return null;
     let ph;
     if (sim.liveKickTick >= 0) ph = sim.tick - sim.liveKickTick < 50 ? 'k' : '';
     else if (state === 'ready' && sim.tick === 0) ph = 'r';
@@ -889,6 +1115,8 @@
     }
   });
   window.addEventListener('keyup', e => { if (KM[e.code]) keys[KM[e.code]] = false; else if (e.code === 'Space') kickUp(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stat.hidden(); else stat.shown(); });
+  window.addEventListener('pagehide', () => stat.hidden());
   document.addEventListener('visibilitychange', () => { if (document.hidden) { Object.keys(keys).forEach(k => keys[k] = false); if (state === 'play' && !auto) freeze(); SFX.crowd(0, 0.05); } });
 
   function readMove() {
@@ -921,7 +1149,7 @@
      corner on the side the player chose. Full strength at first, gone by fixture 5. Applies to live input only. */
   const HELP = [1, 1, 0.6, 0.3];
   function assist(q) {
-    const k = CFG.assist === false ? 0 : prac >= 0 ? 1 : HELP[li] || 0;
+    const k = CFG.assist === false ? 0 : prac >= 0 ? 1 : dly ? 0 : HELP[li] || 0;
     if (!k || !q.aim || !q.charging || !sim.isLast || q.ay >= -0.05) return q;
     const me = sim.att[sim.live], xg = me.x + q.ax * (me.y / -q.ay);
     if (Math.abs(xg - 25) > 5.5) return q;
@@ -951,7 +1179,7 @@
       } else if ((state === 'goal' || state === 'replay') && rsim) {
         if (rsim.status === 'play') FB.step(rsim, {});
         else if (state === 'replay') { if (++rhold > 50) { showResult(); break; } }
-        else if (++rhold > 80) { rsim = FB.makeSim(L(), recs, -1); rhold = 0; }
+        else if (++rhold > 80) { rsim = mkSim(-1); rhold = 0; }
       }
     }
     if (acc > 0.2) acc = 0;
@@ -987,7 +1215,8 @@
 
   document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#rtb')) { SFX.tap(); showRatings(); } });
   window.__omt = {
-    setAuto(f) { autoFactory = f; }, info: () => ({ state, li, round, fails, levels: LEVELS.length, tick: sim ? sim.tick : 0, prac }), start: startLevel, unlockAll() { save.all = true; },
+    setAuto(f) { autoFactory = f; }, info: () => ({ state, li, round, fails, levels: LEVELS.length, tick: sim ? sim.tick : 0, prac, daily: dly ? dly.n : 0, bonus, limit: sim ? sim.limit : 0 }),
+    setToday(d) { todayOverride = d; }, peek: () => sim && sim.live >= 0 ? { own: sim.ball.owner === sim.live, x: sim.att[sim.live].x, y: sim.att[sim.live].y, bx: sim.ball.x, by: sim.ball.y } : null, daily: n => startDaily(dateOfNo(n)), dailyNo, shareText: () => result ? shareText(result) : '', statsQueue: () => (save.statsQ || []).slice(), start: startLevel, unlockAll() { save.all = true; },
     home: showHome, name: GAME_NAME,
     /* Android back button (called by the app shell). Returns false when there is nothing left to go back to. */
     back() {
@@ -997,11 +1226,23 @@
       if (state === 'replay') { showResult(); return true; }
       if (state === 'failed') { if (prac >= 0) { beginRound(); return true; } showPause(); return true; }
       if (state === 'play' || state === 'ready') { if (open) hideOv(); else showPause(); return true; }
+      // a page or card with its own way back (Done, Keep it, the back arrow): use it, so How to play returns to Options
+      const c = open && ($('x') || $('n') || $('bk')); if (c) { c.click(); return true; }
       if (state === 'home' || state === 'cover') { if (open) { hideOv(); return true; } return false; }
       showHome(); return true;
     }
   };
   if ('serviceWorker' in navigator && location.protocol === 'https:' && !/claude/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
-  showHome();
+  stat.boot();
+  /* links: ?daily=N opens that day's move straight away (a shared result: no cover, no practice, no season gate);
+     ?fixture=N opens that fixture's brief if it is open on this device */
+  const Q = (() => { try { return new URLSearchParams(location.search); } catch (e) { return null; } })();
+  const qDaily = Q && +Q.get('daily'), qFix = Q && +Q.get('fixture');
+  if (qDaily > 0) {
+    const date = dateOfNo(qDaily), go = () => { if (dailyOf(date)) { save.cover = true; startDaily(date, true); return true; } return false; };
+    if (!go()) { showHome(); fetchMonth(date.slice(0, 7)).then(() => { if (!go()) homeNote('Daily ' + qDaily + ' is not available yet.'); }); }
+  } else if (qFix > 0 && LEVELS[qFix - 1]) { if (unlocked(qFix - 1)) startLevel(qFix - 1); else { showHome(); homeNote('Win the earlier fixtures to open No. ' + no(qFix - 1) + '.'); } }
+  else showHome();
+  refreshDaily().then(changed => { if (changed && state === 'home') dailyTicket(); });
   requestAnimationFrame(frame);
 })();

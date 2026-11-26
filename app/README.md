@@ -176,8 +176,11 @@ App Privacy, export compliance) are in that checklist and in `store/app-store-li
 
 ### Data safety answers for the current build
 
-These are true for this build because it has no network access at all: the store build is compiled **without the
-INTERNET permission** (see "Permissions"), contains no analytics, no advert SDK, no crash reporter and no account.
+Build 0.5.0 adds anonymous play statistics (`privacy.html`, "Anonymous play statistics"), but **no statistics address is
+set** (`one-man-team/js/config.js`, `statsUrl: ''`), so this build still collects, keeps and sends nothing. The store build
+is still compiled **without the INTERNET permission** (see "Permissions"), contains no advert SDK, no crash reporter and
+no account. The Daily Move's first 90 days are bundled; the app does not fetch later ones while it has no INTERNET
+permission (the web build does).
 
 - Does your app collect or share any of the required user data types? **No.**
 - That single answer ends the form: nothing collected, nothing shared.
@@ -185,8 +188,25 @@ INTERNET permission** (see "Permissions"), contains no analytics, no advert SDK,
   does not count as collection by the developer).
 - Advertising ID: **the app does not use one.** The manifest carries no `AD_ID` permission.
 
-**These answers stop being true the moment adverts, purchases, analytics or crash reporting are added.** Redo the
-form in the same release.
+### Data safety answers once the statistics address is set (same release as the switch)
+
+Switching statistics on is three changes in one release: set `statsUrl` in `one-man-team/js/config.js`; delete the
+INTERNET line in `app/app.config.js` (and the matching assertion in `scripts/check-native.js`); fill in the form as
+below. Also add the collected type to the iOS privacy manifest (`app.json`, `NSPrivacyCollectedDataTypes`:
+`NSPrivacyCollectedDataTypeProductInteraction`, not linked, not tracking, purpose `NSPrivacyCollectedDataTypePurposeAnalytics`)
+and change the App Store privacy label to "Data Not Linked to You: Usage Data". Our reading of the forms, not legal advice.
+
+- Does your app collect or share any of the required user data types? **Yes.**
+- Is all of the user data collected by your app encrypted in transit? **Yes** (the endpoint must be HTTPS).
+- Do you provide a way for users to request that their data is deleted? **No**: the messages carry no identifier, so
+  no message can be tied to a user. Say so in the explanation field; the in-game switch stops all sending.
+- Data types: **App activity, App interactions** ("levels started and won, takes, failure reasons, drills, daily played,
+  help offers, shares, last screen") only. Not device or other IDs, not location, not personal info.
+  - Collected: **Yes**. Shared: **No**. Processed ephemerally: **No**.
+  - Required or optional: **Users can choose whether this data is collected** (the Options switch; off by default in
+    the UK and EU, where the game asks once).
+  - Purpose: **Analytics**.
+- Advertising ID: still **not used**.
 
 ---
 

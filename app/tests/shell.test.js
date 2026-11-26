@@ -70,6 +70,13 @@ t('externalUrl allows the privacy policy and refuses look-alikes', () => {
   }
 });
 
+t('shareText passes a daily result and refuses anything that is not plain text of a sane length', () => {
+  const ok = 'One-Man Team \u00b7 Daily 34\nBend the run \u00b7 6.8 s \u00b7 3 takes\nGaffer\u2019s time 6.4 s. Your turn:\nhttps://ollywoodgames.github.io/one-man-team/?daily=34';
+  assert.strictEqual(S.shareText(ok), ok);
+  assert.strictEqual(S.shareText('  a\u0000b\u0007  '), 'ab');
+  for (const bad of ['', '   ', 'x'.repeat(601), null, undefined, 42, {}, ['a']]) assert.strictEqual(S.shareText(bad), null, String(bad));
+});
+
 t('isOwnUrl recognises only the page itself', () => {
   assert.ok(S.isOwnUrl(S.BASE_URL)); assert.ok(S.isOwnUrl('about:blank')); assert.ok(S.isOwnUrl(S.BASE_URL + '#x'));
   assert.ok(!S.isOwnUrl('https://ollywoodgames.github.io/privacy.html')); assert.ok(!S.isOwnUrl(undefined));

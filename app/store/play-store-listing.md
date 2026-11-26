@@ -186,9 +186,15 @@ at the title. If the game is ever sold or carries purchases, that line needs cha
 
 ## Data safety, content rating, target audience, ads
 
-Unchanged from `app/README.md` ("Data safety answers for the current build") and from the marketing document
-("Content rating expectations"): no data collected or shared, no adverts, expect the lowest rating band, declare
-13 and over.
+Data safety: build 0.5.0 contains anonymous play statistics, but no statistics address is set, so the answer for this
+build is still "no data collected or shared" (`app/README.md`, "Data safety answers for the current build"). The
+answers for the release that sets the address (App activity, App interactions; collected, not shared; optional;
+analytics; encrypted in transit; no deletion route because nothing is linked to a user) are in the next section of the
+same README, with the iOS privacy manifest entry and the INTERNET permission that must change with them.
+
+Content rating, target audience and ads: unchanged from the marketing document ("Content rating expectations"): no
+adverts, expect the lowest rating band, declare 13 and over. The Daily Move share sheet is a text the player sends
+themselves, not user-to-user communication inside the app.
 
 ## Sources
 

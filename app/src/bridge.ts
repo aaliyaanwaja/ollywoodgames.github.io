@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
-import { Linking, Platform, Vibration } from 'react-native';
+import { Linking, Platform, Share, Vibration } from 'react-native';
 
-import { externalUrl, hapticPlan, parseMessage, type PageMessage } from './page-script';
+import { externalUrl, hapticPlan, parseMessage, shareText, type PageMessage } from './page-script';
 import { storeSave } from './storage';
 
 /* What a handler may do besides its own work. `reply` reaches the page as a window "omt:native" event. */
@@ -49,6 +49,11 @@ const handlers: Record<string, Handler> = {
   // { t: 'open', url } for a link that leaves the game (sent by the shell's own click interceptor)
   open(msg) {
     openExternal(msg.url);
+  },
+  // { t: 'share', text } a result to share: the system share sheet (React Native's own Share, no extra module)
+  share(msg) {
+    const message = shareText(msg.text);
+    if (message) Share.share({ message }).catch(() => {});
   },
   // { t: 'back', handled } is the answer to the hardware back button (sent by the shell's own script)
   back(msg, ctx) {

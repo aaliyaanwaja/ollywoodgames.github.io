@@ -522,3 +522,48 @@ a.rowbtn { font: 700 calc(18px * var(--ts)) / 1 var(--label); }
 
 /* --- drills: a miss rewrites the coach card --- */
 #ready em.miss { background: var(--ink); color: var(--chalk); }
+
+/* ================= build 0.5.0: retention launch scope ================= */
+/* help when stuck: the offer's button in sky, so it never competes with Try again */
+.btn.sky { background: var(--sky); }
+.offer .btn .ic:last-child { width: 20px; height: 20px; }
+
+/* the Daily Move ticket and the seven-day card, above the season */
+.dly { position: relative; margin-top: 26px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: var(--shadow); }
+.dly .flag { left: 14px; right: auto; top: -13px; }
+.dly-main { position: relative; width: 100%; display: flex; align-items: stretch; min-height: 96px; padding: 0; text-align: left; background: none; border: 0; border-bottom: 2px dashed var(--ink); }
+.dly-main .tk-stub { width: 74px; background: var(--mustard); border-right: 2px dashed var(--ink); border-radius: 4px 0 0 0; }
+.dly-main .tk-stub small { color: var(--ink); } .dly-main .tk-stub b { font-size: 38px; }
+.dly-main .tk-body { padding: 10px 6px 10px 12px; }
+.dly-main .tk-body b { font-size: 28px; line-height: 1; }
+.dly-main .tk-body em { font: 600 calc(13px * var(--ts)) / 1.2 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); white-space: pre; }
+.dly-main .tk-body em b { font: 700 calc(15px * var(--ts)) / 1 var(--label); color: var(--ink); letter-spacing: .04em; }
+.dly-main .go { align-self: center; flex: none; width: 52px; height: 52px; margin: 0 12px 0 4px; display: grid; place-items: center; background: var(--tomato); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 var(--ink); }
+.dly-main:active .go { transform: translate(2px, 2px); box-shadow: none; }
+.week { display: flex; align-items: center; gap: 10px; padding: 10px 12px 12px; }
+.week .lbl { flex: none; width: 64px; line-height: 1.3; }
+.days { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dd { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0; min-height: 48px; background: none; border: 0; }
+.dd i { width: 30px; height: 30px; display: grid; place-items: center; border: 2px solid var(--ink-soft); border-radius: 50%; opacity: .55; }
+.dd small { font: 700 calc(12px * var(--ts)) / 1 var(--label); letter-spacing: .06em; color: var(--ink-soft); }
+.dd.won i { background: var(--mustard); border-color: var(--ink); opacity: 1; } .dd.won .ic { width: 16px; height: 16px; stroke-width: 3; }
+.dd.miss i { border-style: dashed; border-color: var(--ink); opacity: 1; } .dd.miss small { color: var(--ink); }
+.dd.today i { border-color: var(--ink); opacity: 1; box-shadow: 0 0 0 3px var(--tomato); } .dd.today small { color: var(--tomato); }
+.dd:disabled { cursor: default; }
+
+/* the daily goal sheet */
+.datechip { flex: none; padding: 2px 8px; background: var(--ink); color: var(--chalk); border-radius: 3px; font: 700 calc(14px * var(--ts)) / 1.3 var(--label); letter-spacing: .04em; }
+.rs-row.dl { margin-top: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); }
+.dstats { gap: 14px; } .dstats dd { font-size: 34px; } .dstats .soft dd { color: var(--ink-soft); }
+.nextd { margin-top: 10px; font: 600 calc(14px * var(--ts)) / 1.2 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.nextd b { color: var(--ink); font-weight: 700; }
+.btn .ic { flex: none; }
+/* a choice row wraps its buttons under the label when the text is large or the phone is narrow */
+.segrow > span:not(.seg) { flex: 1 0 auto; }
+.segrow .seg { flex: none; margin-left: auto; }
+/* five players on a narrow phone: no arrows, slightly smaller bases, so the whole move fits beside the buttons */
+@media (max-width: 400px) {
+  .who-in.sheet.many { gap: 3px; } .who-in.sheet.many .ar { display: none; }
+  .who-in.sheet.many .tsb .base { width: 24px; height: 24px; font-size: calc(12px * var(--ts)); }
+  .who-in.sheet.many .tsb.live .base { width: 34px; height: 34px; margin: 4px; }
+}

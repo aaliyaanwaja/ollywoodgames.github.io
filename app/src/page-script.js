@@ -169,9 +169,17 @@ function externalUrl(url) {
   return url;
 }
 
+/* The text the game asks to share (a result and a link to the same move on the website). Plain text only, of a
+   sane length; control characters other than line breaks are dropped. Anything else is refused. */
+function shareText(text) {
+  if (typeof text !== 'string') return null;
+  const t = text.replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, '').trim();
+  return t && t.length <= 600 ? t : null;
+}
+
 const isOwnUrl = url => typeof url === 'string' && (url === 'about:blank' || url.indexOf(BASE_URL) === 0);
 
 module.exports = {
   BASE_URL, MAX_SAVE_CHARS, bootstrapScript, withBootstrap, setActiveScript, insetsScript, receiveScript, backScript,
-  parseMessage, validSave, hapticPlan, externalUrl, isOwnUrl, scriptJson, SHELL_CSS,
+  parseMessage, validSave, hapticPlan, externalUrl, shareText, isOwnUrl, scriptJson, SHELL_CSS,
 };

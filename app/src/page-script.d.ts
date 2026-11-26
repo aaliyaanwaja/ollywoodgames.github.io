@@ -19,5 +19,6 @@ export function parseMessage(raw: unknown): PageMessage | null;
 export function validSave(v: unknown): v is string;
 export function hapticPlan(p: unknown, platform?: string): HapticPlan;
 export function externalUrl(url: unknown): string | null;
+export function shareText(text: unknown): string | null;
 export function isOwnUrl(url: unknown): boolean;
 export function scriptJson(value: unknown): string;
