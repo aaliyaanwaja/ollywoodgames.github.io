@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Mock 07: options and pause</title><link rel="stylesheet" href="mock.css"><script src="_hud.js"></script>
+<style>
+.two { display: flex; gap: 28px; }
+.pg { padding: 12px 20px 0; }
+h1.t { margin: 10px 0 0; font: 400 40px/1 var(--display); text-transform: uppercase; }
+.grp { margin-top: 10px; }
+.grp > .lbl { display: block; margin-bottom: 6px; }
+.list { background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 var(--ink); }
+.row { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 6px 12px; border-top: 1px dashed var(--ink-soft); }
+.row:first-child { border-top: 0; }
+.row .ic { width: 22px; height: 22px; }
+.row span { flex: 1; font: 700 17px/1.1 var(--label); letter-spacing: .04em; text-transform: uppercase; }
+.row span small { display: block; margin-top: 2px; font: 500 13px/1.3 var(--text); letter-spacing: 0; text-transform: none; color: var(--ink-soft); }
+.sw { position: relative; width: 56px; height: 28px; flex: none; background: var(--paper-shade); border: 2px solid var(--ink); border-radius: 14px; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink-soft); }
+.sw.on { background: var(--mustard); } .sw.on::after { left: 30px; background: var(--ink); }
+.seg { display: flex; border: 2px solid var(--ink); border-radius: 4px; overflow: hidden; }
+.seg i { padding: 5px 9px; font: 700 13px/1 var(--label); font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
+.seg i.on { background: var(--ink); color: var(--chalk); }
+.danger .ic { stroke: var(--tomato); }
+.col { margin-top: 14px; font: 600 11px/1.5 var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.dim { position: absolute; inset: 0; background: rgba(20,33,61,.6); }
+.pz { position: absolute; left: 16px; right: 16px; top: 170px; padding: 16px; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 5px 5px 0 var(--ink); }
+.pz h2 { margin: 2px 0 12px; font: 400 36px/1 var(--display); text-transform: uppercase; }
+.you { display: flex; gap: 12px; padding: 10px; margin-bottom: 14px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; }
+.you b { font: 700 16px/1.1 var(--label); letter-spacing: .04em; text-transform: uppercase; } .you p { margin: 2px 0 0; font: 500 14px/1.35 var(--text); }
+.btns { display: flex; gap: 10px; margin-top: 10px; }
+.icos { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+.icos div { display: flex; flex-direction: column; align-items: center; gap: 4px; font: 600 11px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 14px; border-top: 2px solid var(--ink); background: var(--paper); display: flex; }
+</style></head>
+<body><div class="sheet">
+<div class="two">
+ <div><p class="cap">Options, grouped</p>
+  <div class="phone"><div class="pg">
+   <div class="strip"><span>Club office</span><span>Build 0.4.0</span></div>
+   <h1 class="t">Options</h1>
+   <div class="grp"><span class="lbl">Sound and feel</span><div class="list">
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.6a7.6 7.6 0 0 1 0 10.8"/></svg><span>Sound</span><i class="sw on"></i></div>
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><rect x="8.5" y="4" width="7" height="16" rx="1.5"/><path d="M4.8 9v6M19.2 9v6"/></svg><span>Vibration</span><i class="sw on"></i></div></div></div>
+   <div class="grp"><span class="lbl">Play</span><div class="list">
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 13V9M9.5 3h5"/></svg><span>Slow aim<small>Time slows while you aim. Best: two stars.</small></span><i class="sw"></i></div>
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><path d="M4 18L9 6l5 12M5.8 14h6.4M15 18l3-7 3 7"/></svg><span>Text size</span><span class="seg" style="flex:none"><i class="on">Standard</i><i>Large</i></span></div>
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg><span>Reduce motion</span><span class="seg" style="flex:none"><i class="on">Phone</i><i>On</i></span></div></div></div>
+   <div class="grp"><span class="lbl">Help</span><div class="list">
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5.5h6a2 2 0 0 1 2 2v11.5a2 2 0 0 0-2-2H4zM20 5.5h-6a2 2 0 0 0-2 2v11.5a2 2 0 0 1 2-2h6z"/></svg><span>How to play</span><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 12h14M13 6l6 6-6 6"/></svg></div>
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg><span>Practice drills</span><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 12h14M13 6l6 6-6 6"/></svg></div></div></div>
+   <div class="grp"><span class="lbl">Your progress</span><div class="list">
+     <div class="row"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5l7 2.5v5.5c0 4.2-2.8 7.4-7 9-4.2-1.6-7-4.8-7-9V6z"/></svg><span>Privacy policy</span><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 12h14M13 6l6 6-6 6"/></svg></div>
+     <div class="row danger"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.8 7l1 12.5h8.4l1-12.5"/></svg><span>Reset progress</span><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 12h14M13 6l6 6-6 6"/></svg></div></div></div>
+   <p class="col">Kept on this phone only. No account, no adverts, no tracking.</p>
+  </div><div class="foot"><div class="btn p">Done</div></div>
+  <span class="pin" style="left:352px;top:190px">1</span><span class="pin" style="left:352px;top:322px">2</span><span class="pin" style="left:352px;top:388px">3</span><span class="pin" style="left:352px;top:658px">4</span>
+  </div></div>
+ <div><p class="cap">Pause, one decision</p>
+  <div class="phone"><div id="h"></div><img src="img/stage-l20-compact.jpg" style="position:absolute;top:84px;width:390px" alt=""><div class="dim"></div>
+   <div class="pz"><span class="lbl">No. 20 · Last-minute winner · Take 3</span><h2>Paused</h2>
+    <div class="you"><span class="base">10</span><div><b>Creator</b><p>Come off your marker. Aim early and hit it first time down the middle.</p></div></div>
+    <div class="btn p" style="width:100%">Resume</div>
+    <div class="btns"><div class="btn">Restart move</div><div class="btn">Fixtures</div></div>
+    <div class="icos"><div><span class="ib"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/></svg></span>Sound on</div><div><span class="ib"><svg viewBox="0 0 24 24"><rect x="8.5" y="4" width="7" height="16" rx="1.5"/><path d="M4.8 9v6M19.2 9v6"/></svg></span>Buzz on</div><div><span class="ib"><svg viewBox="0 0 24 24"><path d="M4 5.5h6a2 2 0 0 1 2 2v11.5a2 2 0 0 0-2-2H4zM20 5.5h-6a2 2 0 0 0-2 2v11.5a2 2 0 0 1 2-2h6z"/></svg></span>How to play</div></div>
+   </div>
+   <span class="pin" style="left:352px;top:268px">5</span><span class="pin" style="left:352px;top:528px">6</span>
+  </div></div>
+</div>
+<div class="notes" style="width:360px">
+  <h1>Fewer boxes</h1>
+  <p class="sub">Changes 5 and 12. Options today is seven identical shadowed boxes and two paragraphs; pause is six full-width controls. Every row looks equally important, which is the look of a template.</p>
+  <ol>
+    <li><span class="pin">1</span><div><b>Group rows into a few printed lists</b> with dashed rules between them, one shadow per group. Labels say what the group is for.</div></li>
+    <li><span class="pin">2</span><div><b>Slow aim explains itself in one line</b> inside its own row, with its own icon (today it borrows the book icon because the clock icon is missing).</div></li>
+    <li><span class="pin">3</span><div><b>Two accessibility settings</b>: Text size (Large scales all reading text and labels by 1.2 and the canvas tags and squad numbers by 1.15), and Reduce motion, which follows the phone by default and can be forced on.</div></li>
+    <li><span class="pin">4</span><div><b>One weight for every row.</b> Today "Privacy policy" is a link and renders lighter than its neighbours.</div></li>
+    <li><span class="pin">5</span><div><b>Pause reminds you who you are</b>, with the full tip, and keeps one clear primary action.</div></li>
+    <li><span class="pin">6</span><div><b>Settings shrink to three icon buttons</b> under the decision instead of three full-width rows above the fold.</div></li>
+  </ol>
+</div>
+</div>
+<script>document.getElementById("h").innerHTML = hud({ team: [["8", "done"], ["10", "live"], ["9", "todo decoy"], ["7", "todo"]], role: "Creator", min: "90+4′", score: "2-2", fill: 9, marks: [5], secs: "8.1" });</script></body></html>

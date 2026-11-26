@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Mock 03: fail card</title><link rel="stylesheet" href="mock.css"><script src="_hud.js"></script>
+<style>
+.fc { top: 8px; padding: 10px 12px 12px; }
+.fc .top { display: flex; align-items: baseline; justify-content: space-between; }
+.fc h2 { margin: 0; font: 400 30px/1 var(--display); text-transform: uppercase; }
+.fc .take { font: 700 13px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.fc p { margin: 6px 0 10px; font: 500 15px/1.35 var(--text); }
+.fc p b { font-weight: 600; }
+.fc .row { display: flex; gap: 10px; }
+.fc .btn { min-height: 48px; font-size: 17px; }
+.hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 6px 12px; background: var(--ink); color: var(--chalk); border-radius: 4px; font: 700 14px/1.2 var(--label); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.halo { position: absolute; width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--mustard); box-shadow: 0 0 0 2px var(--ink); }
+</style></head>
+<body><div class="sheet">
+<div>
+  <p class="cap">Proposed · fixture 5, player 1, tackled</p>
+  <div class="phone">
+    <div id="h"></div>
+    <div class="stage" style="height:672px"><img src="img/stage-fail-tackled.jpg" alt="">
+      <div class="card2 fc"><div class="top"><h2>Tackled</h2><span class="take">Take 4 · 0.9s</span></div>
+        <p>He got there first. <b>Release it earlier</b>, or carry it away from him.</p>
+        <div class="row"><div class="btn p">Try again</div></div></div>
+      <i class="halo" style="left:266px;top:412px"></i>
+      <div class="hint">Or just drag to go again</div>
+    </div>
+    <div class="ctl2"><div class="kick">PASS</div></div>
+    <span class="pin" style="left:352px;top:96px">1</span>
+    <span class="pin" style="left:236px;top:470px">2</span>
+    <span class="pin" style="left:300px;top:712px">3</span>
+  </div>
+</div>
+<div class="notes">
+  <h1>Fail fast, retry faster</h1>
+  <p class="sub">Change 3. The owner replayed one fixture more than 20 times: the retry loop is the game. Today every failure raises a bottom sheet that covers 40% of the pitch, usually the half where the move broke down, and the only way on is a button.</p>
+  <ol>
+    <li><span class="pin">1</span><div><b>A short card on the side of the pitch away from the incident</b> (top when the incident is in the bottom half, bottom otherwise). One verb in the title, one sentence with the fix in bold, one button. "Redo the 8" appears only when the failure was caused by an earlier part, which is the only time it is the right advice; the HUD button is always there for the rest.</div></li>
+    <li><span class="pin">2</span><div><b>The incident stays in view</b>: the starburst, plus a mustard halo on the defender or keeper who did it, and for offside the line and the runner ringed. The player sees why without reading.</div></li>
+    <li><span class="pin">3</span><div><b>Drag anywhere to go again</b>, after a 400ms guard so a thumb still on the glass does not restart by accident. The card, the halo and the stamp clear together. Takes are shown as a plain count, never a penalty.</div></li>
+  </ol>
+  <span class="metric">Retry: <em>tap a button</em> → <em>just play</em></span>
+</div>
+</div>
+<script>document.getElementById('h').innerHTML = hud({ team: [['2', 'live'], ['6', 'todo'], ['11', 'todo']], role: '', min: '54′', score: '0-0', fill: 7, marks: [], secs: '11.1' });</script>
+</body></html>

@@ -1,0 +1,70 @@
+/* Shared styles for the design-plan mockups (docs/design/2026-11-26-design-plan.md).
+   Static pages only: rendered to PNG with Playwright. Uses the game's own fonts and palette. */
+@font-face { font-family: "Anton"; src: url("../../../one-man-team/fonts/anton-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 500; src: url("../../../one-man-team/fonts/barlow-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 600; src: url("../../../one-man-team/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; src: url("../../../one-man-team/fonts/barlow-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; src: url("../../../one-man-team/fonts/barlow-condensed-latin-700-normal.woff2") format("woff2"); }
+:root {
+  --paper: #F2EAD8; --paper-shade: #E6DCC3; --ink: #14213D; --ink-soft: #4A5573;
+  --felt: #2F7D4F; --felt-dark: #2A7046; --chalk: #FBF8F0;
+  --tomato: #E4572E; --mustard: #F2B705; --sky: #8EC5D6;
+  --display: "Anton", Impact, sans-serif; --label: "Barlow Condensed", "Arial Narrow", sans-serif; --text: "Barlow", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #D9CFB6; color: var(--ink); font: 500 15px/1.4 var(--text); padding: 28px; }
+.sheet { display: flex; gap: 32px; align-items: flex-start; }
+.phone { position: relative; flex: none; width: 390px; height: 844px; overflow: hidden; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 6px 6px 0 var(--ink); }
+.phone.s { width: 360px; height: 640px; }
+.cap { margin: 0 0 10px; font: 700 13px/1.2 var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.notes { width: 430px; flex: none; }
+.notes h1 { margin: 0 0 4px; font: 400 34px/1 var(--display); text-transform: uppercase; }
+.notes .sub { margin: 0 0 18px; color: var(--ink-soft); font-size: 15px; }
+.notes ol { list-style: none; margin: 0; padding: 0; }
+.notes li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px dashed var(--ink-soft); font-size: 14.5px; line-height: 1.4; }
+.notes li b { font-weight: 600; }
+.pin, .notes li .pin { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--mustard);
+  font: 400 15px/1 var(--display); box-shadow: 0 0 0 2px var(--mustard); }
+.phone .pin { position: absolute; z-index: 20; }
+.ann { position: absolute; z-index: 19; border: 2px dashed var(--mustard); border-radius: 6px; pointer-events: none; box-shadow: 0 0 0 1px var(--ink); }
+.metric { display: inline-block; margin-top: 14px; padding: 6px 10px; background: var(--ink); color: var(--chalk); border-radius: 4px; font: 700 14px/1.3 var(--label); letter-spacing: .06em; text-transform: uppercase; }
+.metric em { font-style: normal; color: var(--mustard); }
+
+/* game pieces, as in one-man-team/css/style.css */
+.ib { width: 44px; height: 44px; flex: none; display: grid; place-items: center; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 2px 2px 0 var(--ink); }
+.ib svg, .ic { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.base { width: 30px; height: 30px; flex: none; display: inline-grid; place-items: center; border-radius: 50%; background: var(--tomato); color: var(--ink); border: 2px solid var(--ink); box-shadow: inset 0 0 0 3px var(--paper); font: 700 15px/1 var(--label); }
+.base.live { width: 38px; height: 38px; font-size: 18px; box-shadow: inset 0 0 0 3px var(--paper), 0 0 0 3px var(--mustard), 0 0 0 5px var(--ink); }
+.base.done { background: var(--paper-shade); color: var(--ink-soft); box-shadow: inset 0 0 0 3px var(--paper); position: relative; }
+.base.done::after { content: ""; position: absolute; right: -5px; bottom: -4px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink)
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 7.2l2.3 2.3 4.7-5' fill='none' stroke='%23F2B705' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat; }
+.base.todo { background: transparent; color: var(--ink-soft); border-style: dashed; box-shadow: none; }
+.base.decoy { background: var(--sky); }
+.board { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; background: var(--ink); color: var(--chalk); border-radius: 4px; white-space: nowrap; }
+.board .min { font: 700 14px/1 var(--label); color: var(--mustard); }
+.board .sc { font: 400 17px/1 var(--display); letter-spacing: .03em; }
+.bar { position: relative; flex: 1; height: 16px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 3px; overflow: visible; }
+.bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--tomato); }
+.bar .tickx { position: absolute; inset: 0; background-image: repeating-linear-gradient(90deg, transparent 0 calc(11.11% - 1.5px), rgba(20,33,61,.4) calc(11.11% - 1.5px) 11.11%); }
+.bar .dia { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--mustard); border: 2px solid var(--ink); transform: rotate(45deg); }
+.secs { width: 40px; flex: none; text-align: center; font: 400 18px/24px var(--display); }
+.btn { flex: 1; min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 var(--ink);
+  font: 700 18px/1 var(--label); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; color: var(--ink); }
+.btn.p { background: var(--tomato); }
+.btn.sq { flex: none; width: 52px; padding: 0; }
+.lbl { font: 600 12px/1.2 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.strip { display: flex; justify-content: space-between; padding: 4px 0; border-block: 2px solid var(--ink); font: 600 11px/1.3 var(--label); letter-spacing: .1em; text-transform: uppercase; }
+.stage { position: relative; overflow: hidden; background: var(--paper-shade); }
+.stage img { display: block; width: 100%; }
+.kick { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--ink); background: var(--tomato); box-shadow: 3px 3px 0 var(--ink); display: grid; place-items: center; font: 700 20px/1 var(--label); letter-spacing: .05em; }
+/* proposed compact HUD (change 7) */
+.hud2 { height: 84px; padding: 6px 8px 0; background: var(--paper); border-bottom: 2px solid var(--ink); }
+.hud2 .rowa { display: flex; align-items: center; gap: 8px; height: 44px; }
+.hud2 .team { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
+.hud2 .team .base { width: 26px; height: 26px; font-size: 13px; }
+.hud2 .team .base.live { width: 34px; height: 34px; font-size: 16px; margin: 0 3px; }
+.hud2 .role { min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 6px; font: 700 16px/1 var(--label); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+.hud2 .rowb { display: flex; align-items: center; gap: 8px; height: 24px; margin-top: 4px; }
+.ctl2 { height: 88px; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px; background: var(--paper); border-top: 2px solid var(--ink); }
+.card2 { position: absolute; left: 10px; right: 10px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 var(--ink); }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Mock 04: replay and result</title><link rel="stylesheet" href="mock.css"><script src="_hud.js"></script>
+<style>
+.two { display: flex; gap: 28px; }
+.full img { position: absolute; inset: 0; width: 390px; height: 844px; }
+.rib { position: absolute; left: 0; right: 0; top: 0; padding: 8px 10px; background: var(--paper); border-bottom: 2px solid var(--ink); }
+.rib .t { display: flex; align-items: center; justify-content: space-between; height: 30px; }
+.rib .t b { font: 400 22px/1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.rib .t span { font: 700 13px/1 var(--label); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.rib .rowb { display: flex; align-items: center; gap: 8px; height: 24px; margin-top: 4px; }
+.par { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--ink); }
+.par::after { content: attr(data-l); position: absolute; top: -13px; left: -10px; font: 700 10px/1 var(--label); letter-spacing: .06em; }
+.skip { position: absolute; right: 12px; bottom: 16px; padding: 8px 14px; background: var(--chalk); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 2px 2px 0 var(--ink); font: 700 15px/1 var(--label); letter-spacing: .08em; text-transform: uppercase; }
+.rc { position: absolute; left: 8px; right: 8px; bottom: 10px; padding: 12px 14px 14px; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--ink); }
+.rc .hd { display: flex; justify-content: space-between; align-items: center; }
+.rc .score { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+.rc .score s { font: 400 30px/1 var(--display); color: var(--ink-soft); text-decoration: none; }
+.rc .score b { font: 400 54px/1 var(--display); }
+.rc .score em { font: 700 14px/1.2 var(--label); font-style: normal; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.stars3 { display: flex; gap: 6px; } .stars3 svg { width: 40px; height: 40px; fill: var(--mustard); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.stars3 svg.off { fill: var(--paper-shade); stroke: var(--ink-soft); }
+.res { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 10px; }
+.res .t { text-align: right; font: 400 28px/1 var(--display); } .res .t small { display: block; font: 600 12px/1.3 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.rc .btns { display: flex; gap: 10px; }
+.line { margin: 0 0 10px; padding-left: 10px; border-left: 4px solid var(--tomato); font: 500 14px/1.35 var(--text); }
+</style></head>
+<body><div class="sheet">
+<div class="two">
+ <div><p class="cap">1 · Straight after GOAL: one full-screen replay</p>
+  <div class="phone full"><img src="img/stage-replay-full.jpg" alt="">
+   <div class="rib"><div class="t"><b>Full-time replay</b><span>The decoy · 88′</span></div>
+    <div class="rowb"><span class="board"><span class="min">88′</span><span class="sc">2-1</span></span><div class="bar"><div class="fill" style="width:33%"></div><div class="tickx"></div><i class="dia" style="left:9%"></i><i class="dia" style="left:21%"></i></div><span class="secs">5.3</span></div></div>
+   <div class="skip">Tap to skip</div>
+   <span class="pin" style="left:352px;top:78px">1</span><span class="pin" style="left:200px;top:300px">2</span><span class="pin" style="left:248px;top:806px">3</span>
+  </div></div>
+ <div><p class="cap">2 · Then the result (figures illustrative)</p>
+  <div class="phone full"><img src="img/stage-replay-full2.jpg" alt="">
+   <div class="rib"><div class="t"><b>Full-time replay</b><span>The decoy · 88′</span></div>
+    <div class="rowb"><span class="board"><span class="min">88′</span><span class="sc">2-1</span></span><div class="bar"><div class="fill" style="width:33%"></div><div class="tickx"></div><i class="dia" style="left:9%"></i><i class="dia" style="left:21%"></i></div><span class="secs">5.3</span></div></div>
+   <div class="rc"><div class="hd"><span class="lbl">No. 04 · v Netherwick Albion</span><span class="lbl">Take 3</span></div>
+    <div class="score"><s>1-1</s><b>2-1</b><em>88th minute<br>winner</em></div>
+        <div class="res"><div class="stars3"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.85 5.9 6.45.9-4.7 4.5 1.15 6.4L12 17.45 6.25 20.5l1.15-6.4-4.7-4.5 6.45-.9z"/></svg><svg viewBox="0 0 24 24"><path d="M12 2.8l2.85 5.9 6.45.9-4.7 4.5 1.15 6.4L12 17.45 6.25 20.5l1.15-6.4-4.7-4.5 6.45-.9z"/></svg><svg class="off" viewBox="0 0 24 24"><path d="M12 2.8l2.85 5.9 6.45.9-4.7 4.5 1.15 6.4L12 17.45 6.25 20.5l1.15-6.4-4.7-4.5 6.45-.9z"/></svg></div>
+     <div class="t">5.3s<small>Third star at 4.8s</small></div></div>
+    <div class="btns"><div class="btn sq">${L}</div><div class="btn sq">${R}</div><div class="btn p">Next fixture ${N}</div></div></div>
+   <span class="pin" style="left:12px;top:594px">4</span><span class="pin" style="left:352px;top:640px">5</span>
+  </div></div>
+</div>
+<div class="notes" style="width:360px">
+  <h1>Let the move be the reward</h1>
+  <p class="sub">Change 8. "Then watch the whole team play it" is the promise on the store listing, yet the replay plays under a sheet that covers its bottom 40%, inside a HUD that still shows the retry buttons dashed out and a clock counting down that means nothing.</p>
+  <ol>
+    <li><span class="pin">1</span><div><b>The HUD becomes a replay ribbon</b>: title, fixture, and the clock row showing the finished move time, frozen. The clock is still on screen; it now tells the story of the move.</div></li>
+    <li><span class="pin">2</span><div><b>One clean loop of the whole move at full height</b>, all players, the trails of each recorded run, the goal. Broadcast touch: the final 0.4s before the ball crosses the line plays at half speed in the replay only (never in live play).</div></li>
+    <li><span class="pin">3</span><div><b>Tap to skip</b> for players in a hurry; the card arrives either way after one loop (about 5 to 9 seconds).</div></li>
+    <li><span class="pin">4</span><div><b>Lead with the result, not the stats</b>: the old score struck through, the new one large, the minute. "Take 3" is a neutral count in the corner.</div></li>
+    <li><span class="pin">5</span><div><b>The next star is a target, not a lecture</b>: "Third star at 4.8s" replaces the sentence "A move of 4.8s or quicker earns the third star. Take as many goes as you like."</div></li>
+  </ol>
+</div>
+</div>
+<script>
+const s = document.body.innerHTML.replace('${L}', SV.list).replace('${R}', '<svg class="ic" viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.2-5.1"/><path d="M19.5 3.8v4.4h-4.4"/></svg>').replace('${N}', SV.next);
+document.body.innerHTML = s;
+</script>
+</body></html>

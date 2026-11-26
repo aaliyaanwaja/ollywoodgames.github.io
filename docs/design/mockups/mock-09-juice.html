@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Mock 09: game feel</title><link rel="stylesheet" href="mock.css">
+<style>
+.board9 { width: 900px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.pn { background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 var(--ink); overflow: hidden; }
+.pn .im { position: relative; height: 220px; overflow: hidden; background: var(--felt); }
+.pn .im img { position: absolute; left: 50%; top: 50%; width: 260px; transform: translate(-50%, -50%); }
+.pn .im svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pn .tx { padding: 10px 12px 12px; }
+.pn h3 { margin: 0 0 2px; font: 400 22px/1 var(--display); text-transform: uppercase; }
+.pn .now { margin: 4px 0 6px; font: 600 12px/1.3 var(--label); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.pn p { margin: 0; font-size: 13.5px; line-height: 1.38; }
+.pn ul { margin: 6px 0 0; padding-left: 16px; font-size: 13px; line-height: 1.38; }
+.ms { position: absolute; top: 8px; left: 8px; padding: 2px 7px; background: var(--ink); color: var(--mustard); border-radius: 3px; font: 700 12px/1.3 var(--label); letter-spacing: .08em; }
+h1.big { margin: 0 0 4px; font: 400 34px/1 var(--display); text-transform: uppercase; }
+.sub { margin: 0 0 16px; color: var(--ink-soft); max-width: 880px; }
+</style></head>
+<body><div class="sheet" style="display:block">
+<h1 class="big">Game feel: one beat per moment</h1>
+<p class="sub">Change 11. Real frames from the build, with the proposed additions drawn over them in mustard. Today each moment has a chalk puff and a small camera kick; that is the right vocabulary, it is just too quiet to be felt on a phone. Each addition has a duration, a sound and a haptic, so the three land together. All of it respects Reduce motion (no hit-stop shake, no slow replay; sounds and haptics stay).</p>
+<div class="board9">
+ <div class="pn"><div class="im"><img src="img/j-receive.jpg" alt=""><span class="ms">Receive</span>
+  <svg viewBox="0 0 280 220"><circle cx="140" cy="104" r="34" fill="none" stroke="#F2B705" stroke-width="4"/><circle cx="140" cy="104" r="44" fill="none" stroke="#F2B705" stroke-width="2" stroke-dasharray="4 5"/></svg></div>
+  <div class="tx"><h3>The ball sticks</h3><div class="now">Now: a faint chalk ring, a soft tone</div>
+  <ul><li>The live ring snaps 12% larger for 90ms, then settles.</li><li>A leather "thock" (recorded), haptic 12ms.</li><li>The HUD base for this player gets the ball icon: you know you have it without looking down.</li></ul></div></div>
+ <div class="pn"><div class="im"><img src="img/j-shoot.jpg" alt=""><span class="ms">Strike</span>
+  <svg viewBox="0 0 280 220"><path d="M140 70 L140 0" stroke="#F2B705" stroke-width="6" stroke-linecap="round" opacity=".9"/><path d="M132 66 L118 52 M148 66 L162 52 M140 62 L140 44" stroke="#FBF8F0" stroke-width="3" stroke-linecap="round"/></svg></div>
+  <div class="tx"><h3>Hit-stop on contact</h3><div class="now">Now: three strike marks, camera kick</div>
+  <ul><li>Hold the picture for 50ms on a shot (30ms on a pass) as the ball leaves: the oldest trick for making a kick feel heavy. Render-only: the sim and the clock do not lose the time.</li><li>A chalk streak behind shots only, fading over 250ms.</li><li>Recorded boot-on-ball, haptic 30ms.</li></ul></div></div>
+ <div class="pn"><div class="im"><img src="img/j-goal.jpg" alt="" style="width:300px"><span class="ms">Goal</span>
+  <svg viewBox="0 0 280 220"><path d="M98 52 Q140 24 182 52" fill="none" stroke="#F2B705" stroke-width="4"/></svg></div>
+  <div class="tx"><h3>The net moves</h3><div class="now">Now: confetti, the GOAL stamp, crowd noise</div>
+  <ul><li>The net bulges where the ball hit and swings back over 400ms.</li><li>The score chip in the HUD flips 1-1 to 2-1 at the same moment as the stamp, not 650ms later.</li><li>A short brass-band sting under the crowd, then into the replay (mock 04).</li></ul></div></div>
+ <div class="pn"><div class="im"><img src="img/j-tackle.jpg" alt=""><span class="ms">Tackle</span>
+  <svg viewBox="0 0 280 220"><circle cx="140" cy="110" r="40" fill="none" stroke="#F2B705" stroke-width="4"/></svg></div>
+  <div class="tx"><h3>Freeze, then explain</h3><div class="now">Now: starburst, sheet slides over it</div>
+  <ul><li>80ms freeze on the foot meeting the ball, a dull thud, haptic 50ms.</li><li>The tackler gets the mustard halo that stays under the fail card (mock 03).</li><li>The figure that lost it rocks on its base (the renderer already has a "rock" parameter).</li></ul></div></div>
+ <div class="pn"><div class="im" style="background:#2A7046"><img src="img/j-offside.jpg" alt="" style="width:300px"><span class="ms">Offside</span>
+  <svg viewBox="0 0 280 220"><path d="M0 108 H280" stroke="#F2B705" stroke-width="5" stroke-dasharray="14 8"/></svg></div>
+  <div class="tx"><h3>Show the line</h3><div class="now">Now: whistle, line and runner shown after the event</div>
+  <ul><li>The frame freezes at the moment the pass was played (not when the run is caught), with the line drawn across the whole pitch: a VAR still.</li><li>Two short whistle blasts, haptic double pulse.</li></ul></div></div>
+ <div class="pn"><div class="im" style="background:var(--paper)"><svg viewBox="0 0 280 220"><g font-family="Barlow Condensed" font-weight="700" font-size="13" fill="#14213D">
+   <text x="16" y="30">MOMENT</text><text x="110" y="30">MS</text><text x="150" y="30">SOUND</text><text x="226" y="30">BUZZ</text>
+   <g font-weight="600" font-size="13"><text x="16" y="58">Pass</text><text x="110" y="58">30</text><text x="150" y="58">boot, light</text><text x="226" y="58">10-24</text>
+   <text x="16" y="82">Receive</text><text x="110" y="82">90</text><text x="150" y="82">thock</text><text x="226" y="82">12</text>
+   <text x="16" y="106">Shot</text><text x="110" y="106">50</text><text x="150" y="106">boot, heavy</text><text x="226" y="106">30-40</text>
+   <text x="16" y="130">Save</text><text x="110" y="130">60</text><text x="150" y="130">glove, ooh</text><text x="226" y="130">35</text>
+   <text x="16" y="154">Tackle</text><text x="110" y="154">80</text><text x="150" y="154">thud</text><text x="226" y="154">50</text>
+   <text x="16" y="178">Offside</text><text x="110" y="178">hold</text><text x="150" y="178">2 whistles</text><text x="226" y="178">2 x 30</text>
+   <text x="16" y="202">Goal</text><text x="110" y="202">—</text><text x="150" y="202">net, crowd</text><text x="226" y="202">pattern</text></g></g>
+   <path d="M12 40H268" stroke="#14213D" stroke-width="2"/></svg><span class="ms" style="top:auto;bottom:8px">Cue sheet</span></div>
+  <div class="tx"><h3>One table to tune</h3><div class="now">Freeze length, sound, haptic</div>
+  <p>Every beat in one place in code, so feel can be tuned in one pass on a real phone rather than scattered across sim, render and audio.</p></div></div>
+</div>
+</div></body></html>

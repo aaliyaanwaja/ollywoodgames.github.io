@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Mock 01: play screen</title><link rel="stylesheet" href="mock.css"><script src="_hud.js"></script></head>
+<body><div class="sheet">
+<div>
+  <p class="cap">Proposed · fixture 20, player 2 of 4, mid-move</p>
+  <div class="phone" id="ph">
+    <div id="h"></div>
+    <div class="stage" style="height:672px"><img src="img/stage-l20-compact.jpg" alt=""></div>
+    <div class="ctl2"><div class="kick">PASS</div></div>
+    <i class="ann" style="left:56px;top:6px;width:226px;height:46px"></i><span class="pin" style="left:268px;top:28px">1</span>
+    <i class="ann" style="left:4px;top:54px;width:382px;height:30px"></i><span class="pin" style="left:330px;top:86px">2</span>
+    <span class="pin" style="left:18px;top:150px">3</span>
+    <i class="ann" style="left:4px;top:758px;width:382px;height:84px"></i><span class="pin" style="left:18px;top:786px">4</span>
+  </div>
+</div>
+<div class="notes">
+  <h1>Less chrome, more pitch</h1>
+  <p class="sub">Changes 1, 2 and 7. The HUD drops from 142px to 84px and the control bar from 108px to 88px. Nothing the player needs mid-move is lost; the clock stays.</p>
+  <ol>
+    <li><span class="pin">1</span><div><b>The team sheet replaces "Player 2 of 4 · Creator".</b> The role name moves to the round-start card and the pause card, where there is room to read it. Recorded players carry a tick, the live one wears the mustard ring, the ones to come are dashed. The player sees the whole move and where he is in it at a glance, in the same figure bases he sees on the pitch.</div></li>
+    <li><span class="pin">2</span><div><b>The clock row is unchanged in content</b>: score and minute, the move bar with the pass marks, the seconds left. It keeps its own row so it is never hidden or squeezed.</div></li>
+    <li><span class="pin">3</span><div><b>No standing instruction line.</b> The per-player tip moves to the round-start card (mock 02) and the pause card. Mid-move the top of the pitch is clear: the eye goes to the ball.</div></li>
+    <li><span class="pin">4</span><div><b>Control bar 88px, kick button 80px.</b> The written "press, drag to aim, release" and "drag anywhere to run" only appear on the tutorial fixtures, as now. The bar no longer carries an empty left half on every later fixture.</div></li>
+  </ol>
+  <span class="metric">On a 360x640 phone: pitch <em>+19% taller</em>, figures <em>+23% larger</em> (mock 01b)</span>
+</div>
+</div>
+<script>document.getElementById('h').innerHTML = hud({ team: [['8', 'done'], ['10', 'live'], ['9', 'todo decoy'], ['7', 'todo']], role: 'Creator', min: '90+4′', score: '2-2', fill: 9, marks: [5], secs: '8.1' });</script>
+</body></html>
