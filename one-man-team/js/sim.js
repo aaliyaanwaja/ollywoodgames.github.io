@@ -76,6 +76,12 @@
     gkReach: 0.8, gkDiveExt: 0.4,
     gkOutMin: 1.2, gkOutMax: 3.0, gkOneK: 0.45, gkOneR: 18, gkOneMax: 5, gkSweepOneMax: 7, gkStandOff: 3.2,
     gkSmotherR: 2.6, gkPassReact: 10, gkMargin: 0.15,
+    // collecting a loose ball (docs/foundation/20-keeper-and-generator-v2.md). A loose ball (nobody on it) moving slower
+    // than gkCollectV, that will be in his area (the penalty area) at a point he can be standing on when it gets there,
+    // at least gkCollectMargin sooner than any attacker: he comes off his line at gkRush and gathers it. Never out of
+    // the area, never for a struck shot (a shot leaves the boot at 20.4 m/s or more and is still above 13 m/s 30 m out).
+    // An attacker who will clearly get there first: he holds, as before. 0 switches it off (the engine before 20).
+    gkCollect: 1, gkCollectV: 10, gkCollectMargin: 0.25,
     // finish pressure (docs/foundation/10-finish-pressure.md, 13-a-b-in-the-game.md). Each option is off at 0.
     // A ("through on goal": recSpd, dangerR) and B (the keeper covers his near post: gkBisect, gkNear) are on by default;
     // a level can switch them off with its `engine` field (the first eight fixtures do, to keep them easy).
@@ -151,7 +157,7 @@
       })),
       gk: {
         x: gkc.x === undefined ? P.cx : gkc.x, y: gkc.y === undefined ? 1.2 : gkc.y, vx: 0, vy: 0,
-        react: 0, late: 0, sweeping: false, dive: 0, set: true,
+        react: 0, late: 0, sweeping: false, collecting: false, dive: 0, set: true,
         sweeper: !!gkc.sweeper, reactT: gkc.react === undefined ? C.gkReact : gkc.react,
         fx: 0, fy: 1, lunge: 0, offBalance: 0, intent: 'angle'
       },
@@ -604,6 +610,24 @@
        for it. Attackers not yet played are assumed to have started running when the pass was hit.
      - a shot: stands for reactT ticks, then goes for the nearest point of the ball's path. Against a shot (the last
        player's kick) his clock runs shotPace times faster: reaction, dive speed and stretch, matching the ball */
+  // the keeper's area for collecting a loose ball: the penalty area (x 8-42, y 0-16.5)
+  const GK_AREA_X = 17, GK_AREA_Y = 16.5;
+  // Earliest time any attacker but the passer can reach the loose ball's path (seconds from now). Attackers not yet
+  // played are assumed to have started running when the pass was hit (`el` seconds ago).
+  function attackersTo(S, el) {
+    const b = S.ball;
+    let ta = 1e9;
+    for (let i = 0; i < S.att.length; i++) {
+      if (i === b.lastKicker) continue;
+      const a = S.att[i], head = a.active ? 0 : el;
+      for (let s = 1; s <= PN; s++) {
+        const need = Math.max(0, hyp(S.px[s] - a.x, S.py[s] - a.y) - C.ctrlR) / C.runSpd - head;
+        if (need <= s * PDT) { if (s * PDT < ta) ta = s * PDT; break; }
+        if (s === PN && need < ta) ta = need;
+      }
+    }
+    return ta;
+  }
   function thinkKeeper(S, future) {
     const g = S.gk, b = S.ball, t = S.tick, carried = b.owner >= 0;
     let tx = g.x, ty = g.y, sp = C.gkSpd;
@@ -613,7 +637,29 @@
       const xg = b.x + b.vx * (b.y / -b.vy);
       shot = Math.abs(xg - P.cx) < P.goalHalf + 1.2 && hyp(b.vx, b.vy) / (b.fric || C.fric) > b.y * 0.9;
     }
-    if (shot) {
+    // a slow loose ball in (or rolling into) his area that he will clearly reach first: he comes off his line and
+    // gathers it, wherever it was going (a slow ball rolling at goal included). Checked first, so it wins over the
+    // shot reaction below only for balls slower than gkCollectV, which no struck shot inside 30 m is.
+    let collect = false, cs = -1;
+    if (C.gkCollect > 0 && !carried && t - b.kickTick >= C.gkPassReact && hyp(b.vx, b.vy) <= C.gkCollectV) {
+      let tk = 1e9;
+      for (let s = 1; s <= PN; s++) {
+        const x = S.px[s], y = S.py[s];
+        if (y > GK_AREA_Y || y < 0.3 || Math.abs(x - P.cx) > GK_AREA_X) continue;
+        const need = Math.max(0, hyp(x - g.x, y - g.y) - C.gkReach) / C.gkRush;
+        if (need <= s * PDT) { tk = s * PDT; cs = s; break; }
+        if (s === PN) { tk = need; cs = s; }
+      }
+      if (cs >= 0) {
+        const ta = attackersTo(S, (t - b.kickTick) * TICK);
+        collect = g.collecting || g.sweeping ? tk < ta + 0.1 : tk + C.gkCollectMargin < ta;
+      }
+    }
+    g.collecting = collect;
+    if (collect) {
+      g.react = 0; g.dive = Math.max(0, g.dive - 0.1); g.sweeping = true;
+      tx = S.px[cs]; ty = S.py[cs]; sp = C.gkRush; g.intent = 'collect';
+    } else if (shot) {
       const pace = b.shot ? C.shotPace : 1;
       if (g.react === 0) g.late = g.set ? 0 : C.gkLate;
       g.react += pace; g.sweeping = false;
@@ -638,16 +684,7 @@
           if (s === PN) { tk = need; ks = s; }
         }
         if (ks >= 0) {
-          let ta = 1e9;
-          for (let i = 0; i < S.att.length; i++) {
-            if (i === b.lastKicker) continue;
-            const a = S.att[i], head = a.active ? 0 : el;
-            for (let s = 1; s <= PN; s++) {
-              const need = Math.max(0, hyp(S.px[s] - a.x, S.py[s] - a.y) - C.ctrlR) / C.runSpd - head;
-              if (need <= s * PDT) { if (s * PDT < ta) ta = s * PDT; break; }
-              if (s === PN && need < ta) ta = need;
-            }
-          }
+          const ta = attackersTo(S, el);
           sweep = g.sweeping ? tk < ta + 0.1 : tk + C.gkMargin < ta;
           if (sweep) { tx = S.px[ks]; ty = S.py[ks]; sp = C.gkRush; g.intent = 'sweep'; }
         }

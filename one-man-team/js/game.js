@@ -394,6 +394,8 @@
     smothered: ['Keeper smothers it', 'You carried the ball into the goalkeeper.', 'Shoot earlier, from further out.', 'thud'],
     saved: ['Saved', 'The keeper got across to it.', 'Get closer, or aim for the corner he has left open.', 'ooh'],
     keeper: ['Straight to the keeper', 'That pass ran through to the goalkeeper.', 'Take some weight off it, or play it wider.', 'ooh'],
+    // the same fail code when he came off his line for a slow loose ball in his area (sim.js gkCollect)
+    gathered: ['Keeper gathers it', 'The ball sat up in his area and the keeper came out and got there first.', 'Get to it sooner, or weight the pass so your man arrives before him.', 'ooh'],
     wide: ['Off target', 'The ball ran out past the post.', 'Aim inside the posts. A shorter drag is easier to place.', 'ooh'],
     out: ['Out of play', 'The ball left the pitch.', 'A shorter drag takes the weight off the pass.', 'whistle'],
     early: ['Wrong man scored', 'Only the last name on the team sheet may finish.', 'Play the pass instead.', 'whistle'],
@@ -401,16 +403,18 @@
     bump: ['Collision', 'You ran into a team-mate. Awkwardly, he is also you.', 'Take a different line from the run you recorded.', 'thud'],
     time: ['Out of time', 'The clock ran out before the move finished.', 'Go sooner and waste fewer steps.', 'whistle']
   };
-  const MISS = { saved: 'Saved. Aim further from the keeper', smothered: 'Too close. Shoot a little earlier', wide: 'Wide. Aim inside the posts', out: 'Out of play. Go again', keeper: 'Too hard. Drag a shorter distance', time: 'Go again', early: 'Go again' };
+  const MISS = { saved: 'Saved. Aim further from the keeper', smothered: 'Too close. Shoot a little earlier', wide: 'Wide. Aim inside the posts', out: 'Out of play. Go again', keeper: 'Too hard. Drag a shorter distance', gathered: 'The keeper came for it. Get there first', time: 'Go again', early: 'Go again' };
   let offerKey = '', failAgain = false;
   function showFail() {
     if (!failAgain) logPlay(sim.reason);
-    if (prac >= 0) return pracMiss(MISS[sim.reason] || 'Go again');
+    const why = sim.reason === 'keeper' && sim.gk.collecting ? 'gathered' : sim.reason;
+    if (prac >= 0) return pracMiss(MISS[why] || 'Go again');
     state = 'failed'; fails++; SFX.crowd(0, 0.15);
-    const lv = L(), f = FAIL[sim.reason] || ['Lost it', 'The move broke down.', 'Have another go.', 'thud'], live = liveIdx(), a = lv.att[live];
+    const lv = L(), f = FAIL[why] || ['Lost it', 'The move broke down.', 'Have another go.', 'thud'], live = liveIdx(), a = lv.att[live];
     SFX[f[3]]();
     let what = f[1], tryIt = f[2];
-    if (sim.failWho >= 0 && sim.failWho !== live && sim.reason !== 'bump' && recs[sim.failWho]) {
+    if (why === 'gathered') { /* his own run was too slow to the ball: the sheet's own words fit */ }
+    else if (sim.failWho >= 0 && sim.failWho !== live && sim.reason !== 'bump' && recs[sim.failWho]) {
       what = 'It happened to the ' + lv.att[sim.failWho].num + ', a part you already recorded. Your new run moved the defence.';
       tryIt = 'Change this run, or go back and redo the earlier player.';
       if (li < 4 && !rec(li) && !CFG.rate && round === lv.order.length - 1) { what = 'You went early, so the defenders dropped back with you and cut out the pass.'; tryIt = 'Hold your run until the pass is hit, then go.'; }

@@ -407,6 +407,55 @@ scenario('keeper: sweeps a through ball that dies in his area before a striker 1
     chk(p.status === 'won', `passer's own round (striker not yet played) is not ruined: ${p.status} ${p.reason}`)];
 });
 
+/* Collecting a loose ball (gkCollect, docs/foundation/20-keeper-and-generator-v2.md). A pass from (25, 32) at power 0.43
+   rolls straight at goal and dies about 12 m out: the trickle the owner saw. */
+const withC0 = (k, v, fn) => { const old = FB.C0[k]; FB.C0[k] = v; try { return fn(); } finally { FB.C0[k] = old; } };
+function trickle(sx, sy, opt) {
+  opt = opt || {};
+  const L = lvl([{ x: 25, y: 32 }, { x: sx, y: sy }], opt.def || []);
+  const pass = run(L, (S, me, t) => kick(me, opt.tx || 25, 8, opt.power || 0.43, t, 20), { live: 0 });
+  const log = { out: 0, firstMove: -1, enterBox: -1, flips: 0, inArea: true, intents: {}, gkMax: 0 };
+  let prev = '';
+  const S = run(L, (S, me, t) => S.ball.owner === 1 ? {} : t < (opt.wait || 0) ? {} : go(me, S.ball.x, S.ball.y), { live: 1, recs: [FB.finalRec(pass), null], ticks: 420, each: S => {
+    const g = S.gk; if (S.ball.owner < 0) log.out = Math.max(log.out, g.y); log.intents[g.intent] = 1;
+    if (S.ball.y < 16.5 && log.enterBox < 0) log.enterBox = S.tick;
+    if (g.intent === 'collect' && log.firstMove < 0) log.firstMove = S.tick;
+    if (prev === 'collect' && g.intent !== 'collect' && S.status === 'play') log.flips++;
+    prev = g.intent;
+    if (g.y > 16.5 || Math.abs(g.x - 25) > 17) log.inArea = false;
+  } });
+  return { S, log, pass };
+}
+scenario('keeper: comes off his line and collects a slow ball trickling into his area when no attacker is near it', () => {
+  const a = trickle(45, 40), off = withC0('gkCollect', 0, () => trickle(45, 40));
+  const b = trickle(8, 44, { tx: 31, power: 0.5 });          // the same, rolling across the box at an angle
+  return [chk(a.S.reason === 'keeper' && a.S.failBy === 'gk', `striker 23 m away: ${a.S.status} ${a.S.reason}`),
+    chk(a.log.out > 6, `he came out to y ${f(a.log.out)} (want > 6)`),
+    chk(a.log.firstMove >= 0 && a.log.flips === 0, `went at tick ${a.log.firstMove}, the ball in the box at ${a.log.enterBox}; ${a.log.flips} changes of mind`),
+    chk(a.log.inArea, 'stayed in his area'),
+    chk(off.S.ball.owner === 1 && off.log.out < 3.2, `with gkCollect 0 he stays at y ${f(off.log.out)} while it rolls and the striker gets there (${off.S.ball.owner === 1 ? 'striker has it' : off.S.reason})`),
+    chk(b.S.reason === 'keeper' && b.log.inArea, `rolling across the box: ${b.S.status} ${b.S.reason}, out to y ${f(b.log.out)}`)];
+});
+scenario('keeper: holds when an attacker will clearly get to the slow ball first', () => {
+  const a = trickle(29, 16), b = trickle(22, 20);
+  return [chk(a.S.ball.owner === 1 && !a.log.intents.collect, `striker 4 m from where it dies: ${a.S.ball.owner === 1 ? 'striker has it' : a.S.reason}; keeper out to y ${f(a.log.out)}`),
+    chk(b.S.ball.owner === 1 && !b.log.intents.collect, `striker running on to it from 8 m: ${b.S.ball.owner === 1 ? 'striker has it' : a.S.reason}; keeper out to y ${f(b.log.out)}`)];
+});
+scenario('keeper: never comes out of his area for a slow ball that stops outside it', () => {
+  const a = trickle(45, 40, { power: 0.1 });                  // dies about 20 m out
+  return [chk(!a.log.intents.collect && a.log.out < 3.2, `ball dying ${f(a.S.ball.y)} m out: keeper stays at y < ${f(a.log.out)}`), chk(a.S.ball.owner === 1, `the striker gets it: ${a.S.ball.owner === 1 ? 'yes' : a.S.reason}`)];
+});
+scenario('keeper: does not charge at a well-struck shot: every shot from 12-30 m plays out exactly as without gkCollect', () => {
+  const out = []; let diff = 0, n = 0, coll = 0;
+  for (const [x, y, tx] of [[25, 12, 21.6], [20, 16, 28.3], [32, 18, 22], [25, 22, 27.5], [15, 26, 28], [25, 30, 23]]) for (const p of [0, 0.5, 1]) {
+    const tr = () => { const v = []; let c = 0; run(shotLvl(x, y), (S, me, t) => kick(me, tx, 0, p, t, 45), { ticks: 400, each: S => { v.push(S.gk.x, S.gk.y, S.ball.x, S.ball.y); if (S.gk.intent === 'collect') c++; } }); return [v.join(','), c]; };
+    const on = tr(), off = withC0('gkCollect', 0, tr); n++;
+    if (on[0] !== off[0]) diff++; coll += on[1];
+  }
+  out.push(chk(diff === 0 && coll === 0, `${n} shots at power 0, 0.5 and 1: ${diff} differ, ${coll} ticks of 'collect'`));
+  return out;
+});
+
 scenario('keeper: comes out to narrow the angle one-on-one, stays on his feet, and a shot at him from there is saved', () => {
   let gy = 0;
   const L = shotLvl(25, 26);

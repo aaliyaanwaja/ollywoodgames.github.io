@@ -93,7 +93,7 @@ No defender catches an attacker running away from him, except in an A recovery s
 | Interceptions | `zone`, `press` and `line` players read a pass 12 ticks after it is hit and go only if they can stand on its path at 90% pace within their `eng`. At most two go, one per line unit. They win it within 0.85 m. They collect a ball that dies within 1.5 × `eng` of them |
 | Markers and loose balls | a marker never leaves his man for a loose ball. He wins a pass only within 0.7 m |
 | Bump | the live player within 0.85 m of a recorded team-mate fails |
-| Fail codes | tackled, intercepted, saved, smothered, keeper (pass claimed), wide, early (goal before the last player), out, offside, bump, time |
+| Fail codes | tackled, intercepted, saved, smothered, keeper (pass claimed, or a slow loose ball gathered), wide, early (goal before the last player), out, offside, bump, time |
 
 ### 2.5 Offside [M]
 
@@ -123,6 +123,7 @@ No defender catches an attacker running away from him, except in an A recovery s
 | Sets | when the carrier slows to aim inside 24 m |
 | Shot | waits `gk.react` ticks (13; +5 if he was moving), then dives at 4.7 m/s. Saves within 0.8 m of him, 1.2 m at full stretch. Against a shot all three run on the shot's clock (`shotPace 1.2`): he reacts after 13 / 1.2 (about 11) real ticks, dives at 5.64 m/s and reaches full stretch 1.2 times as fast, so he gets to the same places on the same shots as before 16. Open goal from 10-21 m moved by at most 0.3 m in any of 72 cells (mean change 0.1 m either way; the average open goal 0.03 m wider) |
 | Claims a pass | inside his zone, if he gets there 0.15 s before any attacker. Unplayed attackers are assumed to run when the pass is hit |
+| Collects a slow loose ball (`gkCollect 1`, `gkCollectV 10`, `gkCollectMargin 0.25`; 20-keeper-and-generator-v2.md) | a loose ball slower than 10 m/s that will be in the penalty area (x 8-42, y 0-16.5) at a point he can be standing on when it arrives, 0.25 s or more before any attacker can reach its path: he comes off his line at 5.4 m/s and gathers it (fail code `keeper`, or `saved` on the last player's kick; the game says "Keeper gathers it"). He decides 10 ticks after the kick at the earliest, and once he goes he keeps going while he is still no more than 0.1 s behind. He never leaves the area and never goes for a struck shot: a shot leaves the boot at 20.4 m/s or more and is still above 13 m/s 30 m out (18 shots from 12-30 m at power 0, 0.5 and 1 play out tick for tick as before). Measured, ball played straight at goal and the striker setting off as it crosses 18 m: a ball dying 6 m out is his against a striker 14 m from where it stops (he meets it 8.4 m out); one dying 12 or 15 m out only against a striker 20 m away (he meets it 11.9 and 13.9 m out). Striker 4-10 m away: the striker's ball, and the keeper holds as before. `gkCollect 0` is the engine before 20, bit for bit |
 | Fact that matters | a full-power shot from 10 m passes him before his reaction ends, so at 10 m he is a statue (about 4.8 m of goal open). From the owner's range of 15-21 m he leaves 1-4 m |
 
 ### 2.8 The standard engine: options A and B [O: approved 25 Nov]
