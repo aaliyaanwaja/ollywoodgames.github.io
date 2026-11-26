@@ -28,6 +28,7 @@
     whistle: svg('<circle cx="9" cy="14.5" r="5"/><path d="M12.6 11H21v3.2h-7"/><path d="M6.5 5l1.2 2.4M11 4v2.6"/>'),
     stick: svg('<circle cx="12" cy="12" r="9.5" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/>'),
     play: svg('<path d="M8.5 6l10 6-10 6z" fill="currentColor"/>'),
+    clock: svg('<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.5M10 3.5h4M12 3.5v3M18.2 7.3l1.3-1.3"/>'),
     phone: svg('<rect x="7.5" y="3" width="9" height="18" rx="2"/><path d="M11 18h2"/>'),
     star: '<svg class="st" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.8l2.85 5.9 6.45.9-4.7 4.5 1.15 6.4L12 17.45 6.25 20.5l1.15-6.4-4.7-4.5 6.45-.9z"/></svg>'
   };
@@ -154,12 +155,12 @@
   function showOv(kind, html, handlers) {
     const card = $('card');
     card.innerHTML = html; card.scrollTop = 0;
-    $('ov').className = 'ov on k-' + kind;
+    $('ov').className = 'ov on k-' + kind; delete $('ov').dataset.pause;
     const pg = card.querySelector('.pg'); if (pg) pg.scrollTop = 0;
     Object.keys(handlers || {}).forEach(id => { const el = $(id); if (el) el.onclick = () => { SFX.tap(); handlers[id](); }; });
     try { card.focus({ preventScroll: true }); } catch (e) {}
   }
-  function hideOv() { $('ov').className = 'ov'; $('card').innerHTML = ''; }
+  function hideOv() { $('ov').className = 'ov'; $('card').innerHTML = ''; delete $('ov').dataset.pause; }
   const ovOpen = () => $('ov').classList.contains('on');
 
   /* ---------- first launch: the programme cover ---------- */
@@ -279,7 +280,7 @@
       toggle('oS', IC.sound, 'Sound', save.sound) + toggle('oH', IC.buzz, 'Vibration', save.haptics) +
       '<button class="rowbtn" id="oHow">' + IC.book + '<span>How to play</span>' + IC.next + '</button>' +
       '<button class="rowbtn" id="oPrac">' + IC.retry + '<span>Practice drills</span>' + IC.next + '</button>' +
-      toggle('oSlow', IC.clock || IC.book, 'Slow aim', !!save.slow) +
+      toggle('oSlow', IC.clock, 'Slow aim', !!save.slow) +
       (save.all ? '<button class="rowbtn" id="oLog">' + IC.list + '<span>Tester: play log</span>' + IC.next + '</button>' : '') +
       '<a class="rowbtn" id="oPriv" href="' + (NATIVE ? 'https://ollywoodgames.github.io/privacy.html' : '../privacy.html') + '">' + IC.shield + '<span>Privacy policy</span>' + IC.next + '</a>' +
       '<button class="rowbtn danger" id="oReset">' + IC.bin + '<span>Reset progress</span>' + IC.next + '</button></div>' +
@@ -357,7 +358,7 @@
     $('bPrev').disabled = round === 0; $('bRetry').disabled = false;
     const kb = $('kick'); kb.textContent = decoy ? 'DONE' : (sim && sim.isLast ? 'SHOOT' : 'PASS'); kb.classList.toggle('decoy', decoy);
     $('klabel').innerHTML = decoy ? 'Press when<br>your marker<br>has moved' : 'Press<br>drag to aim<br>release';
-    const sc = scoreHtml(lv, false); $('score').innerHTML = sc; $('score').className = sc ? 'on' : '';
+    const sc = prac >= 0 ? '<span class="pr">Practice</span>' : scoreHtml(lv, false); $('score').innerHTML = sc; $('score').className = sc ? 'on' : '';
     $('bar').style.setProperty('--secs', lv.time);
     let m = '';
     recs.forEach((r, i) => { if (r && r.kick) m += '<i style="left:' + (100 * r.kick.tick / (lv.time * 60)).toFixed(2) + '%" title="No. ' + lv.att[i].num + ' plays the pass"></i>'; });
@@ -390,7 +391,7 @@
       : '';
     showOv('page',
       '<div class="pg brief lean"><div class="strip"><span>' + esc(st && st.comp ? [st.comp, st.match].filter(Boolean).join(' · ') : ch.name) + '</span><span>No. ' + no(li) + '</span></div>' + fixture +
-      '<h1>' + esc(lv.name) + '</h1><p class="lede">' + esc(lv.brief) + '</p>' +
+      '<h1>' + esc(lv.name) + '</h1><p class="lede">' + esc(lv.brief) + '</p>' + (st && st.line ? '<p class="sline">' + esc(st.line) + '</p>' : '') +
       '<div class="lbl soft ord-h">You play them in this order</div><ol class="order">' + order + '</ol></div>' +
       '<div class="pg-foot"><button class="btn sq" id="bk" aria-label="Back to fixtures">' + IC.back + '</button><button class="btn p" id="go">Kick off</button></div>',
       { go: () => { save.seenHow = true; persist(); SFX.whistle(); beginRound(); }, bk: showHome });
@@ -504,7 +505,7 @@
     const best = rec(li), ch = chapterOf(li), last = li === LEVELS.length - 1;
     let seasonDone = li === ch.to; for (let i = ch.from; i <= ch.to && seasonDone; i++) if (!rec(i)) seasonDone = false;
     const after = scoreHtml(lv, true), isBest = !firstWin && best.time === +t.toFixed(2) && old && t < old.time;
-    const nxt = seasonDone ? '<span>' + (last ? 'Final whistle' : 'Season review') + '</span>' : '<span>Next fixture</span>';
+    const nxt = seasonDone ? '<span>' + (last ? 'Final whistle' : 'Season review') + '</span>' : '<span>' + (last ? 'Fixtures' : 'Next fixture') + '</span>';
     const nextRow = seasonDone
       ? '<div class="upnext done"><span class="lbl">Season ' + ch.n + '</span><b>' + esc(ch.name) + ' complete</b></div>'
       : last ? '<div class="upnext done"><span class="lbl">Final fixture</span><b>Earlier fixtures still to win</b></div>'
@@ -703,7 +704,8 @@
     else if (e.code === 'Space') { if (!inMatch()) return; if (!e.repeat) { inp.aim = false; kickDown(); } e.preventDefault(); }
     else if (e.code === 'KeyR') { if (playing() && (!ovOpen() || state === 'failed')) $('bRetry').click(); }
     else if (e.code === 'Escape' || e.code === 'KeyP') {
-      if (ovOpen()) { const c = $('ct') || $('x') || $('n') || $('bk'); if (c) c.click(); }
+      if (ovOpen() && state === 'failed' && $('ov').dataset.pause !== '1') showPause();
+      else if (ovOpen()) { const c = $('ct') || $('x') || $('n') || $('bk'); if (c) c.click(); }
       else if ($('play').classList.contains('on')) showPause();
     }
     else if (e.code === 'Enter') {
@@ -779,9 +781,11 @@
     const S = state === 'goal' && rsim ? rsim : sim;
     if (S && state !== 'home') {
       Render.draw(S, { now, inp, state });
-      $('fill').style.transform = 'scaleX(' + Math.min(1, S.tick / S.limit).toFixed(4) + ')';
-      const left = Math.max(0, (S.limit - S.tick) / 60).toFixed(1);
-      if (left !== secsTxt) { secsTxt = left; $('secs').textContent = left; $('clock').classList.toggle('late', +left < 2 && state === 'play'); }
+      const C0 = state === 'goal' || state === 'goalhold' ? sim : S;   // the replay shows the finished move's clock, frozen
+      // drills: the clock counts up and never runs out (it fills over ten seconds, then stays full)
+      $('fill').style.transform = 'scaleX(' + Math.min(1, C0.tick / (prac >= 0 ? 600 : C0.limit)).toFixed(4) + ')';
+      const left = (prac >= 0 ? C0.tick / 60 : Math.max(0, (C0.limit - C0.tick) / 60)).toFixed(1);
+      if (left !== secsTxt) { secsTxt = left; $('secs').textContent = left; $('clock').classList.toggle('late', +left < 2 && state === 'play' && prac < 0); }
       const a = sim && sim.live >= 0 ? sim.att[sim.live] : null;
       kb.style.setProperty('--chg', (a ? a.charge * 360 : 0) + 'deg');
       coach(coachState());
@@ -807,6 +811,8 @@
     /* Android back button (called by the app shell). Returns false when there is nothing left to go back to. */
     back() {
       const open = $('ov').classList.contains('on');
+      if (open && $('ov').dataset.pause === '1' && $('ct')) { $('ct').click(); return true; }
+      if (state === 'failed') { showPause(); return true; }
       if (state === 'play' || state === 'ready') { if (open) hideOv(); else showPause(); return true; }
       if (state === 'home' || state === 'cover') { if (open) { hideOv(); return true; } return false; }
       showHome(); return true;
