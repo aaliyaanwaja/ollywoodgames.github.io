@@ -163,18 +163,21 @@ async def main():
         nat = await page.evaluate("window.__OMT_NATIVE__")
         ok(nat['save'] is None, 'window.__OMT_NATIVE__.save is null')
         ok(nat.get('platform') == 'ios', 'window.__OMT_NATIVE__.platform is ios when the shell says so', nat.get('platform'))
-        # The current game opens on the programme cover and goes to the practice drills before fixture 1.
+        # The game opens on the programme cover; Kick off goes straight into the first practice drill (build 0.5.0:
+        # no brief page between drills; the HUD carries a Skip button where rewind and retry sit in a match).
         ok(await page.evaluate("document.getElementById('home').classList.contains('cover')"), 'first launch shows the programme cover')
         await page.click('#cta'); await page.wait_for_timeout(400)
-        card = await page.evaluate("document.getElementById('card').innerText")
-        ok('PRACTICE' in card.upper() and await page.evaluate("!!document.getElementById('sk')"), 'Kick off leads to the first practice drill, with a way to skip', card[:120])
+        st0 = await page.evaluate("__omt.info()")
+        ok(st0['prac'] == 0 and st0['state'] == 'ready' and await page.evaluate("document.getElementById('bRetry').classList.contains('skip')"),
+           'Kick off leads straight to the first practice drill, with Skip in the HUD', st0)
         await page.evaluate(prep0['back']); await page.wait_for_timeout(300)
         b = await posted(page, 'back')
-        ok(len(b) == 1 and b[0]['handled'] is True, 'back during a practice drill is handled by the page', b)
-        # back went to the fixtures; the drills stay reachable from Options
+        ok(len(b) == 1 and b[0]['handled'] is True and await page.evaluate("document.getElementById('ov').dataset.pause === '1'"), 'back during a practice drill is handled by the page (it pauses)', b)
+        # from pause to the fixtures; the drills stay reachable from Options
+        await page.click('#mv'); await page.wait_for_timeout(300)
         await page.click('#bOpt'); await page.wait_for_timeout(300)
         await page.click('#oPrac'); await page.wait_for_timeout(400)
-        await page.click('#sk'); await page.wait_for_timeout(400)
+        await page.click('#bRetry'); await page.wait_for_timeout(400)
         saves = await posted(page, 'save')
         last = json.loads(saves[-1]['v']) if saves else {}
         st0 = await page.evaluate("__omt.info()")
