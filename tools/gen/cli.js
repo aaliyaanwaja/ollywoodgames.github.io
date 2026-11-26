@@ -50,14 +50,14 @@ if (!band && !template) {
 
 // ------------------------------------------------------------------ check table
 const f = (v, n) => v === null || v === undefined ? '-' : typeof v === 'number' ? String(+v.toFixed(n === undefined ? 1 : n)) : String(v);
-const head = ['#', 'fix', 'name', 'template', 'band', 'side', 'clock', 'bot', 'ratio', 'slack', 'model (q)', 'clear', 'A1', 'A2', 'A3 jitter min', 'J1', 'J2', 'J3 onside/win', 'J4a', 'J4b lost', 'J5', 'J6', 'J7', 'J8', 'J9', 'J10 shot/open', 'A5 decoy', 'A7', 'A8'];
+const head = ['#', 'fix', 'name', 'template', 'band', 'side', 'clock', 'bot', 'ratio', 'slack', 'model (q)', 'estimate', 'clear', 'A1', 'A2', 'A3 jitter min', 'J1', 'J2', 'J3 onside/win', 'J4a', 'J4b lost', 'J5', 'J6', 'J7', 'J8', 'J9', 'J10 shot/open', 'A5 decoy', 'A7', 'A8'];
 const table = [head];
 rows.forEach((o, i) => {
   const r = o.res;
   if (!r.ok) { table.push([i + 1, o.slot.fixture || '-', 'NO LEVEL', '-', o.slot.band].concat(head.slice(5).map(() => '-'))); return; }
   const m = r.meta, S = r.checks.static, D = r.checks.dynamic, F = r.checks.final, L = r.level, A6 = F.A6;
   const dec = F.A5.length ? F.A5.map(t => `run ${t.designedRun} drag ${t.drag} ${t.needed ? 'needed' : 'NOT needed'} ${t.truncation ? 'trunc ok' : 'TRUNC FAIL'}`).join('; ') : 'none';
-  table.push([i + 1, m.fixture, L.name, m.templateName, m.band, m.side, L.time, f(F.bot, 2), f(F.ratio, 2), f(F.slack, 1), `${A6.median} (${A6.p25}-${A6.p75})`, Math.round(A6.cleared * 100) + '%',
+  table.push([i + 1, m.fixture, L.name, m.templateName, m.band, m.side, L.time, f(F.bot, 2), f(F.ratio, 2), f(F.slack, 1), `${A6.median} (${A6.p25}-${A6.p75})`, F.estimate ? F.estimate.takes : '-', Math.round(A6.cleared * 100) + '%',
     S.fails.length ? 'FAIL' : 'pass', 'pass', Math.min(...F.A3) + '%', D.J1 ? D.J1.count : '-', D.J2 ? D.J2.count : '-', D.J3 ? `${D.J3.onsideBy}/${D.J3.window}s` : '-', f(D.J4a),
     D.owner ? `${f(D.owner.lostAfterStand, 2)}/${f(D.owner.lostAfterRecv, 2)}s` : '-', f(D.J5close), D.J6 ? (D.J6.zoneOnLane ? 'screen' : 'dwell ' + Math.min(...D.J6.dwell)) : '-', 'pass',
     `${A6.bump}/${A6.out}/${A6.early}`, f(A6.middle, 2), D.botShot ? `${D.botShot.dist}m/${D.botShot.open0}m` : '-', dec, 'pass', F.A8 ? 'pass' : 'FAIL']);

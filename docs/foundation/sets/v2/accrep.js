@@ -1,0 +1,3 @@
+const fs = require('fs'); const recs = [].concat(...process.argv.slice(2).map(f => fs.readFileSync(f, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse)));
+const by = {}; recs.forEach(r => { const b = by[r.t] = by[r.t] || { n: 0, ok: 0, why: {}, ms: 0 }; b.n++; b.ms += r.ms; if (r.ok) b.ok++; else { const k = r.why.split(':').slice(0, 2).join(':').slice(0, 60); b.why[k] = (b.why[k] || 0) + 1; } });
+Object.keys(by).forEach(t => { const b = by[t]; console.log(`${t.padEnd(10)} ${b.ok}/${b.n} ${Math.round(100 * b.ok / b.n)}%  ${(b.ms / b.n / 1000).toFixed(0)}s/attempt  ` + Object.keys(b.why).sort((x, y) => b.why[y] - b.why[x]).slice(0, 4).map(k => k + ' ' + b.why[k]).join('; ')); });

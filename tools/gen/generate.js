@@ -13,6 +13,7 @@ const { TEMPLATES, find } = require('./templates.js');
 const { synth, polish } = require('./route.js');
 const K = require('./check.js');
 const lab = require('./lab.js');
+const DF = require('./difficulty.js');
 const hyp = Math.hypot;
 const r1 = v => Math.round(v * 10) / 10, r2 = v => Math.round(v * 100) / 100;
 
@@ -21,10 +22,10 @@ const r1 = v => Math.round(v * 10) / 10, r2 = v => Math.round(v * 100) / 100;
 // underrates the owner's hardest levels by 2-3 times (rulebook 6), so the closing band asks the model for 6+.
 const BANDS = {
   opening:  { id: 'opening', label: 'tutorial (fixtures 1-4)', owner: '1-2', slack: [6, 8], ratio: [0.35, 0.55], spd: [4.0, 4.8], model: [1, 2.5], target: 1.5, j2: [0, 9] },
-  standard: { id: 'standard', label: 'standard', owner: '3-6', slack: [3.8, 4.8], ratio: [0.58, 0.66], spd: [5.1, 5.3], model: [2.5, 6], target: 4, j2: [1, 3] },
-  hard:     { id: 'hard', label: 'hard', owner: '5-8', slack: [2.8, 3.8], ratio: [0.64, 0.72], spd: [5.3, 5.5], model: [4, 7.5], target: 5.5, j2: [1, 5], j1: 1 },
-  ordinary: { id: 'ordinary', label: 'ordinary (standard to hard)', owner: '3-8', slack: [2.8, 4.8], ratio: [0.58, 0.72], spd: [5.1, 5.5], model: [3, 7], target: 5, j2: [1, 5] },
-  closing:  { id: 'closing', label: 'closing (one per season)', owner: '8-15', slack: [1.8, 3.8], ratio: [0.64, 0.78], spd: [5.3, 5.6], model: [6, 14], target: 8.5, j2: [2, 5], j1: 2 }
+  standard: { id: 'standard', label: 'standard', owner: '3-6', ownerR: [3, 6], ownerT: 4.5, slack: [3.8, 4.8], ratio: [0.58, 0.66], spd: [5.1, 5.3], model: [2.5, 6], target: 4, j2: [1, 3] },
+  hard:     { id: 'hard', label: 'hard', owner: '5-8', ownerR: [5, 8], ownerT: 6.5, slack: [2.8, 3.8], ratio: [0.64, 0.72], spd: [5.3, 5.5], model: [4, 7.5], target: 5.5, j2: [1, 5], j1: 1 },
+  ordinary: { id: 'ordinary', label: 'ordinary (standard to hard)', owner: '3-8', ownerR: [3, 8], ownerT: 5, slack: [2.8, 4.8], ratio: [0.58, 0.72], spd: [5.1, 5.5], model: [3, 7], target: 5, j2: [1, 5] },
+  closing:  { id: 'closing', label: 'closing (one per season)', owner: '8-15', ownerR: [8, 15], ownerT: 10, slack: [1.8, 3.8], ratio: [0.64, 0.78], spd: [5.3, 5.6], model: [6, 14], target: 8.5, j2: [2, 5], j1: 2 }
 };
 function bandFor(id, season) {
   const b = JSON.parse(JSON.stringify(BANDS[id] || BANDS.ordinary));
@@ -66,7 +67,7 @@ function placeDefence(spec, att, band, rng) {
   // 1. the back line by height and spacing, shifted to the ball side
   if (line) {
     yL = line.yL;
-    let sp = line.width ? [line.width] : line.squeezed ? line.spacing.slice() : line.spacing.map(s => s + rng.step(-0.5, 0.5, 0.5));
+    let sp = line.xs ? [] : line.width ? [line.width] : line.squeezed ? line.spacing.slice() : line.spacing.map(s => s + rng.step(-0.5, 0.5, 0.5));
     sp = sp.map(s => line.width ? s : Math.max(8, Math.min(11.5, s)));
     if (sp.length === 3 && !line.squeezed) sp[1] = Math.max(9, Math.min(11, sp[1]));
     const W = sp.reduce((a, b) => a + b, 0);
@@ -74,12 +75,16 @@ function placeDefence(spec, att, band, rng) {
     const first = att[spec.order.find(i => att[i].role === 'ball')];
     if (!spec.fixedShift) { const s = Math.sign(first.x - 25); shift = Math.abs(shift) * (Math.abs(first.x - 25) < 1 ? 0 : s); }
     cx = 25 + shift;
+    // v2: `xs`, set positions across the pitch for a back four whose fourth man is a centre-half marking (third-man run,
+    // false nine): the line members stand either side of where he starts, so the four are 9.5-10.5 m apart
+    const xs = line.xs ? line.xs.map(v => v + shift + rng.step(-0.5, 0.5, 0.5)) : null;
+    if (xs) cx = xs.reduce((a, b) => a + b, 0) / xs.length;
     let x = cx - W / 2;
-    for (let k = 0; k <= sp.length; k++) {
-      const d = { t: 'line', x: r1(x), y: r1(yL), spd: spdLine };
+    for (let k = 0; k <= (xs ? xs.length - 1 : sp.length); k++) {
+      const d = { t: 'line', x: r1(xs ? xs[k] : x), y: r1(yL), spd: spdLine };
       if (line.eng) d.eng = line.eng;
       def.push(d); roles.push({ role: 'back line' });
-      if (k < sp.length) x += sp[k];
+      if (!xs && k < sp.length) x += sp[k];
     }
     const lc = {}; if (line.gap) lc.gap = line.gap; if (line.floor) lc.floor = line.floor;
     if (Object.keys(lc).length) lines[0] = lc;
@@ -95,8 +100,17 @@ function placeDefence(spec, att, band, rng) {
   for (const s of (spec.def.screens || [])) {
     const A = att[s.lane[0]], B = att[s.lane[1]], u = unit(B.x - A.x, B.y - A.y), perp = [-u[1], u[0]], L = hyp(B.x - A.x, B.y - A.y);
     let placed = null;
+    // `at`: a set spot (the screen that steps in front of a receiver), jittered a little; same rules as on a lane
+    if (s.at) {
+      for (let q = 0; q < 6 && !placed; q++) {
+        const x = s.at[0] + rng.step(-0.5, 0.5, 0.5) + (q % 2 ? 1 : -1) * Math.floor(q / 2) * 0.8, y = s.at[1] + rng.step(-0.5, 0.5, 0.5);
+        if (yL !== null && (y - yL < 6.1 || y - yL > 15.9 || Math.abs(x - cx) > 11.9)) continue;
+        if (def.some(o => hyp(o.x - x, o.y - y) < 3.2)) continue;
+        placed = { x, y };
+      }
+    }
     const ts = [0]; for (let k = 1; k <= 12; k++) ts.push(k * 0.04, -k * 0.04);
-    for (const dt of ts) {
+    for (const dt of (placed ? [] : ts)) {
       const t = s.t + dt; if (t < 0.1 || t > 0.9) continue;
       const lat = (s.lat || 0) + rng.step(-0.5, 0.5, 0.5);
       const x = A.x + (B.x - A.x) * t + perp[0] * lat, y = A.y + (B.y - A.y) * t + perp[1] * lat;
@@ -254,6 +268,12 @@ function attempt(opts, k, stats) {
       if (Dk.fails.length) break;
       bot = Dk.bot;
     }
+    // v2 (doc 20): the clock is fitted to the difficulty estimate (difficulty.js: the model plus the tightness of the
+    // designed route), aimed at the owner's own takes for the band; the opening band keeps the model alone. The model
+    // must still clear 90% within 60 takes (A6).
+    const terms = DF.routeTerms(Dk), useEst = !!band.ownerR && !opts.modelOnly;
+    const R0 = useEst ? band.ownerR : band.model, T0 = useEst ? band.ownerT : band.target;
+    const est = (m, c) => useEst ? DF.estimate(m.median, terms, bot, c).takes : m.median;
     let cands = [];
     for (let c = 7; c <= 14; c++) { const sl = c - bot; if (sl >= band.slack[0] - 0.2 && sl <= band.slack[1] + 1.0 && bot / c <= 0.8) cands.push(c); }
     if (!cands.length) return reject('clock', 'no whole-second clock in 7-14 s fits the band (bot ' + bot + ' s)');
@@ -265,42 +285,42 @@ function attempt(opts, k, stats) {
     // (30 people, 60 takes), which is also what A6 reports
     for (let q = 0; q < cands.length && ci >= 0 && ci < cands.length && !seen[ci]; q++) {
       seen[ci] = 1; L.time = cands[ci];
-      const m = K.model(L, { n: 12, max: 30 }); tr.push({ c: cands[ci], m, slow, screen: true });
-      if (m.median >= band.model[0] && m.median <= band.model[1] && Math.abs(m.median - band.target) <= 1.5) break;
-      if (m.median > band.model[1] * 2 || (m.median < band.model[0] / 2 && band.model[0] > 1)) break;   // nowhere near: stop
-      ci += (m.median > band.target || m.cleared < 0.9) ? 1 : -1;
+      const m = K.model(L, { n: 12, max: 30 }), e = est(m, cands[ci]); tr.push({ c: cands[ci], m, e, slow, screen: true });
+      if (e >= R0[0] && e <= R0[1] && Math.abs(e - T0) <= 1.5) break;
+      if (e > R0[1] * 2 || (e < R0[0] / 2 && R0[0] > 1)) break;   // nowhere near: stop
+      ci += (e > T0 || m.cleared < 0.9) ? 1 : -1;
     }
     tr.sort((a, b) => b.c - a.c);
-    const near = tr.filter(t => t.m.median >= band.model[0] - 1 && t.m.median <= band.model[1] + 1).sort((a, b) => Math.abs(a.m.median - band.target) - Math.abs(b.m.median - band.target));
-    for (const t of near.slice(0, 2)) { L.time = t.c; t.m = K.model(L); t.screen = false; if (t.m.cleared >= 0.9 && t.m.median >= band.model[0] && t.m.median <= band.model[1]) break; }
+    const near = tr.filter(t => t.e >= R0[0] - 1 && t.e <= R0[1] + 1).sort((a, b) => Math.abs(a.e - T0) - Math.abs(b.e - T0));
+    for (const t of near.slice(0, 2)) { L.time = t.c; t.m = K.model(L); t.e = est(t.m, t.c); t.screen = false; if (t.m.cleared >= 0.9 && t.e >= R0[0] && t.e <= R0[1]) break; }
     tr.forEach(t => { if (t.screen) t.m = Object.assign({}, t.m, { cleared: 0 }); });   // a screen alone never accepts
     tries = tries.concat(tr);
-    const inBand = tr.filter(t => t.m.cleared >= 0.9 && t.m.median >= band.model[0] && t.m.median <= band.model[1]);
+    const inBand = tr.filter(t => t.m.cleared >= 0.9 && t.e >= R0[0] && t.e <= R0[1]);
     const outS = t => (t.c - bot > band.slack[1] + 0.2 ? 1 : 0);
-    if (inBand.length) { choice = inBand.slice().sort((a, b) => outS(a) - outS(b) || Math.abs(a.m.median - band.target) - Math.abs(b.m.median - band.target) || b.c - a.c)[0]; break; }
-    const easiest = tr[0].m.median, hardest = tr[tr.length - 1].m.median;
+    if (inBand.length) { choice = inBand.slice().sort((a, b) => outS(a) - outS(b) || Math.abs(a.e - T0) - Math.abs(b.e - T0) || b.c - a.c)[0]; break; }
+    const easiest = tr[0].e, hardest = tr[tr.length - 1].e;
     if (di === 0) {
-      if (hardest < band.model[0]) dial.push(-1, -2);                       // too easy even at the shortest clock: faster
-      else if (easiest > band.model[1] && easiest <= band.model[1] + 3) dial.push(1, 2);   // too hard at the longest: slower
+      if (hardest < R0[0]) dial.push(-1, -2);                       // too easy even at the shortest clock: faster
+      else if (easiest > R0[1] && easiest <= R0[1] + 3) dial.push(1, 2);   // too hard at the longest: slower
     }
-    if (slow < 0 && tr[tr.length - 1].m.median > band.model[1]) break;
+    if (slow < 0 && tr[tr.length - 1].e > R0[1]) break;
   }
   if (!choice) {
     L.def.forEach((d, i) => { d.spd = spd0[i]; });
-    return reject('clock', `owner model median ${tries.map(t => t.c + 's' + (t.slow ? '-' + t.slow : '') + ':' + t.m.median).join(', ')} outside ${band.model.join('-')}`);
+    return reject('clock', `${band.ownerR && !opts.modelOnly ? 'estimate' : 'owner model median'} ${tries.map(t => t.c + 's' + (t.slow ? '-' + t.slow : '') + ':' + t.e).join(', ')} outside ${(band.ownerR && !opts.modelOnly ? band.ownerR : band.model).join('-')}`);
   }
   L.time = choice.c;
   dbg.D = Dk;
   const t8 = Date.now();
   // (8) final checks at the real clock
-  const F = K.finalChecks(L, route, Object.assign({ modelCache: choice.m }, ctx), hashSeed(opts.seed, k, 'jitter'));
+  const F = K.finalChecks(L, route, Object.assign({ modelCache: choice.m, terms: band.ownerR && !opts.modelOnly ? DF.routeTerms(Dk) : null }, ctx), hashSeed(opts.seed, k, 'jitter'));
   if (F.fails.length) return reject('final', F.fails[0]);
   st.accepted++;
   return {
     ok: true, tpl: tpl.id, level: L, script: route,
     meta: { seed: opts.seed, attempt: k, template: tpl.id, templateName: tpl.name, tier: tpl.tier, band: band.id, fixture: fx, season: opts.season || 0, mirrored, side: canonSide === 'centre' ? 'centre' : (mirrored ? (canonSide === 'left' ? 'right' : 'left') : canonSide),
       params: p, yL: S0.yL, yBand: yBandOf(S0.yL), finisher: tpl.finisher, ending: tpl.ending, roles: S0.roles, routeSims: R.sims, ms: { route: t6 - t5, dynamic: t7 - t6, clock: t8 - t7, final: Date.now() - t8 },
-      clockTries: tries.map(t => ({ clock: t.c, slower: t.slow, median: t.m.median, cleared: t.m.cleared, screen: !!t.screen })), slower: choice.slow },
+      clockTries: tries.map(t => ({ clock: t.c, slower: t.slow, median: t.m.median, estimate: t.e, cleared: t.m.cleared, screen: !!t.screen })), slower: choice.slow, estimate: choice.e },
     checks: { static: S0, dynamic: stripW(Dk), final: F }
   };
 }

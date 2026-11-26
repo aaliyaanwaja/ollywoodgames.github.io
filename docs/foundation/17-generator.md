@@ -1,5 +1,8 @@
 # Foundations 17: the level generator
 
+Version 2 of the generator (fuller defences, four templates set up again, the clock fitted to a difficulty estimate)
+is in 20-keeper-and-generator-v2.md, part 2. This note describes version 1.
+
 Written by the lead engineer, Thu 26 Nov 2026. The owner said "go ahead" to a generator built from the rulebook that can
 make an unlimited number of levels, and to a blind set of generated levels for him to rate (set E, 18-set-E-plan.md).
 The generator is `tools/gen/`. It follows RULEBOOK.md version 1 step by step; where the book contradicts itself or the

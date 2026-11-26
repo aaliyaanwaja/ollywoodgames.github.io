@@ -1,0 +1,300 @@
+{"t":"diagonal","seed":5001,"ok":false,"ms":3923,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5002,"ok":false,"ms":2837,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5003,"ok":false,"ms":2621,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5004,"ok":false,"ms":4093,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5005,"ok":false,"ms":6239,"why":"dynamic: J10: long shot with under 2 m open"}
+{"t":"diagonal","seed":5006,"ok":false,"ms":5061,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5007,"ok":false,"ms":14838,"why":"route: r3 shot tackled"}
+{"t":"diagonal","seed":5008,"ok":false,"ms":3733,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5009,"ok":false,"ms":3629,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5010,"ok":false,"ms":3307,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5011,"ok":false,"ms":2327,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5012,"ok":false,"ms":9919,"why":"route: r3 shot tackled"}
+{"t":"diagonal","seed":5013,"ok":false,"ms":2544,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5014,"ok":false,"ms":3320,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5015,"ok":false,"ms":2229,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5016,"ok":false,"ms":1333,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5017,"ok":false,"ms":1399,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5018,"ok":false,"ms":2716,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"diagonal","seed":5019,"ok":false,"ms":3281,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"diagonal","seed":5020,"ok":false,"ms":4369,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"switch","seed":5001,"ok":false,"ms":1333,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"switch","seed":5002,"ok":false,"ms":970,"why":"dynamic: J4b: owner probe: lost 1.32 s after standing, 2.68 s after control (tackled)"}
+{"t":"switch","seed":5003,"ok":false,"ms":1,"why":"static: R1 line: unit centre 16.9"}
+{"t":"switch","seed":5004,"ok":false,"ms":1900,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"switch","seed":5005,"ok":false,"ms":1029,"why":"dynamic: J2: r2 aim window 1° (below 3°)"}
+{"t":"switch","seed":5006,"ok":false,"ms":1043,"why":"dynamic: J2: r1 aim window 0° (below 3°)"}
+{"t":"switch","seed":5007,"ok":false,"ms":2380,"why":"dynamic: J3: release run-timing window 4 s"}
+{"t":"switch","seed":5008,"ok":false,"ms":723,"why":"dynamic: J4b: owner probe: lost 1.12 s after standing, 2.35 s after control (tackled)"}
+{"t":"switch","seed":5009,"ok":false,"ms":871,"why":"dynamic: J4b: owner probe: lost 1.57 s after standing, 2.95 s after control (tackled)"}
+{"t":"switch","seed":5010,"ok":false,"ms":3369,"why":"dynamic: J2: r2 aim window 2° (below 3°)"}
+{"t":"switch","seed":5011,"ok":true,"ms":23570,"why":null,"m":{"clock":10,"model":4,"nDef":6}}
+{"t":"switch","seed":5012,"ok":false,"ms":2013,"why":"dynamic: J4b: owner probe: lost 1.23 s after standing, 2.53 s after control (tackled)"}
+{"t":"switch","seed":5013,"ok":false,"ms":6930,"why":"dynamic: J4b: owner probe: lost 1.4 s after standing, 3 s after control (tackled)"}
+{"t":"switch","seed":5014,"ok":false,"ms":7538,"why":"dynamic: J4b: owner probe: lost 1.07 s after standing, 2.7 s after control (tackled)"}
+{"t":"switch","seed":5015,"ok":false,"ms":5017,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"switch","seed":5016,"ok":false,"ms":10046,"why":"dynamic: J2: r2 aim window 2° (below 3°)"}
+{"t":"switch","seed":5017,"ok":false,"ms":10072,"why":"dynamic: J2: r2 aim window 1° (below 3°)"}
+{"t":"switch","seed":5018,"ok":false,"ms":2747,"why":"dynamic: J2: r2 aim window 2° (below 3°)"}
+{"t":"switch","seed":5019,"ok":false,"ms":8875,"why":"dynamic: J2: r2 aim window 2° (below 3°)"}
+{"t":"switch","seed":5020,"ok":false,"ms":14669,"why":"dynamic: J5: nearest defender 11.6 m in the 0.47 s after control"}
+{"t":"upback","seed":5001,"ok":false,"ms":1,"why":"static: V2: defenders 2,4 closer than 3 m"}
+{"t":"upback","seed":5002,"ok":false,"ms":4596,"why":"dynamic: J4b: owner probe: lost 1.32 s after standing, 2.1 s after control (tackled)"}
+{"t":"upback","seed":5003,"ok":false,"ms":4227,"why":"dynamic: J4b: owner probe: lost 0.95 s after standing, 2.77 s after control (tackled)"}
+{"t":"upback","seed":5004,"ok":false,"ms":10314,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5005,"ok":false,"ms":4120,"why":"dynamic: J4b: owner probe: lost 1.12 s after standing, 2.37 s after control (tackled)"}
+{"t":"upback","seed":5006,"ok":false,"ms":3959,"why":"dynamic: J4b: owner probe: lost 1.32 s after standing, 1.72 s after control (tackled)"}
+{"t":"upback","seed":5007,"ok":false,"ms":3226,"why":"dynamic: J4b: owner probe: lost 0.78 s after standing, 2.77 s after control (tackled)"}
+{"t":"upback","seed":5008,"ok":false,"ms":3855,"why":"dynamic: J4b: owner probe: lost 1.23 s after standing, 2.1 s after control (tackled)"}
+{"t":"upback","seed":5009,"ok":false,"ms":9785,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5010,"ok":false,"ms":12006,"why":"dynamic: J4b: owner probe: lost 0.63 s after standing, 2.68 s after control (tackled)"}
+{"t":"upback","seed":5011,"ok":false,"ms":12729,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5012,"ok":false,"ms":9561,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5013,"ok":false,"ms":4992,"why":"dynamic: J4b: owner probe: lost 1.15 s after standing, 1.95 s after control (tackled)"}
+{"t":"upback","seed":5014,"ok":false,"ms":10382,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5015,"ok":false,"ms":12373,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5016,"ok":false,"ms":14711,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5017,"ok":false,"ms":15463,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5018,"ok":false,"ms":10400,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"upback","seed":5019,"ok":false,"ms":3750,"why":"dynamic: J4b: owner probe: lost 0.53 s after standing, 2.52 s after control (tackled)"}
+{"t":"upback","seed":5020,"ok":false,"ms":2126,"why":"dynamic: J4b: owner probe: lost 1.37 s after standing, 1.87 s after control (tackled)"}
+{"t":"cutback","seed":5001,"ok":false,"ms":47306,"why":"clock: owner model median 12s:17, 11s:13.5 outside 3-7"}
+{"t":"cutback","seed":5002,"ok":false,"ms":19071,"why":"clock: owner model median 8s:15 outside 3-7"}
+{"t":"cutback","seed":5003,"ok":false,"ms":20686,"why":"route: r4 touch intercepted"}
+{"t":"cutback","seed":5004,"ok":false,"ms":3265,"why":"dynamic: J10: long shot with under 2 m open"}
+{"t":"cutback","seed":5005,"ok":false,"ms":2146,"why":"dynamic: J10: long shot with under 2 m open"}
+{"t":"cutback","seed":5006,"ok":false,"ms":0,"why":"static: V2: defenders 2,4 closer than 3 m"}
+{"t":"cutback","seed":5007,"ok":false,"ms":33559,"why":"clock: owner model median 11s:9, 10s:8.5 outside 3-7"}
+{"t":"cutback","seed":5008,"ok":false,"ms":25862,"why":"clock: owner model median 7s:19 outside 3-7"}
+{"t":"cutback","seed":5009,"ok":false,"ms":0,"why":"static: V2: defenders 2,4 closer than 3 m"}
+{"t":"cutback","seed":5010,"ok":false,"ms":7796,"why":"dynamic: J2: 7 tight windows (band 1-5)"}
+{"t":"cutback","seed":5011,"ok":false,"ms":26342,"why":"clock: owner model median 8s:14.5 outside 3-7"}
+{"t":"cutback","seed":5012,"ok":false,"ms":0,"why":"static: V2: defenders 2,4 closer than 3 m"}
+{"t":"cutback","seed":5013,"ok":false,"ms":12585,"why":"dynamic: J2: 6 tight windows (band 1-5)"}
+{"t":"cutback","seed":5014,"ok":false,"ms":56139,"why":"clock: owner model median 9s:11, 8s:12 outside 3-7"}
+{"t":"cutback","seed":5015,"ok":false,"ms":20346,"why":"dynamic: J2: r2 aim window 2° (below 3°)"}
+{"t":"cutback","seed":5016,"ok":false,"ms":0,"why":"static: V2: defenders 2,4 closer than 3 m"}
+{"t":"cutback","seed":5017,"ok":false,"ms":40709,"why":"clock: owner model median 7s:24.5 outside 3-7"}
+{"t":"cutback","seed":5018,"ok":false,"ms":14134,"why":"dynamic: J2: r2 aim window 1° (below 3°)"}
+{"t":"cutback","seed":5019,"ok":false,"ms":1,"why":"static: V2: defenders 2,4 closer than 3 m"}
+{"t":"cutback","seed":5020,"ok":true,"ms":43290,"why":null,"m":{"clock":9,"model":7,"nDef":7}}
+{"t":"third","seed":5001,"ok":false,"ms":7325,"why":"dynamic: J4b: owner probe: lost 1.02 s after standing, 1.75 s after control (tackled)"}
+{"t":"third","seed":5002,"ok":true,"ms":22319,"why":null,"m":{"clock":9,"model":3,"nDef":4}}
+{"t":"third","seed":5003,"ok":true,"ms":24990,"why":null,"m":{"clock":9,"model":6,"nDef":4}}
+{"t":"third","seed":5004,"ok":false,"ms":18432,"why":"clock: owner model median 11s:10.5, 10s:12.5, 9s:13.5 outside 3-7"}
+{"t":"third","seed":5005,"ok":true,"ms":20418,"why":null,"m":{"clock":10,"model":6,"nDef":4}}
+{"t":"third","seed":5006,"ok":true,"ms":27821,"why":null,"m":{"clock":11,"model":6.5,"nDef":4}}
+{"t":"third","seed":5007,"ok":true,"ms":19645,"why":null,"m":{"clock":10,"model":5.5,"nDef":4}}
+{"t":"third","seed":5008,"ok":true,"ms":19647,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"third","seed":5009,"ok":true,"ms":19935,"why":null,"m":{"clock":9,"model":5.5,"nDef":4}}
+{"t":"third","seed":5010,"ok":false,"ms":5410,"why":"dynamic: J6: no hunter or screen forcing the early passes"}
+{"t":"third","seed":5011,"ok":true,"ms":21225,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"third","seed":5012,"ok":false,"ms":2394,"why":"dynamic: J4b: owner probe: lost 1.02 s after standing, 1.83 s after control (tackled)"}
+{"t":"third","seed":5013,"ok":true,"ms":15568,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"third","seed":5014,"ok":true,"ms":13529,"why":null,"m":{"clock":9,"model":3.5,"nDef":4}}
+{"t":"third","seed":5015,"ok":true,"ms":11908,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"third","seed":5016,"ok":true,"ms":19245,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"third","seed":5017,"ok":false,"ms":6162,"why":"dynamic: J2: 0 tight windows (band 1-5)"}
+{"t":"third","seed":5018,"ok":false,"ms":6674,"why":"dynamic: J6: no hunter or screen forcing the early passes"}
+{"t":"third","seed":5019,"ok":true,"ms":22578,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"third","seed":5020,"ok":true,"ms":23875,"why":null,"m":{"clock":9,"model":4.5,"nDef":4}}
+{"t":"falsenine","seed":5001,"ok":true,"ms":18195,"why":null,"m":{"clock":10,"model":3,"nDef":5}}
+{"t":"falsenine","seed":5002,"ok":false,"ms":2482,"why":"dynamic: J4b: owner probe: lost 1.23 s after standing, 1.48 s after control (tackled)"}
+{"t":"falsenine","seed":5003,"ok":true,"ms":20701,"why":null,"m":{"clock":10,"model":5,"nDef":5}}
+{"t":"falsenine","seed":5004,"ok":false,"ms":2296,"why":"dynamic: J4b: owner probe: lost 1.3 s after standing, 1.8 s after control (tackled)"}
+{"t":"falsenine","seed":5005,"ok":false,"ms":20614,"why":"final: J8: bump 0.01, out 0.11, early 0"}
+{"t":"falsenine","seed":5006,"ok":true,"ms":19354,"why":null,"m":{"clock":10,"model":4.5,"nDef":5}}
+{"t":"falsenine","seed":5007,"ok":true,"ms":22437,"why":null,"m":{"clock":10,"model":4.5,"nDef":5}}
+{"t":"falsenine","seed":5008,"ok":false,"ms":21465,"why":"final: A5: decoy #9 not needed (standing still the route still scores)"}
+{"t":"falsenine","seed":5009,"ok":false,"ms":17324,"why":"final: A5: decoy #9 not needed (standing still the route still scores)"}
+{"t":"falsenine","seed":5010,"ok":true,"ms":24374,"why":null,"m":{"clock":10,"model":5,"nDef":5}}
+{"t":"falsenine","seed":5011,"ok":false,"ms":2574,"why":"dynamic: J4b: owner probe: lost 1.17 s after standing, 1.43 s after control (tackled)"}
+{"t":"falsenine","seed":5012,"ok":true,"ms":23459,"why":null,"m":{"clock":10,"model":5,"nDef":5}}
+{"t":"falsenine","seed":5013,"ok":false,"ms":3271,"why":"dynamic: J4b: owner probe: lost 1.2 s after standing, 1.45 s after control (tackled)"}
+{"t":"falsenine","seed":5014,"ok":false,"ms":21087,"why":"final: A5: decoy #9 not needed (standing still the route still scores)"}
+{"t":"falsenine","seed":5015,"ok":false,"ms":12941,"why":"final: A5: decoy #9 not needed (standing still the route still scores)"}
+{"t":"falsenine","seed":5016,"ok":true,"ms":13045,"why":null,"m":{"clock":10,"model":5,"nDef":5}}
+{"t":"falsenine","seed":5017,"ok":false,"ms":1919,"why":"dynamic: J5: nearest defender 6.5 m in the 0.47 s after control"}
+{"t":"falsenine","seed":5018,"ok":false,"ms":13101,"why":"final: A5: decoy #9 not needed (standing still the route still scores)"}
+{"t":"falsenine","seed":5019,"ok":false,"ms":1954,"why":"dynamic: J4b: owner probe: lost 1.02 s after standing, 1.28 s after control (tackled)"}
+{"t":"falsenine","seed":5020,"ok":false,"ms":11173,"why":"final: A5: decoy #9 not needed (standing still the route still scores)"}
+{"t":"five","seed":5001,"ok":false,"ms":4037,"why":"dynamic: J2: r4 aim window 1° (below 3°)"}
+{"t":"five","seed":5002,"ok":false,"ms":63941,"why":"clock: owner model median 10s:8, 12s-1:8, 11s-1:8, 10s-1:7, 12s-2:9, 11s-2:8.5, 10s-2:8.5 outside 3-7"}
+{"t":"five","seed":5003,"ok":false,"ms":37836,"why":"clock: owner model median 12s:9, 11s:9, 10s:9, 12s-1:9, 11s-1:9, 10s-1:9 outside 3-7"}
+{"t":"five","seed":5004,"ok":false,"ms":23573,"why":"clock: owner model median 11s:10.5, 10s:10 outside 3-7"}
+{"t":"five","seed":5005,"ok":false,"ms":27579,"why":"clock: owner model median 12s:10, 11s:9.5, 10s:9.5 outside 3-7"}
+{"t":"five","seed":5006,"ok":false,"ms":7219,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"five","seed":5007,"ok":false,"ms":7678,"why":"dynamic: J2: 8 tight windows (band 1-5)"}
+{"t":"five","seed":5008,"ok":false,"ms":8202,"why":"dynamic: J2: r4 aim window 1° (below 3°)"}
+{"t":"five","seed":5009,"ok":false,"ms":13534,"why":"dynamic: J2: r4 aim window 0° (below 3°)"}
+{"t":"five","seed":5010,"ok":false,"ms":82138,"why":"clock: owner model median 12s:10, 11s:10, 10s:10, 10s-1:17.5, 12s-2:9.5, 11s-2:10, 10s-2:9.5 outside 3-7"}
+{"t":"five","seed":5011,"ok":true,"ms":59267,"why":null,"m":{"clock":12,"model":7,"nDef":7}}
+{"t":"five","seed":5012,"ok":false,"ms":0,"why":"static: R1 screen: zone 5 12 m sideways of the line centre"}
+{"t":"five","seed":5013,"ok":false,"ms":7465,"why":"dynamic: J2: r1 aim window 2° (below 3°)"}
+{"t":"five","seed":5014,"ok":false,"ms":88461,"why":"clock: owner model median 11s:8.5, 10s:8.5, 11s-1:9.5, 10s-1:9.5, 11s-2:9, 10s-2:9 outside 3-7"}
+{"t":"five","seed":5015,"ok":false,"ms":9811,"why":"dynamic: J2: r4 aim window 1° (below 3°)"}
+{"t":"five","seed":5016,"ok":false,"ms":11466,"why":"dynamic: J2: 6 tight windows (band 1-5)"}
+{"t":"five","seed":5017,"ok":false,"ms":7026,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"five","seed":5018,"ok":false,"ms":50798,"why":"clock: owner model median 12s:9.5, 11s:9.5, 10s:9.5, 12s-1:10, 11s-1:10, 10s-1:10 outside 3-7"}
+{"t":"five","seed":5019,"ok":false,"ms":9327,"why":"dynamic: J2: r4 aim window 2° (below 3°)"}
+{"t":"five","seed":5020,"ok":false,"ms":0,"why":"placement: screen cannot stand on his lane 6-16 m in front of the line"}
+{"t":"trap","seed":5001,"ok":false,"ms":2422,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5002,"ok":false,"ms":6883,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5003,"ok":false,"ms":6156,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5004,"ok":false,"ms":6165,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5005,"ok":false,"ms":6407,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5006,"ok":false,"ms":6591,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5007,"ok":true,"ms":23414,"why":null,"m":{"clock":11,"model":7,"nDef":7}}
+{"t":"trap","seed":5008,"ok":false,"ms":4029,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5009,"ok":false,"ms":18757,"why":"clock: owner model median 12s:9, 11s:9 outside 3-7"}
+{"t":"trap","seed":5010,"ok":false,"ms":51635,"why":"clock: owner model median 12s:8, 11s:8, 12s-1:9, 11s-1:9 outside 3-7"}
+{"t":"trap","seed":5011,"ok":false,"ms":6502,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5012,"ok":false,"ms":7387,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5013,"ok":false,"ms":6744,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5014,"ok":false,"ms":6299,"why":"dynamic: J4a: runner controls 33.1 m out"}
+{"t":"trap","seed":5015,"ok":true,"ms":22173,"why":null,"m":{"clock":11,"model":6.5,"nDef":7}}
+{"t":"trap","seed":5016,"ok":false,"ms":5236,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5017,"ok":false,"ms":4239,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5018,"ok":false,"ms":6557,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"trap","seed":5019,"ok":false,"ms":7607,"why":"dynamic: J4a: runner controls 35.5 m out"}
+{"t":"trap","seed":5020,"ok":false,"ms":21842,"why":"clock: owner model median 12s:9.5, 11s:9.5 outside 3-7"}
+{"t":"bend","seed":5001,"ok":false,"ms":6074,"why":"dynamic: J3: release run-timing window 0.03 s"}
+{"t":"bend","seed":5002,"ok":true,"ms":20097,"why":null,"m":{"clock":10,"model":5,"nDef":7}}
+{"t":"bend","seed":5003,"ok":true,"ms":29117,"why":null,"m":{"clock":9,"model":6.5,"nDef":7}}
+{"t":"bend","seed":5004,"ok":false,"ms":8190,"why":"dynamic: J3: release run-timing window 0.03 s"}
+{"t":"bend","seed":5005,"ok":false,"ms":3877,"why":"dynamic: J2: r2 aim window 1° (below 3°)"}
+{"t":"bend","seed":5006,"ok":false,"ms":2236,"why":"dynamic: J4b: owner probe: lost 1.05 s after standing, 2.97 s after control (tackled)"}
+{"t":"bend","seed":5007,"ok":false,"ms":17959,"why":"clock: owner model median 11s:10, 10s:12.5, 9s:12.5 outside 3-7"}
+{"t":"bend","seed":5008,"ok":true,"ms":36098,"why":null,"m":{"clock":10,"model":7,"nDef":7}}
+{"t":"bend","seed":5009,"ok":true,"ms":21118,"why":null,"m":{"clock":9,"model":7,"nDef":7}}
+{"t":"bend","seed":5010,"ok":false,"ms":18724,"why":"clock: owner model median 12s:11.5, 11s:11.5, 10s:12 outside 3-7"}
+{"t":"bend","seed":5011,"ok":false,"ms":14827,"why":"dynamic: J3: release run-timing window 2.6 s"}
+{"t":"bend","seed":5012,"ok":false,"ms":10681,"why":"dynamic: J3: release run-timing window 2.7 s"}
+{"t":"bend","seed":5013,"ok":true,"ms":23492,"why":null,"m":{"clock":8,"model":6,"nDef":7}}
+{"t":"bend","seed":5014,"ok":false,"ms":49513,"why":"clock: owner model median 12s:7.5, 11s:7.5, 10s:11, 12s-1:9.5, 11s-1:10.5, 10s-1:10.5, 12s-2:9, 11s-2:9, 10s-2:9 outside 3-7"}
+{"t":"bend","seed":5015,"ok":false,"ms":3012,"why":"dynamic: J4b: owner probe: lost 1.03 s after standing, 3.03 s after control (tackled)"}
+{"t":"bend","seed":5016,"ok":false,"ms":3094,"why":"dynamic: J4b: owner probe: lost 0.98 s after standing, 2.62 s after control (tackled)"}
+{"t":"bend","seed":5017,"ok":false,"ms":56479,"why":"clock: owner model median 9s:8.5, 10s-1:12, 9s-1:9.5, 10s-2:9.5, 9s-2:8.5 outside 3-7"}
+{"t":"bend","seed":5018,"ok":false,"ms":3168,"why":"dynamic: J4b: owner probe: lost 1.03 s after standing, 3.07 s after control (tackled)"}
+{"t":"bend","seed":5019,"ok":false,"ms":5669,"why":"dynamic: J2: 6 tight windows (band 1-5)"}
+{"t":"bend","seed":5020,"ok":false,"ms":9634,"why":"dynamic: J3: release run-timing window 2.77 s"}
+{"t":"press","seed":5001,"ok":false,"ms":5097,"why":"dynamic: J3: release run-timing window 0.2 s"}
+{"t":"press","seed":5002,"ok":false,"ms":5876,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5003,"ok":false,"ms":4534,"why":"dynamic: J2: r3 aim window 2° (below 3°)"}
+{"t":"press","seed":5004,"ok":false,"ms":5130,"why":"dynamic: J2: r3 aim window 0° (below 3°)"}
+{"t":"press","seed":5005,"ok":false,"ms":3955,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5006,"ok":false,"ms":8944,"why":"dynamic: J2: r3 aim window 0° (below 3°)"}
+{"t":"press","seed":5007,"ok":false,"ms":4541,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5008,"ok":false,"ms":5246,"why":"dynamic: J2: r3 aim window 2° (below 3°)"}
+{"t":"press","seed":5009,"ok":false,"ms":6351,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5010,"ok":false,"ms":6263,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5011,"ok":false,"ms":4535,"why":"dynamic: J2: r3 aim window 1° (below 3°)"}
+{"t":"press","seed":5012,"ok":true,"ms":15744,"why":null,"m":{"clock":10,"model":4,"nDef":6}}
+{"t":"press","seed":5013,"ok":false,"ms":3913,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5014,"ok":false,"ms":4201,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5015,"ok":true,"ms":18698,"why":null,"m":{"clock":10,"model":4.5,"nDef":6}}
+{"t":"press","seed":5016,"ok":false,"ms":10168,"why":"route: r4 shot tackled"}
+{"t":"press","seed":5017,"ok":false,"ms":6478,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5018,"ok":false,"ms":6960,"why":"route: r4 reception intercepted"}
+{"t":"press","seed":5019,"ok":false,"ms":10052,"why":"dynamic: J2: r3 aim window 1° (below 3°)"}
+{"t":"press","seed":5020,"ok":false,"ms":6924,"why":"route: r4 reception intercepted"}
+{"t":"counter","seed":5001,"ok":false,"ms":2270,"why":"dynamic: J3: release receiver onside by 0, ahead true"}
+{"t":"counter","seed":5002,"ok":true,"ms":15291,"why":null,"m":{"clock":10,"model":7,"nDef":4}}
+{"t":"counter","seed":5003,"ok":false,"ms":13416,"why":"clock: owner model median 11s:11, 10s:8.5, 9s:8.5 outside 3-7"}
+{"t":"counter","seed":5004,"ok":true,"ms":15746,"why":null,"m":{"clock":10,"model":7,"nDef":4}}
+{"t":"counter","seed":5005,"ok":true,"ms":18875,"why":null,"m":{"clock":11,"model":5,"nDef":4}}
+{"t":"counter","seed":5006,"ok":false,"ms":1429,"why":"dynamic: J2: r1 aim window 0° (below 3°)"}
+{"t":"counter","seed":5007,"ok":false,"ms":2013,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5008,"ok":false,"ms":3823,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5009,"ok":false,"ms":7127,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5010,"ok":false,"ms":2653,"why":"dynamic: J2: r1 aim window 0° (below 3°)"}
+{"t":"counter","seed":5011,"ok":true,"ms":16870,"why":null,"m":{"clock":10,"model":5.5,"nDef":4}}
+{"t":"counter","seed":5012,"ok":true,"ms":15522,"why":null,"m":{"clock":10,"model":7,"nDef":4}}
+{"t":"counter","seed":5013,"ok":false,"ms":4581,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5014,"ok":false,"ms":74294,"why":"clock: owner model median 10s:8.5, 12s-1:8, 11s-1:8.5, 10s-1:8, 10s-2:8 outside 3-7"}
+{"t":"counter","seed":5015,"ok":false,"ms":2845,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5016,"ok":false,"ms":2890,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5017,"ok":false,"ms":2117,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5018,"ok":false,"ms":3389,"why":"dynamic: J2: r1 aim window 1° (below 3°)"}
+{"t":"counter","seed":5019,"ok":false,"ms":3489,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"counter","seed":5020,"ok":false,"ms":2281,"why":"dynamic: J5: nearest defender 6.6 m in the 0.47 s after control"}
+{"t":"sweeper","seed":5001,"ok":false,"ms":37700,"why":"clock: owner model median 12s:9, 11s:9, 12s-1:8.5, 11s-1:8.5 outside 3-7"}
+{"t":"sweeper","seed":5002,"ok":true,"ms":29893,"why":null,"m":{"clock":11,"model":7,"nDef":6}}
+{"t":"sweeper","seed":5003,"ok":true,"ms":26700,"why":null,"m":{"clock":11,"model":5.5,"nDef":6}}
+{"t":"sweeper","seed":5004,"ok":false,"ms":8119,"why":"dynamic: J2: r1 aim window 1° (below 3°)"}
+{"t":"sweeper","seed":5005,"ok":true,"ms":34423,"why":null,"m":{"clock":13,"model":5.5,"nDef":6}}
+{"t":"sweeper","seed":5006,"ok":true,"ms":27322,"why":null,"m":{"clock":10,"model":6,"nDef":6}}
+{"t":"sweeper","seed":5007,"ok":true,"ms":27045,"why":null,"m":{"clock":11,"model":5,"nDef":6}}
+{"t":"sweeper","seed":5008,"ok":false,"ms":36168,"why":"clock: owner model median 13s:8.5, 12s:8.5, 11s:7.5 outside 3-7"}
+{"t":"sweeper","seed":5009,"ok":true,"ms":26091,"why":null,"m":{"clock":11,"model":5,"nDef":6}}
+{"t":"sweeper","seed":5010,"ok":false,"ms":3766,"why":"dynamic: J3: release receiver onside by 5.5, ahead true"}
+{"t":"sweeper","seed":5011,"ok":true,"ms":27702,"why":null,"m":{"clock":11,"model":4,"nDef":6}}
+{"t":"sweeper","seed":5012,"ok":false,"ms":15589,"why":"dynamic: J2: r1 aim window 2° (below 3°)"}
+{"t":"sweeper","seed":5013,"ok":false,"ms":6915,"why":"dynamic: J2: r1 aim window 2° (below 3°)"}
+{"t":"sweeper","seed":5014,"ok":true,"ms":25809,"why":null,"m":{"clock":11,"model":6.5,"nDef":6}}
+{"t":"sweeper","seed":5015,"ok":true,"ms":20331,"why":null,"m":{"clock":13,"model":6.5,"nDef":6}}
+{"t":"sweeper","seed":5016,"ok":false,"ms":36921,"why":"clock: owner model median 12s:7.5, 11s:7.5 outside 3-7"}
+{"t":"sweeper","seed":5017,"ok":true,"ms":38251,"why":null,"m":{"clock":11,"model":4.5,"nDef":6}}
+{"t":"sweeper","seed":5018,"ok":true,"ms":95174,"why":null,"m":{"clock":11,"model":6.5,"nDef":6}}
+{"t":"sweeper","seed":5019,"ok":false,"ms":6026,"why":"dynamic: J3: release receiver onside by 6.2, ahead true"}
+{"t":"sweeper","seed":5020,"ok":false,"ms":12430,"why":"dynamic: J2: r1 aim window 1° (below 3°)"}
+{"t":"shortlong","seed":5001,"ok":true,"ms":34598,"why":null,"m":{"clock":11,"model":7,"nDef":7}}
+{"t":"shortlong","seed":5002,"ok":false,"ms":7229,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"shortlong","seed":5003,"ok":false,"ms":4014,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"shortlong","seed":5004,"ok":false,"ms":24295,"why":"clock: owner model median 12s:14, 11s:14, 10s:14 outside 3-7"}
+{"t":"shortlong","seed":5005,"ok":true,"ms":48476,"why":null,"m":{"clock":10,"model":5,"nDef":7}}
+{"t":"shortlong","seed":5006,"ok":false,"ms":49420,"why":"clock: owner model median 11s:8.5, 10s:10, 11s-1:8.5, 10s-1:8.5, 11s-2:10.5, 10s-2:11 outside 3-7"}
+{"t":"shortlong","seed":5007,"ok":false,"ms":6775,"why":"dynamic: J2: r2 aim window 1° (below 3°)"}
+{"t":"shortlong","seed":5008,"ok":false,"ms":18894,"why":"clock: owner model median 10s:15.5 outside 3-7"}
+{"t":"shortlong","seed":5009,"ok":false,"ms":21018,"why":"clock: owner model median 11s:10, 10s:10, 9s:9.5 outside 3-7"}
+{"t":"shortlong","seed":5010,"ok":false,"ms":6360,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"shortlong","seed":5011,"ok":true,"ms":24458,"why":null,"m":{"clock":11,"model":7,"nDef":7}}
+{"t":"shortlong","seed":5012,"ok":false,"ms":44285,"why":"clock: owner model median 11s:9, 10s:9, 10s-1:18, 11s-2:10.5, 10s-2:10.5 outside 3-7"}
+{"t":"shortlong","seed":5013,"ok":true,"ms":35094,"why":null,"m":{"clock":10,"model":5,"nDef":7}}
+{"t":"shortlong","seed":5014,"ok":false,"ms":32059,"why":"clock: owner model median 11s:9, 10s:8.5, 11s-1:12.5, 10s-1:12.5 outside 3-7"}
+{"t":"shortlong","seed":5015,"ok":false,"ms":18476,"why":"clock: owner model median 11s:11, 10s:11 outside 3-7"}
+{"t":"shortlong","seed":5016,"ok":false,"ms":6934,"why":"route: r3 touch intercepted"}
+{"t":"shortlong","seed":5017,"ok":false,"ms":8504,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"shortlong","seed":5018,"ok":true,"ms":22738,"why":null,"m":{"clock":10,"model":6,"nDef":7}}
+{"t":"shortlong","seed":5019,"ok":false,"ms":29594,"why":"clock: owner model median 11s:12, 10s:12 outside 3-7"}
+{"t":"shortlong","seed":5020,"ok":true,"ms":24420,"why":null,"m":{"clock":11,"model":6,"nDef":7}}
+{"t":"commit","seed":5001,"ok":true,"ms":19820,"why":null,"m":{"clock":10,"model":5.5,"nDef":6}}
+{"t":"commit","seed":5002,"ok":false,"ms":3639,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"commit","seed":5003,"ok":false,"ms":3388,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"commit","seed":5004,"ok":false,"ms":2082,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"commit","seed":5005,"ok":false,"ms":5040,"why":"dynamic: J2: r1 aim window 0° (below 3°)"}
+{"t":"commit","seed":5006,"ok":false,"ms":2265,"why":"dynamic: J4b: owner probe: lost 1.07 s after standing, 1.97 s after control (tackled)"}
+{"t":"commit","seed":5007,"ok":false,"ms":12670,"why":"final: A3: jitter 100/100/23 (a round under 45%)"}
+{"t":"commit","seed":5008,"ok":true,"ms":18271,"why":null,"m":{"clock":11,"model":4.5,"nDef":6}}
+{"t":"commit","seed":5009,"ok":false,"ms":3692,"why":"dynamic: J4b: owner probe: lost 1.05 s after standing, 2.03 s after control (tackled)"}
+{"t":"commit","seed":5010,"ok":false,"ms":13546,"why":"clock: owner model median 10s:2, 9s:2 outside 3-7"}
+{"t":"commit","seed":5011,"ok":true,"ms":21572,"why":null,"m":{"clock":10,"model":3,"nDef":6}}
+{"t":"commit","seed":5012,"ok":false,"ms":3200,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"commit","seed":5013,"ok":false,"ms":21988,"why":"clock: owner model median 9s:2.5 outside 3-7"}
+{"t":"commit","seed":5014,"ok":false,"ms":18130,"why":"clock: owner model median 10s:2.5, 9s:2.5 outside 3-7"}
+{"t":"commit","seed":5015,"ok":false,"ms":3460,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"commit","seed":5016,"ok":false,"ms":2605,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"commit","seed":5017,"ok":true,"ms":21647,"why":null,"m":{"clock":10,"model":3.5,"nDef":6}}
+{"t":"commit","seed":5018,"ok":false,"ms":3031,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"commit","seed":5019,"ok":false,"ms":1704,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"commit","seed":5020,"ok":false,"ms":3714,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5001,"ok":false,"ms":4911,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5002,"ok":false,"ms":6537,"why":"dynamic: J2: 6 tight windows (band 1-5)"}
+{"t":"inside","seed":5003,"ok":false,"ms":10451,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5004,"ok":false,"ms":6851,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5005,"ok":false,"ms":4507,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5006,"ok":false,"ms":1646,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5007,"ok":false,"ms":29162,"why":"clock: owner model median 11s:10.5, 10s:12, 9s:12.5 outside 3-7"}
+{"t":"inside","seed":5008,"ok":false,"ms":9544,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5009,"ok":false,"ms":5012,"why":"dynamic: J2: r2 aim window 0° (below 3°)"}
+{"t":"inside","seed":5010,"ok":true,"ms":57456,"why":null,"m":{"clock":11,"model":5,"nDef":7}}
+{"t":"inside","seed":5011,"ok":false,"ms":7071,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5012,"ok":false,"ms":4929,"why":"dynamic: J2: r1 aim window 0° (below 3°)"}
+{"t":"inside","seed":5013,"ok":false,"ms":4704,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5014,"ok":false,"ms":5991,"why":"dynamic: J2: 8 tight windows (band 1-5)"}
+{"t":"inside","seed":5015,"ok":false,"ms":6876,"why":"dynamic: J4b: owner probe: lost 1.55 s after standing, 2.97 s after control (tackled)"}
+{"t":"inside","seed":5016,"ok":false,"ms":5916,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5017,"ok":false,"ms":3325,"why":"dynamic: J4b: owner probe: lost 1.12 s after standing, 2.63 s after control (tackled)"}
+{"t":"inside","seed":5018,"ok":false,"ms":3971,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}
+{"t":"inside","seed":5019,"ok":true,"ms":30413,"why":null,"m":{"clock":11,"model":4,"nDef":7}}
+{"t":"inside","seed":5020,"ok":false,"ms":4335,"why":"dynamic: J1: 0 tight middle touches (needs 1)"}

@@ -13,6 +13,7 @@
 const path = require('path');
 const { FB, C, play, replay, solve, analyse, makeBot, replayHash } = require('./lab.js');
 const H = require(path.join(__dirname, '..', 'human', 'player.js'));
+const DF = require('./difficulty.js');
 const hyp = Math.hypot;
 const r1 = v => Math.round(v * 10) / 10, r2 = v => Math.round(v * 100) / 100;
 const ENGINE = {
@@ -55,7 +56,13 @@ function staticChecks(L, ctx) {
     if (!tut && (yL < 18 || yL > 33)) bad('R1 line', 'height ' + r1(yL));
     if (ball.y - yL < 12) bad('R1 line', 'less than 12 m goal-side of the ball');
     if (Math.abs(cx - 25) > 8) bad('R1 line', 'unit centre ' + r1(cx));
-    for (let k = 1; k < u.length; k++) {
+    // v2 (doc 20): the spacing is checked on the whole back line, a centre-half who marks from it included (5.1). So a
+    // back four whose fourth man marks the 9 passes, and a two-man line 24-28 m apart with a marker between (gaps of
+    // 12-14 m, the shape the owner rated real football 2 in set E) does not.
+    const bl = backLine(L, ctx, u, yL);
+    if (bl.length > u.length) {
+      for (let k = 1; k < bl.length; k++) { const sp = bl[k].x - bl[k - 1].x; if (sp < 7.95 || sp > 11.55) bad('R1 line', 'back-line spacing ' + r1(sp) + ' (with the marking centre-half)'); }
+    } else for (let k = 1; k < u.length; k++) {
       const sp = u[k].x - u[k - 1].x;
       if (u.length === 2) {
         const wide = sp >= 24 && sp <= 28 && marks.some(m => m.x > u[0].x && m.x < u[1].x);
@@ -125,10 +132,29 @@ function staticChecks(L, ctx) {
   if (L.gk && L.gk.sweeper && (yL === null || yL < 28)) bad('R1 keeper', 'sweeper behind a medium or low line');
   if (L.gk && L.gk.react !== undefined && L.gk.react !== 13 && fx > 3) bad('3.1', 'keeper react changed outside fixtures 1-3');
   if (!tpl.counter && L.def.length < L.att.length - 1) bad('R7', 'fewer outfield defenders than attackers minus one');
+  // R8 (v2, doc 20): no sparse defence. Outside the tutorial and the counter: at least six outfield defenders, a back line
+  // of three to five (a centre-half marking from it counts) with no neighbouring gap wider than 11.5 m, and at least two
+  // defenders in front of it (screens, hunters, markers on midfielders)
+  if (!tut && !tpl.counter) {
+    const bl = u.length ? backLine(L, ctx, u, yL) : [];
+    const front = L.def.length - bl.length;
+    if (L.def.length < 6) bad('R8', `${L.def.length} outfield defenders (at least 6)`);
+    if (bl.length < 3 || bl.length > 5) bad('R8', `back line of ${bl.length} (3-5, a marking centre-half included)`);
+    for (let k = 1; k < bl.length; k++) if (bl[k].x - bl[k - 1].x > 11.55) bad('R8', `gap of ${r1(bl[k].x - bl[k - 1].x)} m in the back line (11.5 at most)`);
+    if (front < 2) bad('R8', `${front} defenders in front of the back line (at least 2)`);
+  }
   // defenders per campaign slot (7.3): a should
-  const nd = L.def.length, want = fx <= 4 ? [1, 2] : fx <= 8 ? [4, 6] : fx <= 14 ? [5, 7] : [6, 7];
+  const nd = L.def.length, want = fx <= 4 ? [1, 2] : tpl.counter ? [4, 7] : [6, 7];
   if (nd < want[0] || nd > want[1]) notes.push(`7.3 (should): ${nd} defenders, slot wants ${want[0]}-${want[1]}`);
   return { fails: out, notes, yL: yL === null ? null : r1(yL), roles: tags };
+}
+
+// the back line as a spectator sees it: the line unit plus any man-marker who starts on it (within 3.5 m of its height,
+// between its end men) as a centre-half marking from the line; sorted across the pitch
+function backLine(L, ctx, u, yL) {
+  const roles = (ctx && ctx.roles) || [], lo = u[0].x, hi = u[u.length - 1].x;
+  const extra = L.def.filter((d, i) => d.t === 'mark' && (roles[i] ? roles[i].role === 'centre-half marking' : (Math.abs(d.y - yL) <= 3.5 && d.x > lo && d.x < hi)));
+  return u.concat(extra).sort((a, b) => a.x - b.x);
 }
 
 // ------------------------------------------------------------------ dynamic helpers (set D methods)
@@ -400,7 +426,12 @@ function finalChecks(L, SC, ctx, seed) {
   const m = ctx.modelCache || model(L);
   out.A6 = m;
   if (m.cleared < 0.9) bad('A6', `owner model clears ${Math.round(m.cleared * 100)}% within 60 takes`);
-  if (band.model && (m.median < band.model[0] || m.median > band.model[1])) bad('A6', `owner model median ${m.median}, band ${band.model.join('-')}`);
+  if (ctx.terms && band.ownerR) {
+    // v2 (doc 20): the difficulty estimate (difficulty.js) must be inside the owner's band; the model's own band is a note
+    out.estimate = DF.estimate(m.median, ctx.terms, sol.time, L.time);
+    if (out.estimate.takes < band.ownerR[0] || out.estimate.takes > band.ownerR[1]) bad('A6', `difficulty estimate ${out.estimate.takes} takes, band ${band.ownerR.join('-')}`);
+    if (band.model && (m.median < band.model[0] || m.median > band.model[1])) note('A6 (model band)', `owner model median ${m.median}, band ${band.model.join('-')}`);
+  } else if (band.model && (m.median < band.model[0] || m.median > band.model[1])) bad('A6', `owner model median ${m.median}, band ${band.model.join('-')}`);
   if (m.bump > 0.05 || m.out > 0.10 || m.early > 0) bad('J8', `bump ${m.bump}, out ${m.out}, early ${m.early}`);
   if (fx > 4 && (m.middle < 0.3 || m.middle > 0.7)) note('J9 (flag)', 'share of failures before the last player ' + r2(m.middle));
   if (ctx.novice && fx <= 20) { const nv = model(L, { tier: 'novice' }); out.novice = nv; if (nv.beyond30 > 0.25) bad('9 novice', `${Math.round(nv.beyond30 * 100)}% of novices beyond 30 takes`); }
@@ -410,4 +441,4 @@ function finalChecks(L, SC, ctx, seed) {
   return out;
 }
 
-module.exports = { staticChecks, dynamicChecks, finalChecks, model, jitter, decoyTests, expectedEngine, ENGINE };
+module.exports = { staticChecks, dynamicChecks, finalChecks, model, jitter, decoyTests, expectedEngine, ENGINE, windows, ownerProbe };

@@ -111,7 +111,7 @@ T.push({
   id: 'third', name: 'Third-man run', tier: 1, weight: 3, phases: 'E F O(=R) X', ending: 'run', finisher: 'third man',
   beats: 'a back three whose centre-half follows the target man short, behind a screen on the direct lane',
   baseline: 10, names: ['Third-man run', 'The third man', 'Into the hole', 'Up, off and in', 'The run from wide'],
-  ranges: { yL: [23, 27, 0.5], tgtOn: [3, 5, 0.5], thirdSide: [12, 18, 0.5], thirdOn: [3, 6, 0.5], markReact: [14, 22, 2], tight: [0.8, 1, 0.1], lineW: [24, 28, 1], shift: [-1, 1, 0.5] },
+  ranges: { yL: [23, 27, 0.5], tgtOn: [3, 5, 0.5], thirdSide: [12, 18, 0.5], thirdOn: [3, 6, 0.5], markReact: [14, 22, 2], tight: [0.8, 1, 0.1], pressD: [7.5, 9.5, 0.5], shift: [-1, 1, 0.5] },
   build(p) {
     const tgt = { x: 25, y: p.yL + p.tgtOn };
     const att = [
@@ -123,8 +123,11 @@ T.push({
     const m6 = [33, 47], m9 = add(xy(att[2]), 5.5, 8), thr = P(tgt.x - 5, p.yL - 5);
     return {
       att, order: [0, 1, 2, 3],
-      def: { line: { n: 2, width: p.lineW, yL: p.yL, shift: p.shift }, marks: [{ on: 2, react: p.markReact, tight: p.tight, eng: 6, inLine: 1 }],
-        screens: [{ lane: [0, 2], t: 0.52, lat: -2.5 }], hunters: [] },
+      // v2 (doc 20): a back four, not a back three of two wide men 24-28 m apart. The centre-half who follows the 9 short
+      // is its left-centre; the left-back, right-centre and right-back stand 10 m either side, so the hole he leaves is
+      // the 20 m between the left-back and the right-centre. A hunter on the 5 makes the first pass a real one.
+      def: { line: { n: 3, xs: [14.5, 35, 44.5], yL: p.yL, shift: p.shift }, marks: [{ on: 2, react: p.markReact, tight: p.tight, eng: 6, inLine: 1 }],
+        screens: [{ lane: [0, 2], t: 0.52, lat: -2.5 }], hunters: [{ on: 0, d: p.pressD, ang: 20 }] },
       plan: [
         { pass: pass(m6, 5) },
         { recv: spot(m6, 'now'), carry: [add(m6, 1, -2)], pass: pass(m9, 5) },
@@ -135,7 +138,7 @@ T.push({
         brief: ['Four players. The 9 comes short and drags his centre-half out. The 11 runs into the hole.',
           'Four players. Up to the 9, who comes short. His centre-half follows, and the 11 runs in behind.'],
         tips: [
-          ['The screen blocks the straight pass. Roll it across to the 6 on your {right}.', 'Do not play through the screen. Find the 6 on your {right}.'],
+          ['The hunter is on you and the screen blocks the straight pass. Roll it across to the 6 on your {right}.', 'Do not play through the screen. Find the 6 on your {right} before the hunter arrives.'],
           ['Take it and play it firmly into the 9 as he comes short.', 'One touch to set it, then a firm pass into the 9 as he shows.'],
           ['Come short so the centre-half follows. Aim early and flick it first time into the hole.', 'Drop towards the ball and take your man with you. Aim early, play it first time into the hole.'],
           ['Go early. Run inside before the 9 touches it, take it in the hole he left and finish.', 'Start your run before the 9 gets it. Stay onside, take it in the hole and finish.']
@@ -150,7 +153,7 @@ T.push({
   id: 'switch', name: 'Switch of play', tier: 1, weight: 3, phases: 'E S X', ending: 'run', finisher: 'winger',
   beats: 'a block that has slid across to the ball side, with a hunter on the full-back and a screen',
   baseline: 5, names: ['Switch of play', 'Change the point', 'Far side', 'Switch it', 'Over to the far side'],
-  ranges: { yL: [25, 29, 0.5], nLine: [3, 3, 1], shift: [5, 8, 0.5], winX: [5, 10, 0.5], winOn: [2, 5, 0.5], pressD: [7, 9, 0.5], pressD2: [7, 8.5, 0.5], pivFront: [15, 18, 0.5] },
+  ranges: { yL: [25, 29, 0.5], nLine: [3, 3, 1], shift: [5, 6.5, 0.5], winX: [5, 10, 0.5], winOn: [2, 5, 0.5], pressD: [7, 9, 0.5], pressD2: [7, 8.5, 0.5], pivFront: [15, 18, 0.5] },
   build(p) {
     const att = [
       { num: 2, name: 'Right-back', x: 41, y: 45, role: 'ball', mirror: { num: 3, name: 'Left-back' } },
@@ -162,6 +165,8 @@ T.push({
     return {
       att, order: [0, 1, 2],
       def: { line: { n, spacing: n === 3 ? [9, 9] : [9, 9.5, 9], yL: p.yL, shift: p.shift }, marks: [], screens: [{ lane: [0, 2], t: 0.36, lat: 3.5 }], hunters: [{ on: 0, d: p.pressD, ang: -10 }, { on: 1, d: p.pressD2, ang: -5 }] },
+      // v2 (doc 20): the block slides 5-6.5 m, not 8: at 8 m the line's centre broke the 8 m rule and the far centre-half
+      // was too far away ever to close the finisher down (J4b)
       plan: [
         { pass: pass(m6, 5) },
         { recv: spot(m6, 'now'), first: 1, pass: pass(thr, 3, { through: 1 }) },
@@ -223,17 +228,20 @@ T.push({
   id: 'diagonal', name: 'Diagonal in behind', tier: 2, weight: 2, phases: 'E F S X', ending: 'run', finisher: 'inside forward', hardOnly: true, squeezed: true,
   beats: 'a back four squeezed across to the ball side, with a hunter on the centre-back and a screen in front of the playmaker',
   baseline: 9, names: ['Diagonal in behind', 'The long diagonal', 'Behind the far full-back', 'Over the top', 'Hit the far man'],
-  ranges: { yL: [25.5, 27.5, 0.5], pressD: [7.5, 8.5, 0.5], shift: [-8, -8, 0.5], finX: [40, 42, 0.5], finOn: [2, 3, 0.5] },
+  ranges: { yL: [25.5, 27.5, 0.5], pressD: [7.5, 8.5, 0.5], shift: [-8, -8, 0.5], finX: [40, 42, 0.5], finOn: [2.5, 4, 0.5], scrX: [13, 15, 0.5] },
   build(p) {
     const att = [
       { num: 4, name: 'Centre-back', x: 30, y: 54, role: 'ball' },
-      { num: 8, name: 'Playmaker', x: 15, y: Math.max(44, p.yL + 17), role: 'ball' },
+      { num: 8, name: 'Playmaker', x: 15, y: p.yL + 18, role: 'ball' },
       { num: 7, name: 'Inside forward', x: p.finX, y: p.yL + p.finOn, role: 'ball' }
     ];
+    // v2: the screen stands just goal-side of the 8 (as in baseline 9, where he is the man the 8 has to get away from),
+    // so the 8 receives under pressure and has to take one touch away from him before the diagonal (was 0% accepted:
+    // the screen stood 7 m off and the 8 had all day, J1 failed 79%)
     const m8 = [16, att[1].y + 1], thr = P(p.finX + 2, p.yL - 9);
     return {
       att, order: [0, 1, 2],
-      def: { line: { n: 4, spacing: [8, 8, 8], yL: p.yL, shift: p.shift, squeezed: 1 }, marks: [], screens: [{ lane: [1, 2], t: 0.12, lat: -4.8 }], hunters: [{ on: 0, d: p.pressD, ang: 5 }] },
+      def: { line: { n: 4, spacing: [8, 8, 8], yL: p.yL, shift: p.shift, squeezed: 1 }, marks: [], screens: [{ lane: [1, 2], at: [p.scrX, p.yL + 14.5], eng: 6 }], hunters: [{ on: 0, d: p.pressD, ang: 5 }] },
       plan: [
         { pass: pass(m8, 5) },
         { recv: spot(m8, 'now'), carry: [add(m8, 3, -1.5)], pass: pass(thr, 6, { through: 1 }) },
@@ -328,7 +336,7 @@ T.push({
   id: 'falsenine', name: 'False nine', tier: 2, weight: 1, phases: 'E decoy O R X', ending: 'run', finisher: 'runner', decoy: true,
   beats: 'a back three whose centre-half follows a dropping 9, with a screen and a marker on the playmaker',
   baseline: 18, names: ['False nine', 'The dropping nine', 'Empty the middle', 'Pull the centre-half', 'The nine drops off'],
-  ranges: { yL: [25, 29, 0.5], drop: [8, 10, 0.5], runX: [10, 14, 0.5], runOn: [2.5, 4.5, 0.5], lineW: [24, 25, 1], shift: [-1, 1, 0.5] },
+  ranges: { yL: [25, 29, 0.5], drop: [8, 10, 0.5], runX: [16.5, 18.5, 0.5], runOn: [2.5, 4.5, 0.5], shift: [-1, 1, 0.5] },
   build(p) {
     const f9 = { x: 22.5, y: p.yL + 2.5 };
     const att = [
@@ -341,7 +349,8 @@ T.push({
     const m8 = [17.5, 49], thr = P(24, p.yL - 9);
     return {
       att, order: [0, 1, 2, 3],
-      def: { line: { n: 2, width: p.lineW, yL: p.yL, shift: p.shift }, marks: [{ on: 1, inLine: 1 }, { on: 2 }], screens: [{ lane: [0, 3], t: 0.3, lat: 4 }], hunters: [] },
+      // v2 (doc 20): a back four whose left-centre follows the dropping 9 (was a back three of two men 24-25 m apart)
+      def: { line: { n: 3, xs: [12.5, 32.5, 42.5], yL: p.yL, shift: p.shift }, marks: [{ on: 1, inLine: 1 }, { on: 2 }], screens: [{ lane: [0, 3], t: 0.3, lat: 4 }], hunters: [] },
       plan: [
         { carry: [P(33, 52), P(29, 52.5)], pass: pass(m8, 5) },
         { decoy: [dv] },
@@ -377,7 +386,8 @@ T.push({
       { num: 7, name: 'Winger', x: 44, y: p.yL + p.winOn, role: 'ball' },
       { num: 10, name: 'Late runner', x: 22, y: p.yL + 11, role: 'ball' }
     ];
-    if (hasDecoy) att.push({ num: 9, name: 'Centre-forward', x: 25, y: p.yL + 3, role: 'decoy' });
+    // v2: the 9 starts in the middle of the gap between the centre-backs (x 25 put his marker 2.5 m from one: V2)
+    if (hasDecoy) att.push({ num: 9, name: 'Centre-forward', x: 23.5, y: p.yL + 3, role: 'decoy' });
     // where he pulls it back to (11-14 m out, rulebook K) and where he cuts it back from
     const k = [P(30, 14), P(28.5, 13), P(31, 15.5)][p.spotPt], byl = [P(45, 9), P(44, 7), P(44.5, 11)][p.bylinePt];
     const m8 = add(xy(att[1]), 1, 2.5), thr = P(38.5, p.yL - 7);
@@ -461,7 +471,7 @@ T.push({
       { num: 10, name: 'Number ten', x: 31, y: 45, role: 'ball' },
       { num: 7, name: 'Winger', x: 40, y: p.yL + p.winOn, role: 'ball' }
     ];
-    const m9 = add(xy(att[1]), 0, 2), m10 = add(xy(att[2]), -0.5, -2.5), thr = P(35, p.yL - 9);
+    const m9 = add(xy(att[1]), 0, 2), m10 = add(xy(att[2]), -0.5, -2.5), thr = P(35, p.yL - 7.5);   // v2: 1.5 m less deep (yL - 9 before): taken further out, so the line is goal-side by 18 m (J4b)
     return {
       att, order: [0, 1, 2, 3],
       def: { line: { n: 4, spacing: [10, 10, 10], yL: p.yL, shift: p.shift, gap: p.gap }, marks: [{ on: 1, react: p.markReact }], screens: [{ lane: [0, 3], t: 0.3 }], hunters: [{ on: 0, d: p.pressD, ang: -39 }] },

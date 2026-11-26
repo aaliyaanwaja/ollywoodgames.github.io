@@ -1,6 +1,8 @@
-# One-Man Team level rulebook, version 1
+# One-Man Team level rulebook, version 2
 
-Wed 25 Nov 2026. Lead designer. Built on foundations 00-12, the baseline design guide and engine notes, the 20 baseline
+Version 2, Thu 26 Nov 2026, after set E (20-keeper-and-generator-v2.md): the keeper collects a slow loose ball (2.7), no
+sparse defences (5.1, 5.4 rule 8), four templates set up again (4.3), and difficulty judged by an estimate that adds the
+tightness of the designed route to the human model (7.2, 8.1). Version 1: Wed 25 Nov 2026. Lead designer. Built on foundations 00-12, the baseline design guide and engine notes, the 20 baseline
 levels and `sim.js`. Where the owner's ratings and anything else disagree, the ratings win.
 
 ---
@@ -270,13 +272,14 @@ Coordinates are for the right-footed or left-sided version as in the baseline. E
 
 **T3 Third-man run** (10; 10 s, bot 6.1 s)
 - Attackers: 5 centre-back (20, 55); 6 holder (34, 46); 9 target man (25, 28); 11 third man (9, 30).
-- Defence: screen `zone` (20, 41) on the direct lane to the 9; `mark` on the 9 at (25, 25.6) `spd` 5.4 `eng` 6. That is
-  the centre of a back three, who follows the 9 short and leaves the hole. The other two are a `line` at y 25,
-  x 12 and 38.
+- Defence (version 2): screen `zone` (20, 41) on the direct lane to the 9; `press` on the 5, 7.5-9.5 m away;
+  `mark` on the 9 at (25, 25.6) `spd` 5.4 `eng` 6. He is the left-centre of a back four and follows the 9 short,
+  leaving the hole; the other three are a `line` at x 14.5, 35 and 44.5 (version 1: a back three of two wide men 24-28 m
+  apart, which the owner rated real football 2).
 - Jeopardy: the 9's first-time flick (lane 1.1 m, nearest defender 0.3 m at reception); the 11 must go before the 9
   touches it (onside by 3.4 m). With A+B the finish is what decides it (owner: fun 5).
 - Vary: target 3-5 m onside; third man 12-18 m sideways and 3-6 m onside; marker `react` 14-22, `tight` 0.8-1.0;
-  the outside line men 24-28 m apart.
+  hunter distance 7.5-9.5 m.
 
 **T4 Switch of play** (5; 10 s, bot 6.0 s)
 - Attackers: 2 right-back (41, 45); 6 pivot (27, 44); 11 far winger (8, 30).
@@ -284,11 +287,12 @@ Coordinates are for the right-footed or left-sided version as in the baseline. E
   ball side), `spd` 5.3. The far winger is free on purpose: the block has slid across [F, R4 in 05].
 - Jeopardy: the 2 and the 6 both under the press (spare 1.55 and 1.75 s); the diagonal (aim 9°, power 13%); the
   winger's run (0.7 s window, onside by 3.6 m).
-- Vary: 3-4 men in the line, shifted 5-8 m; the pivot passes from no more than 18 m in front of the line; winger x 5-10,
+- Vary: 3-4 men in the line, shifted 5-6.5 m (version 2: at 8 m the far centre-half can never close the finisher down); the pivot passes from no more than 18 m in front of the line; winger x 5-10,
   2-5 m onside.
 
 **T5 Diagonal in behind** (9; 10 s, bot 6.4 s). Like T4, but the passer starts deep. 4 centre-back (30, 54) under a
-`press` 8 m away → 8 playmaker (15, 44), screened by a `zone` (14, 36) → 28 m diagonal to the 7 (41, 28.5) behind a back
+`press` 8 m away → 8 playmaker (15, 44), screened by a `zone` (14, 36) (version 2: the screen stands 3-4 m goal-side of
+the 8 and slightly inside him, x 13-15, `eng` 6, so the 8 receives under pressure and steps away before the diagonal) → 28 m diagonal to the 7 (41, 28.5) behind a back
 four squeezed to the left (`yL` 26, x 5/13/21/29). Hard band only: owner 12 and 15 takes, fair 5.
 
 **T6 Play through the press** (15; 10 s). 4 (19, 55) and 6 (32, 51) each have their own `press` (start 9 m and 8 m away, so
@@ -298,7 +302,15 @@ they arrive at different moments [F]); 8 link (17, 42) carries at the back four 
 2-man line (`yL` 27, 10 m apart) until one steps out (C), then slips the 7 (41, 41). Last-pass margin about 0.5 m.
 
 **T8 False nine** (18). One decoy 9 drops at most 10 m (see 5.3); his marker follows; the 8 plays first time into the hole
-for the 11. The rules on decoys in 6 (J5) apply in full.
+for the 11. The rules on decoys in 6 (J5) apply in full. Version 2: a back four whose left-centre marks the 9 (line at
+x 12.5, 32.5 and 42.5), a marker on the 8 and a screen; the 11 starts in the half-space between the left-back and the
+left-centre (x 16.5-18.5).
+
+**Up, back and through** (set D A4), version 2: the through ball to the 7 is aimed 7.5 m behind the line, not 9, so he
+takes it far enough out for the stepped-up line to get goal-side before he reaches 18 m (J4b).
+
+**Wing and cut-back**, version 2: with the decoy, the 9 starts in the middle of the gap between the centre-backs (x 23.5),
+so his marker is not 2.5 m from one of them (V2).
 
 **T9 Wing and cut-back** (3, 7). The winger beats his full-back to the byline and pulls it back to 11-14 m; the late runner
 finishes first time. No live offside on the last ball, so it is exempt from J3; the owner wants cut-backs used freely.
@@ -313,7 +325,7 @@ Each defender gets exactly one role, and the role fixes where he may stand.
 
 | Role | Type | Count | Placement at kick-off | Tag |
 |---|---|---|---|---|
-| Back line | `line`, one unit | 2-5 (2 in a counter or when a third back is marking) | Height `yL` 18-33 in open play and at least 12 m goal-side of the ball. Adjacent spacing 8-11.5 m (centre-halves 9-11). A 2-man line may be 24-28 m apart only if a `mark` from the same back three starts between them. Unit centre within 8 m of x 25. If it is off centre, it is shifted towards the side where the ball is, or where it is about to be played (for the switch templates, towards the switch passer) | [M] / [F] |
+| Back line | `line`, one unit | 2-5 `line` men (2 only in a counter); with a centre-half marking from the line, 3-5 in all | Height `yL` 18-33 in open play and at least 12 m goal-side of the ball. Adjacent spacing 8-11.5 m (centre-halves 9-11), counting a centre-half who marks from the line as one of the line. Outside a counter the line so counted has 3-5 men (rule 8 of 5.4). Version 1 allowed a 2-man line 24-28 m apart with a `mark` between them; the owner rated that shape real football 2 (set E, Third-man run), so it is gone [O]. Unit centre within 8 m of x 25. If it is off centre, it is shifted towards the side where the ball is, or where it is about to be played (for the switch templates, towards the switch passer) | [M] / [F] |
 | Line height by block | | | High 28-33 (use `gap` 8-9; trap levels). Medium 22-28 (default). Low 16-21 (no space in behind; ends in K or a strike) | [F] R5 |
 | Screen | `zone` | 0-2 | 6-16 m in front of `yL`; within 12 m sideways of the line centre; his home within 6 m of a straight lane from a ball player's start to a later ball player's start | [M] / [F] |
 | Hunter | `press` | 0-2, starting on different passers | 6.5-12 m from the passer he hunts, no more than 3 m behind the ball's y | [M] 6.7-9 m in the baseline |
@@ -358,6 +370,11 @@ Every defender must pass all of these. Any failure means the level is rejected [
 6. Speed differences inside one unit are 0.1 m/s or less [F]: the player cannot see speeds, so a single quicker
    full-back feels arbitrary.
 7. At least as many outfield defenders as attackers minus one, except in a counter [F, R1].
+8. **No sparse defence** (version 2) [O: set E Third-man run, four defenders, real football 2]. Outside fixtures 1-4
+   and the counter: at least six outfield defenders; a back line of 3-5 (a centre-half marking from it counts: a `mark`
+   starting within 3.5 m of the line's height between its end men) with no neighbouring gap wider than 11.5 m; and at
+   least two defenders in front of it (screens, hunters, markers on midfielders). Checked as R8 by `tools/gen/check.js`.
+   Of the set E levels it fails exactly the two sparse ones (Tests 05 and 06).
 
 **Banned outright:** a defender on a spot, double decoys, a marker who has to be dragged more than 12 m for the move to
 work, a sweeper behind a medium or low line, defender `spd` above 5.7 [M: engine cap 5.8].
@@ -423,6 +440,15 @@ The basis [O/M]: 20 at 1.8 s slack took 14, then 6; at 3.8 s it took 1. 9 at 3.6
 short clock is the strongest hard-band combination [O: 9, 20]. Human-model cross-check (owner profile median, a band only):
 tutorial 1-2, standard 2-5, hard 4+.
 
+**Difficulty estimate (version 2)** [O/M]. The human model does not follow the designed route (it improvises passes and
+decoy runs); the owner does. On his 56 rated plays in sets A-E its median ranks his takes at +0.27 (+0.11 on sets B-E).
+The generator now fits the clock to an estimate of his takes (`tools/gen/difficulty.js`): the mean of six z-scores,
+equal weights fixed in advance from 07: log of the model median, J1's tight middle touches, minus the closest defender at
+any reception, minus the tightest lane, the touches before the last player with under 0.6 s to spare, and bot time /
+clock; mapped to takes by the line fitted on his 33 first plays. Left out one set at a time it ranks his takes at +0.46
+(model alone +0.27) but is still about a factor of 2 out on a typical level, and it misses both set E outliers. A band
+only, like the model; the clock is still the dial.
+
 **Setting the clock:** clock = ceil(bot time + slack), using the slack from the band, then check the ratio.
 
 ### 7.3 Campaign ramp
@@ -430,8 +456,8 @@ tutorial 1-2, standard 2-5, hard 4+.
 | Fixtures | Band | Engine | Templates | Defenders |
 |---|---|---|---|---|
 | 1-4 | Tutorial | both off | First pass, Through ball, Down the wing, The decoy (one idea each) | 1-2 |
-| 5-8 | Standard | B only | Tier 1-2; at least two from tier 1 | 4-6 |
-| 9-14 | Standard → hard | A+B | Tier 1-2 | 5-7 |
+| 5-8 | Standard | B only | Tier 1-2; at least two from tier 1 | 6 (version 1: 4-6) |
+| 9-14 | Standard → hard | A+B | Tier 1-2 | 6-7 (a counter 4) |
 | 15-20 | Hard, with one last-minute level | A+B | at least three from tier 1 | 6-7 |
 | 21+ | Repeat the 5-20 pattern | A+B | as above | as above |
 
@@ -454,7 +480,7 @@ minimum of 1.8 s) [F]. Every fourth level is one band easier, as a breather [F].
 | A3 | Jitter: every round ≥ 45% | `tools/test.js --jitter` [M: baseline low 45%] |
 | A4 | J1-J8 and J10 pass; J9 is inside its band, or the level is flagged for a human look | forensics scripts (`dwell.js`, `aim3.js`, `windows2.js`, `finish.js`), `defending/finish.js` |
 | A5 | Decoy tests: needed, truncation, drag ≤ 12 m | generator plus engine |
-| A6 | Player routes: the owner profile clears in ≥ 90% of runs within 60 takes; median takes inside the band's model range | `tools/human/run.js --root` |
+| A6 | Player routes: the owner profile clears in ≥ 90% of runs within 60 takes. Version 2: the difficulty estimate (7.2) is inside the band's owner range (standard 3-6, hard 5-8, ordinary 3-8, closing 8-15); the model's own band is a note. Tutorial: model median 1-2.5 as before | `tools/human/run.js --root`, `tools/gen/difficulty.js` |
 | A7 | Bot time / clock inside the band and ≤ 0.80 | generator |
 | A8 | Determinism: the replay is identical; `ai-scenarios.js` passes | existing tools |
 
