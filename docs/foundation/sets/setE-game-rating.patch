@@ -1,0 +1,29 @@
+--- a/one-man-team/js/game.js	2026-11-25 15:36:48.952127758 +0200
++++ b/one-man-team/js/game.js	2026-11-26 11:30:55.675915149 +0200
+@@ -343,7 +343,7 @@
+     const lv = L(), a = lv.att[liveIdx()], k = kit(lv), decoy = a.role === 'decoy';
+     $('who').innerHTML = '<div class="who-in">' + base(a.num, k.us, 'live') + '<span class="who-t"><small>Player ' + (round + 1) + ' of ' + lv.order.length + '</small><b>' + esc(a.name) + '</b></span></div>';
+     fitTip(shortTip(a));
+-    $('ctl').classList.toggle('quiet', prac < 0 && !(li < 2 && !rec(li)));
++    $('ctl').classList.toggle('quiet', prac < 0 && !(li < 2 && !rec(li) && !CFG.rate));
+     $('play').classList.toggle('prac', prac >= 0);
+     $('bPrev').disabled = round === 0; $('bRetry').disabled = false;
+     const kb = $('kick'); kb.textContent = decoy ? 'DONE' : (sim && sim.isLast ? 'SHOOT' : 'PASS'); kb.classList.toggle('decoy', decoy);
+@@ -413,7 +413,7 @@
+     if (sim.failWho >= 0 && sim.failWho !== live && sim.reason !== 'bump' && recs[sim.failWho]) {
+       what = 'It happened to the ' + lv.att[sim.failWho].num + ', a part you already recorded. Your new run moved the defence.';
+       tryIt = 'Change this run, or go back and redo the earlier player.';
+-      if (li < 4 && !rec(li) && round === lv.order.length - 1) { what = 'You went early, so the defenders dropped back with you and cut out the pass.'; tryIt = 'Hold your run until the pass is hit, then go.'; }
++      if (li < 4 && !rec(li) && !CFG.rate && round === lv.order.length - 1) { what = 'You went early, so the defenders dropped back with you and cut out the pass.'; tryIt = 'Hold your run until the pass is hit, then go.'; }
+     } else if (sim.reason === 'time' && round > 0) tryIt = 'If the earlier pass cannot be reached in time, redo the previous player.';
+     const prevA = round > 0 ? lv.att[lv.order[round - 1]] : null;
+     const oKey = li + ':' + seq, offer = CFG.slow !== false && !save.slow && fails === 8 && (offerKey === oKey || (save.slowAsk || 0) < 3);
+@@ -589,7 +589,7 @@
+     ]
+   };
+   function tutKey(me, b) {
+-    const t = prac >= 0 ? (pracLv.coach || [])[round] || {} : TUT[li] && !rec(li) ? TUT[li][round] : null; if (!t) return null;
++    const t = prac >= 0 ? (pracLv.coach || [])[round] || {} : TUT[li] && !rec(li) && !CFG.rate ? TUT[li][round] : null; if (!t) return null;
+     let ph;
+     if (sim.liveKickTick >= 0) ph = sim.tick - sim.liveKickTick < 50 ? 'k' : '';
+     else if (state === 'ready' && sim.tick === 0) ph = 'r';
