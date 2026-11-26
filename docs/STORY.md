@@ -64,7 +64,7 @@ Each fixture is the one goal that changes the result. `score` is the score befor
 | 36 | Quernside United | The side we beat to stay up. | slate, chalk |
 | 37 | Sallowby Institute | Visitors on the day the notice went up on the gate. | royal, lilac |
 | 38 | Rudlock Brickworks | Works side. Signed the petition to a man. | brown, pink |
-| 41 | Uffwell Old Boys | Old boys' side. The surveyor watched the second half. | black, chalk |
+| 41 | Uffwell Old Boys | Old boys' side. The surveyor watched the second half. | purple, pink |
 | 42 | Aldergrave Welfare | Welfare club. Led until stoppage time. | plum, lilac |
 | 45 | Mossgrave Casuals | Our first Division One opponents, the week the Rec was saved. | royal, sky |
 | 47 | Eldergate Amateurs | Scored early and defended the rest. | plum, pink |
@@ -75,10 +75,10 @@ Each fixture is the one goal that changes the result. `score` is the score befor
 | 54 | Saltern Quay Dockers | Dock workers' side, five hours away by coach. | petrol, chalk |
 | 55 | Sedgeholme Fen | Fen village. Flat pitch, steady wind. | plum, silver |
 | 56 | Old Athelstonians | Old boys' club. Six times winners, none of them lately. | pink, black |
-| 57 | Polvessa Mariners | A harbour side from the far south-west. Drew the record gate at the Rec. | ink, chalk |
+| 57 | Polvessa Mariners | A harbour side from the far south-west. Drew the record gate at the Rec. | chalk, plum |
 | 58 | Limeburn Gasworks | Works side from a big city. | purple, sky |
 | 59 | Stannerby Steelworks | Works side. The semi-final, on a borrowed league ground. | claret, pink |
-| 60 | Winterlea Amateurs | The best-known amateur club in the country. Plain white shirts. The final. | chalk, ink |
+| 60 | Winterlea Amateurs | The best-known amateur club in the country. Claret and lilac. The final. | claret, lilac |
 
 Returning clubs keep their kit and their character: Monk's Hollin (22), Tindle Moor Welfare (24), Wrenfield Colts (26, promoted a year
 after us), Scarrow Vale (28), Quillham Athletic (30), Brackenfold United (32, 43, still conceding very little), Kettlewick Victoria (39,
@@ -117,6 +117,9 @@ who signed the petition and then picked a strong side) and Eastmere Harriers (46
   the felt: pair them with pink or chalk only. Petrol with silver and slate with pink were tried on the pitch and read weakly.
 - Claret is never a shirt colour: on a small figure it sits too near our tomato.
 - New clubs get a pairing no other club has. The one shared kit is the oldest: Pellow's Bakery and Tindle Moor Welfare, brown and chalk.
+- No near-white with near-black (chalk with black or ink), for either side: on the pitch those defenders read as the ball
+  (design team, Nov 2026; fixtures 41, 57 and 60 were changed for it). Polvessa's chalk and plum is Quillham's pair the
+  other way round, the one other shared pairing: the palette has no unused dark-and-light pair left.
 - Mustard is for goalkeepers only. On the pitch it is the colour of the live player's ring.
 - `gk` must differ from both outfield kits: mustard by default, sky or lilac when variety helps.
 - No two consecutive opponents share a primary or a shirt colour, and neighbours should not be near relations either (plum next to

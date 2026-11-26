@@ -4,6 +4,7 @@
 (function (root) {
   const L = (root.OMT_LEVELS = root.OMT_LEVELS || []);
   L.push({
+      id: 'c01', oldName: 'First pass',
       name: 'First pass', time: 15,
       engine: { recSpd: 0, dangerR: 0, gkBisect: 0, gkNear: 0, markLeash: 0 },   // finish pressure and hand-over off: keep the opening fixtures easy
       brief: 'Pass it forward, then be the striker who runs onto it.',
@@ -18,6 +19,7 @@
       ]
     },
     {
+      id: 'c02', oldName: 'Through ball',
       name: 'Through ball', time: 15,
       engine: { recSpd: 0, dangerR: 0, gkBisect: 0, gkNear: 0, markLeash: 0 },   // finish pressure and hand-over off: keep the opening fixtures easy
       brief: 'Two defenders hold a line. Go beyond it only once the pass is on its way.',
@@ -32,6 +34,7 @@
       ]
     },
     {
+      id: 'c03', oldName: 'Down the wing',
       name: 'Down the wing', time: 17,
       engine: { recSpd: 0, dangerR: 0, gkBisect: 0, gkNear: 0, markLeash: 0 },   // finish pressure and hand-over off: keep the opening fixtures easy
       brief: 'Three players now. Out to the winger, pulled back, tapped in.',
@@ -48,6 +51,7 @@
       ]
     },
     {
+      id: 'c04', oldName: 'The decoy',
       name: 'The decoy', time: 16,
       engine: { recSpd: 0, dangerR: 0, gkBisect: 0, gkNear: 0, markLeash: 0 },   // finish pressure and hand-over off: keep the opening fixtures easy
       brief: 'Your first player never touches the ball. His run drags a defender out of the way.',

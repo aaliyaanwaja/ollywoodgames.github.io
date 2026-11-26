@@ -1,57 +1,58 @@
-// Bot solutions for pack 4, one array per level, one entry per round.
-// The ball starts dead, and a bot cannot stand still on it: where a taker has to let a decoy's run develop, his short
-// `carry` (a step in from the corner flag, or a step back and up to the ball) is that wait.
+// Bot solutions for pack 4, one array per level, one entry per round (written by tools/gen/campaign-v2.js).
 module.exports = [
-  // Short corner
+  // Switch of play (fixture 21)
   [
-    { carry: [], kickAt: [43, 8], power: 0.1 },
-    { start: 0, pre: [[43, 8.5]], spot: 1, carry: [[39, 13]], kickAt: [29, 14], power: 0.4 },
-    { start: 100, pre: [[28.5, 14]], spot: 1, grab: 2.5, first: 1, kickAt: [22.1, 0], power: 1 }
+    { kickAt: [28.1, 46.3], power: 0.25 },
+    { start: 10, pre: [[28, 45]], spot: 1, kickAt: [7, 19], power: 0.97, first: 1 },
+    { start: 131, pre: [[8, 20]], spot: 1, carry: [[14, 10.2]], kickAt: [27.7, 0], power: 1 }
   ],
-  // Tapped free kick
+  // Pull it back (fixture 22)
   [
-    { decoy: [[36, 16]] },
-    { carry: [[20.2, 22.6], [19, 21]], kickAt: [26, 18], power: 0.1 },
-    { start: 60, pre: [[26, 17.8]], spot: 1, grab: 2.5, first: 1, kickAt: [28.2, 0], power: 1 }
+    { kickAt: [32, 38], power: 0.63 },
+    { start: 62, pre: [[32, 38]], spot: 1, kickAt: [37.4, 14.2], power: 0.84, first: 1 },
+    { start: 66, pre: [[40, 18.5]], meet: 0.3, kickAt: [31.2, 13.5], power: 0.33 },
+    { start: 30, pre: [[30, 14]], spot: 1, grab: 2.5, first: 1, kickAt: [27.4, 0], power: 1 }
   ],
-  // Quick throw-in
+  // Bend round them (fixture 23)
   [
-    { decoy: [[43, 22]] },
-    { carry: [[46.2, 31.8], [47, 31]], kickAt: [45.5, 12], power: 0.55 },
-    { start: 25, pre: [[45, 19]], meet: 0.3, carry: [[45.5, 8], [45, 4.5]], kickAt: [31, 12.5], power: 0.6 },
-    { start: 150, pre: [[30.5, 11.5]], spot: 1, grab: 2.5, first: 1, kickAt: [27.9, 0], power: 1 }
+    { kickAt: [20.9, 49.6], power: 0.4 },
+    { start: 10, pre: [[20.5, 50.5]], spot: 1, kickAt: [29.9, 41], power: 0.46 },
+    { start: 80, pre: [[30.5, 41.5]], spot: 1, grab: 2.5, kickAt: [25.3, 19.1], power: 0.8, first: 1 },
+    { start: 27, pre: [[20, 29.2]], meet: 0.2, carry: [[21.4, 13.5]], kickAt: [27.7, 0], power: 1 }
   ],
-  // Near-post corner
+  // Beat the press (fixture 24)
   [
-    { decoy: [[14, 17]] },
-    { carry: [[4.5, 4.5]], kickAt: [20, 7.5], power: 0.95 },
-    { start: 50, pre: [[20.5, 7.5]], spot: 1, grab: 2.5, first: 1, kickAt: [21.8, 0], power: 1 }
+    { kickAt: [30.7, 52.9], power: 0.35 },
+    { start: 20, pre: [[30.5, 52]], spot: 1, kickAt: [18.5, 42], power: 0.57, first: 1 },
+    { start: 94, pre: [[18, 42.5]], spot: 1, kickAt: [23.6, 16.9], power: 0.54, carry: [[20.8, 32.6]] },
+    { start: 176, pre: [[25.2, 19]], spot: 1, grab: 2.5, carry: [[28.6, 13.5]], kickAt: [22.3, 0], power: 1 }
   ],
-  // Round the wall
+  // Empty the middle (fixture 25)
   [
-    { decoy: [[22, 15]] },
-    { carry: [[32.2, 24.4], [31, 23]], kickAt: [33, 7.5], power: 0.35 },
-    { start: 34, pre: [[33, 11]], meet: 0.2, carry: [[32.5, 10]], kickAt: [23.1, 0], power: 1 }
+    { kickAt: [17.7, 48.4], power: 0.3, carry: [[33, 52], [29, 52.5]] },
+    { decoy: [[25.5, 39]] },
+    { start: 107, pre: [[17.5, 49]], spot: 1, kickAt: [23.5, 19.4], power: 0.97, first: 1 },
+    { start: 112, pre: [[23.3, 21.5]], spot: 1, grab: 2.5, carry: [[21.4, 13.5]], kickAt: [27.7, 0], power: 1 }
   ],
-  // The flick-on
+  // Check and spin (fixture 26)
   [
-    { decoy: [[14, 12]] },
-    { carry: [[44.5, 5]], kickAt: [30.5, 7], power: 0.95 },
-    { start: 25, pre: [[30.8, 7.3]], spot: 1, grab: 2.5, first: 1, kickAt: [21.5, 8.5], power: 0.3 },
-    { start: 35, pre: [[22, 8.8]], spot: 1, grab: 2.5, first: 1, kickAt: [21.8, 0], power: 1 }
+    { kickAt: [24.4, 47.6], power: 0.52 },
+    { start: 10, pre: [[24, 49]], spot: 1, kickAt: [12.9, 42.2], power: 0.4, first: 1 },
+    { start: 10, pre: [[13, 42]], spot: 1, kickAt: [18.8, 18.2], power: 0.76 },
+    { start: 78, pre: [[20, 22]], meet: 0.2, carry: [[16.6, 13]], kickAt: [27.7, 0], power: 1 }
   ],
-  // Corner to the edge
+  // Catch them upfield (fixture 27)
   [
-    { decoy: [[19, 5.5]] },
-    { decoy: [[30.5, 6]] },
-    { carry: [[4.5, 4.5]], kickAt: [22, 15.5], power: 0.75 },
-    { start: 40, pre: [[22.5, 15.8]], spot: 1, grab: 2.5, first: 1, kickAt: [28.2, 0], power: 1 }
+    { kickAt: [24, 44.5], power: 0.29 },
+    { start: 20, pre: [[24, 44.5]], spot: 1, kickAt: [10.4, 16.4], power: 0.38, carry: [[21.5, 28.5]] },
+    { start: 95, pre: [[11.5, 17.5]], spot: 1, carry: [[19.1, 12.7]], kickAt: [27.7, 0], power: 1 }
   ],
-  // Kick-off routine
+  // Every man touches it (fixture 28)
   [
-    { carry: [], kickAt: [18, 55.3], power: 0.1 },
-    { start: 0, pre: [[17.5, 55]], spot: 1, carry: [[14.5, 51.5]], kickAt: [3.5, 22], power: 1 },
-    { start: 0, pre: [[4.5, 30]], meet: 0.5, carry: [[6, 14], [8, 7]], kickAt: [25, 12.5], power: 0.7 },
-    { start: 100, pre: [[25.5, 12.6]], spot: 1, grab: 2.5, first: 1, kickAt: [27.9, 0], power: 1 }
+    { kickAt: [30.5, 52], power: 0.26 },
+    { start: 10, pre: [[30.5, 52]], spot: 1, kickAt: [18, 42], power: 0.5, first: 1 },
+    { start: 94, pre: [[18, 42]], spot: 1, kickAt: [25.5, 37.8], power: 0.02, carry: [[19.5, 39]] },
+    { start: 144, pre: [[26.5, 37.8]], spot: 1, grab: 2, kickAt: [26.3, 18.5], power: 0.72, first: 1 },
+    { start: 169, pre: [[27.5, 17]], spot: 1, grab: 2.5, carry: [[28.6, 13.5]], kickAt: [22.3, 0], power: 1 }
   ]
 ];

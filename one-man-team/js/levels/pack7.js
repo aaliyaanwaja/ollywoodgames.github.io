@@ -1,170 +1,192 @@
-/* Pack 7: breaking a low block (fixtures 45-52). Eight or nine behind the ball, a back four on the edge of its own
-   box and no room in behind: the moves work in front of the block and round the sides of it.
-   Defender types and fields are described in tools/LEVEL_DESIGN.md. */
+/* Pack 7: season 7 of the story, fixtures 45-52. Campaign version 2 (docs/foundation/21-campaign-v2.md),
+   built by tools/gen/campaign-v2.js to RULEBOOK.md version 2: generated levels and the owner's favourite hand-built ones.
+   Rebuild rather than edit by hand; ids (c01-c60) are permanent and never reused. */
 (function (root) {
   const L = (root.OMT_LEVELS = root.OMT_LEVELS || []);
   L.push(
+    // 45: Commit the centre-half, generated (seed 2788264165, attempt 25), hard
     {
-      name: 'The overload', time: 8,
-      brief: 'Four players. Three of you crowd the right and their block comes across. Then get it left, fast.',
+      id: 'c45',
+      name: 'Take on the line',
+      time: 8,
+      brief: 'Three players. Drive at their back four. When a centre-half commits, play the 9 in behind him.',
+      lines: { "0": { gap: 8 } },
       att: [
-        { num: 7, name: 'Winger', x: 43, y: 30, role: 'ball', tip: 'They have crowded you out. Roll it back to the 8.' },
-        { num: 8, name: 'Midfielder', x: 35, y: 38, role: 'ball', tip: 'Aim early and move it on first time to the 6 in the middle.' },
-        { num: 6, name: 'Pivot', x: 23, y: 44, role: 'ball', tip: 'Aim early. Fire it first time to the left corner of the box, into the path of the 11.' },
-        { num: 11, name: 'Left winger', x: 7, y: 28, role: 'ball', tip: 'Nobody went with you. Meet it at the corner of the box and strike first time, far corner.' }
+        { num: 6, name: 'Holder', x: 20, y: 52, role: 'ball', tip: 'You are being hunted. Find the 10 between the lines, round the screen.' },
+        { num: 10, name: 'Number ten', x: 30, y: 37.5, role: 'ball', tip: 'Drive at the right centre-half. When he steps out to you, slip the 9 in on your left before he tackles.' },
+        { num: 9, name: 'Striker', x: 19, y: 28, role: 'ball', tip: 'Hold your run on their line. Go in behind as the centre-half steps out to the 10, then finish.' }
+      ],
+      order: [0, 1, 2],
+      def: [
+        { t: 'line', x: 39.2, y: 25.5, spd: 5.7 },
+        { t: 'line', x: 29.7, y: 25.5, spd: 5.7 },
+        { t: 'line', x: 19.2, y: 25.5, spd: 5.7 },
+        { t: 'line', x: 9.7, y: 25.5, spd: 5.7 },
+        { t: 'zone', x: 24.5, y: 41, spd: 5.6, eng: 5 },
+        { t: 'press', x: 13.9, y: 45.4, spd: 5.7 }
+      ]
+    },
+    // 46: Wing and cut-back, generated (seed 1342420446, attempt 9), hard
+    {
+      id: 'c46',
+      name: 'The cut-back',
+      time: 7,
+      brief: 'Four players and a decoy. In behind, to the byline, and back to the spot the 9 has cleared.',
+      att: [
+        { num: 6, name: 'Pivot', x: 18, y: 51, role: 'ball', tip: 'You are being hunted. Find the 8 on your right straight away.' },
+        { num: 8, name: 'Midfielder', x: 31, y: 34, role: 'ball', tip: 'Do not take a touch. Aim early and play it first time into the channel for the 7.' },
+        { num: 7, name: 'Winger', x: 44, y: 24, role: 'ball', tip: 'Dart inside the full-back as the 8 plays it, reach the byline and pull it back to the spot.' },
+        { num: 10, name: 'Late runner', x: 22, y: 32, role: 'ball', tip: 'Do not get there early. Meet the cut-back on the spot and hit it first time.' },
+        { num: 9, name: 'Centre-forward', x: 23.5, y: 24, role: 'decoy', tip: 'No ball for you. Take your marker towards the near post, then press DONE.' }
+      ],
+      order: [0, 4, 1, 2, 3],
+      def: [
+        { t: 'line', x: 10.8, y: 21, spd: 5.7 },
+        { t: 'line', x: 19.8, y: 21, spd: 5.7 },
+        { t: 'line', x: 28.8, y: 21, spd: 5.7 },
+        { t: 'line', x: 39.3, y: 21, spd: 5.7 },
+        { t: 'mark', a: 4, x: 23.7, y: 21.5, spd: 5.7 },
+        { t: 'zone', x: 25.2, y: 36.6, spd: 5.7, eng: 5 },
+        { t: 'press', x: 13.6, y: 44.3, spd: 5.7 }
+      ]
+    },
+    // 47: Third-man run, hand-built favourite (baseline 10 (set A fun 5; set C with A+B: fun 5, fair 5, 12 takes, all at the finish)), hard
+    {
+      id: 'c47',
+      name: 'Third-man run',
+      time: 8,
+      brief: 'Four players. The 9 comes short and drags his centre-half out. The 11 runs into the hole.',
+      att: [
+        { num: 5, name: 'Centre-back', x: 20, y: 55, role: 'ball', tip: 'The hunter is on you and the screen blocks the straight pass. Roll it across to the 6 on your right.' },
+        { num: 6, name: 'Holder', x: 34, y: 46, role: 'ball', tip: 'Take it and play it firmly into the 9 as he comes short.' },
+        { num: 9, name: 'Target man', x: 25, y: 28, role: 'ball', tip: 'Come short so the centre-half follows. Aim early and flick it first time into the hole.' },
+        { num: 11, name: 'Third man', x: 9, y: 30, role: 'ball', tip: 'Go early. Run inside before the 9 touches it, take it in the hole he left and finish.' }
       ],
       order: [0, 1, 2, 3],
       def: [
-        { t: 'mark', a: 0, x: 41, y: 26.2, spd: 5.2 },
-        { t: 'zone', x: 37, y: 30, spd: 5, eng: 5 },
-        { t: 'zone', x: 32, y: 31, spd: 5, eng: 5 },
-        { t: 'zone', x: 27, y: 30, spd: 5, eng: 5 },
-        { t: 'line', x: 15, y: 14, spd: 5.2, eng: 3 }, { t: 'line', x: 23, y: 14, spd: 5.2, eng: 3 },
-        { t: 'line', x: 31, y: 14, spd: 5.2, eng: 3 }, { t: 'line', x: 39, y: 14, spd: 5.2, eng: 3 }
-      ],
-      gk: { react: 16 },
-      lines: { 0: { floor: 10, step: 1 } }
+        { t: 'zone', x: 20, y: 41, spd: 5.3, eng: 5 },
+        { t: 'press', x: 17.5, y: 47.2, spd: 5.7 },
+        { t: 'mark', a: 2, x: 25, y: 25.6, spd: 5.7, eng: 6, agg: 0.7 },
+        { t: 'line', x: 15, y: 25, spd: 5.5, agg: 0.7 },
+        { t: 'line', x: 35, y: 25, spd: 5.5, agg: 0.7 },
+        { t: 'line', x: 44.5, y: 25, spd: 5.5, agg: 0.7 }
+      ]
     },
+    // 48: Sweeper-keeper, generated (seed 124730344, attempt 31), standard
     {
-      name: 'Let it run', time: 11,
-      brief: 'Four players. The 9 comes to meet the square ball and steps over it. The 10 behind him strikes.',
+      id: 'c48',
+      name: 'Keeper off his line',
+      time: 12,
+      brief: 'Four players. A high line and a keeper off his line. Play short in behind, never long.',
+      gk: { sweeper: true },
+      lines: { "0": { gap: 8 } },
       att: [
-        { num: 8, name: 'Playmaker', x: 23, y: 41, role: 'ball', tip: 'Play it wide to the feet of the 7.' },
-        { num: 7, name: 'Winger', x: 44, y: 29, role: 'ball', tip: 'Come inside to the corner of the box, then roll it square along the edge.' },
-        { num: 9, name: 'Decoy', x: 21.5, y: 16.5, role: 'decoy', tip: 'No ball for you. Run to meet the pass so your marker comes, and let it run. Then DONE.' },
-        { num: 10, name: 'Number ten', x: 13, y: 27, role: 'ball', tip: 'Arrive where the 9 was standing. Aim early and strike it first time.' }
+        { num: 4, name: 'Centre-back', x: 20, y: 55, role: 'ball', tip: 'The keeper sweeps anything long. Play it out to the 7 on your right.' },
+        { num: 7, name: 'Winger', x: 42, y: 45.5, role: 'ball', tip: 'Come to the ball, then play it inside to the 10 before the full-back closes.' },
+        { num: 10, name: 'Creator', x: 31, y: 38, role: 'ball', tip: 'Run at their line, then play a short ball in behind. Not too hard: the keeper is out.' },
+        { num: 9, name: 'Striker', x: 21, y: 31.5, role: 'ball', tip: 'Dart across the centre-half as the 10 plays it. Beat the keeper to it and finish.' }
       ],
       order: [0, 1, 2, 3],
       def: [
-        { t: 'zone', x: 31, y: 27, spd: 5, eng: 4 },
-        { t: 'zone', x: 21, y: 29, spd: 5, eng: 4 },
-        { t: 'zone', x: 36, y: 25, spd: 5, eng: 3.5, screen: 3 },
-        { t: 'mark', a: 2, x: 21.8, y: 14.3, spd: 5.2 },
-        { t: 'line', x: 12, y: 12.5, spd: 5.2, eng: 3 }, { t: 'line', x: 21, y: 12.5, spd: 5.2, eng: 3 },
-        { t: 'line', x: 29, y: 12.5, spd: 5.2, eng: 3 }, { t: 'line', x: 38, y: 12.5, spd: 5.2, eng: 3 }
-      ],
-      lines: { 0: { floor: 10 } }
+        { t: 'line', x: 9, y: 29.5, spd: 5.3 },
+        { t: 'line', x: 19.5, y: 29.5, spd: 5.3 },
+        { t: 'line', x: 29, y: 29.5, spd: 5.3 },
+        { t: 'line', x: 39, y: 29.5, spd: 5.3 },
+        { t: 'mark', a: 1, x: 41.2, y: 43.3, spd: 5.5 },
+        { t: 'zone', x: 25.6, y: 45.4, spd: 5.1, eng: 5 }
+      ]
     },
+    // 49: Bend the run, generated (seed 2763356719, attempt 1), hard
     {
-      name: 'Drag them across', time: 12,
-      brief: 'Four players. Carry it across the box and their block slides with you. The 7 strikes where they were.',
+      id: 'c49',
+      name: 'Run the line',
+      time: 8,
+      brief: 'Four players. A straight run is offside against this high line. Run across it, then bend in behind.',
+      lines: { "0": { gap: 9 } },
       att: [
-        { num: 6, name: 'Pivot', x: 27, y: 44, role: 'ball', tip: 'Play it out to the 8 on your right.' },
-        { num: 8, name: 'Midfielder', x: 38, y: 34, role: 'ball', tip: 'Aim early and lay it inside first time to the 10.' },
-        { num: 10, name: 'Number ten', x: 30, y: 27, role: 'ball', tip: 'Carry it left across the box so they slide over, then roll it back to the right for the 7.' },
-        { num: 7, name: 'Winger', x: 44, y: 24, role: 'ball', tip: 'Hold your run. Arrive at the right of the D as the 10 rolls it back and strike first time.' }
+        { num: 4, name: 'Centre-back', x: 20, y: 54, role: 'ball', tip: 'The hunter is coming. Roll it across to the 6 on your right at once.' },
+        { num: 6, name: 'Pivot', x: 30, y: 50, role: 'ball', tip: 'The screen blocks the wide ball. Play it across into the 10 as he comes off his marker.' },
+        { num: 10, name: 'Number ten', x: 23, y: 42.5, role: 'ball', tip: 'Come off your marker to meet it. Aim early and slide it first time between the centre-halves.' },
+        { num: 7, name: 'Right winger', x: 41, y: 35.5, role: 'ball', tip: 'Do not run straight: you will be off. Run along the line, bend in as the 10 plays it, finish.' }
       ],
       order: [0, 1, 2, 3],
       def: [
-        { t: 'zone', x: 30, y: 36, spd: 5, eng: 4 },
-        { t: 'zone', x: 21, y: 30, spd: 5, eng: 4 },
-        { t: 'zone', x: 36, y: 27, spd: 5, eng: 3.5 },
-        { t: 'line', x: 14, y: 13, spd: 5.2, eng: 3 }, { t: 'line', x: 21, y: 13, spd: 5.2, eng: 3 },
-        { t: 'line', x: 27, y: 13, spd: 5.2, eng: 3 }, { t: 'line', x: 34, y: 13, spd: 5.2, eng: 3 }
-      ],
-      lines: { 0: { floor: 10 } }
+        { t: 'line', x: 39.7, y: 31.5, spd: 5.5 },
+        { t: 'line', x: 30.2, y: 31.5, spd: 5.5 },
+        { t: 'line', x: 19.7, y: 31.5, spd: 5.5 },
+        { t: 'line', x: 9.2, y: 31.5, spd: 5.5 },
+        { t: 'mark', a: 2, x: 23.1, y: 40.4, spd: 5.7, react: 16 },
+        { t: 'zone', x: 31.5, y: 43.8, spd: 5.4, eng: 5 },
+        { t: 'press', x: 14, y: 48.7, spd: 5.6 }
+      ]
     },
+    // 50: Up, back and through, generated (seed 451277248, attempt 11), hard
     {
-      name: 'Blind-side run', time: 14,
-      brief: 'Four players. Everyone watches the ball on the right. The 11 steals in behind his man at the far post.',
+      id: 'c50',
+      name: 'Lay it back, then in',
+      time: 9,
+      brief: 'Four players. Fire it up to the 9, he sets it back, and the 10 plays the 7 in behind.',
+      lines: { "0": { gap: 9 } },
       att: [
-        { num: 6, name: 'Pivot', x: 24, y: 44, role: 'ball', tip: 'Roll it across to the 8 on your right.' },
-        { num: 8, name: 'Midfielder', x: 34, y: 37, role: 'ball', tip: 'Aim early and send it first time down the right touchline for the 7.' },
-        { num: 7, name: 'Winger', x: 45, y: 27, role: 'ball', tip: 'Take it in your stride, away from the full-back. From the byline, drive it low to the far post.' },
-        { num: 11, name: 'Left winger', x: 12, y: 17, role: 'ball', tip: 'Your marker is watching the ball. Go late behind his back and finish at the far post.' }
+        { num: 6, name: 'Pivot', x: 28, y: 51, role: 'ball', tip: 'You are being hunted. Play it up to the 9, not to the 10.' },
+        { num: 9, name: 'Target man', x: 25, y: 32.5, role: 'ball', tip: 'Your marker is tight. Aim early and lay it back first time to the 10.' },
+        { num: 10, name: 'Number ten', x: 19, y: 45, role: 'ball', tip: 'Aim early and play it first time in behind their line for the 7.' },
+        { num: 7, name: 'Winger', x: 10, y: 31, role: 'ball', tip: 'Their line steps up on the ball back. Cross it as the 10 plays it, run on and finish across the keeper.' }
       ],
       order: [0, 1, 2, 3],
       def: [
-        { t: 'zone', x: 29, y: 33, spd: 5, eng: 4 },
-        { t: 'zone', x: 20, y: 30, spd: 5, eng: 4 },
-        { t: 'zone', x: 35, y: 24, spd: 5, eng: 3.5 },
-        { t: 'mark', a: 3, x: 13.6, y: 14.6, spd: 5.7, react: 30 },
-        { t: 'mark', a: 2, x: 43, y: 23.4, spd: 5.5 },
-        { t: 'line', x: 14, y: 13, spd: 5.2, eng: 3.5 }, { t: 'line', x: 21, y: 13, spd: 5.2, eng: 3.5 },
-        { t: 'line', x: 27, y: 13, spd: 5.2, eng: 3.5 }, { t: 'line', x: 34, y: 13, spd: 5.2, eng: 3.5 }
-      ],
-      lines: { 0: { floor: 10 } }
+        { t: 'line', x: 42, y: 27.5, spd: 5.6 },
+        { t: 'line', x: 31.5, y: 27.5, spd: 5.6 },
+        { t: 'line', x: 21.5, y: 27.5, spd: 5.6 },
+        { t: 'line', x: 12, y: 27.5, spd: 5.6 },
+        { t: 'mark', a: 1, x: 25, y: 30.3, spd: 5.7, react: 22 },
+        { t: 'zone', x: 21.5, y: 43.1, spd: 5.6, eng: 5 },
+        { t: 'press', x: 32.2, y: 44.2, spd: 5.7 }
+      ]
     },
+    // 51: Switch of play, generated (seed 3202061019, attempt 10), hard
     {
-      name: 'The underlap', time: 13,
-      brief: 'Four players. The winger drags the full-back out, and the 8 runs inside him to the byline.',
+      id: 'c51',
+      name: 'Over to the far side',
+      time: 9,
+      brief: 'Three players. Their block has slid across to the ball. Switch it behind them on the far side.',
       att: [
-        { num: 6, name: 'Pivot', x: 27, y: 42, role: 'ball', tip: 'Play it wide to the feet of the 7.' },
-        { num: 7, name: 'Winger', x: 44, y: 26, role: 'ball', tip: 'Come short so the full-back follows. Aim early and lay it square inside to the 8.' },
-        { num: 8, name: 'Underlapper', x: 38, y: 37, role: 'ball', tip: 'Take it on the run inside the full-back, drive to the byline and pull it back to the 9.' },
-        { num: 9, name: 'Striker', x: 23, y: 25, role: 'ball', tip: 'Arrive late near the penalty spot. Aim early and hit it first time.' }
+        { num: 3, name: 'Left-back', x: 9, y: 45, role: 'ball', tip: 'The hunter is closing. Play it inside to the 6 at once.' },
+        { num: 6, name: 'Pivot', x: 23, y: 44.5, role: 'ball', tip: 'Aim early and switch it first time, in behind them on the far side.' },
+        { num: 11, name: 'Winger', x: 44.5, y: 33.5, role: 'ball', tip: 'Wait for the switch. Go as the 6 plays it, drive into the box and shoot across the keeper.' }
+      ],
+      order: [0, 1, 2],
+      def: [
+        { t: 'line', x: 27.2, y: 29, spd: 5.7 },
+        { t: 'line', x: 18.7, y: 29, spd: 5.7 },
+        { t: 'line', x: 9.7, y: 29, spd: 5.7 },
+        { t: 'zone', x: 20.9, y: 38, spd: 5.6, eng: 5 },
+        { t: 'press', x: 13.2, y: 37.6, spd: 5.7 },
+        { t: 'press', x: 23.8, y: 36.3, spd: 5.7 }
+      ]
+    },
+    // 52: Beat the trap, generated (seed 3446125011, attempt 0), closing
+    {
+      id: 'c52',
+      name: 'Through the high line',
+      time: 10,
+      brief: 'Four players. Play it back and their high line steps up. Then go in behind it.',
+      lines: { "0": { gap: 9 } },
+      att: [
+        { num: 2, name: 'Right-back', x: 41, y: 44.3, role: 'ball', tip: 'You are being hunted. Roll it back inside to the 6 before he gets to you.' },
+        { num: 6, name: 'Pivot', x: 27, y: 51, role: 'ball', tip: 'Step past the screen, then play it firmly into the feet of the 10.' },
+        { num: 10, name: 'Creator', x: 25, y: 40.5, role: 'ball', tip: 'Come off your marker to meet it. Aim early and slide it first time between the centre-halves.' },
+        { num: 9, name: 'Striker', x: 19, y: 38, role: 'ball', tip: 'Their line steps up on you. Wait, go as the 10 plays it, then run on and finish.' }
       ],
       order: [0, 1, 2, 3],
       def: [
-        { t: 'zone', x: 29, y: 34, spd: 5, eng: 4 },
-        { t: 'zone', x: 20, y: 32, spd: 5, eng: 4 },
-        { t: 'zone', x: 28, y: 23, spd: 5.2, eng: 4 },
-        { t: 'mark', a: 3, x: 23.3, y: 22.6, spd: 5.3, react: 18 },
-        { t: 'mark', a: 1, x: 42.6, y: 23.2, spd: 5.2, eng: 2 },
-        { t: 'line', x: 10, y: 15, spd: 5.2, eng: 3 }, { t: 'line', x: 19, y: 15, spd: 5.2, eng: 3 },
-        { t: 'line', x: 28, y: 15, spd: 5.2, eng: 3 }
-      ],
-      lines: { 0: { floor: 11 } }
-    },
-    {
-      name: 'Draw them out', time: 8,
-      brief: 'Four players. They will not leave their box. Play it backwards twice and their line follows it out.',
-      att: [
-        { num: 10, name: 'Number ten', x: 27, y: 26, role: 'ball', tip: 'No way through. Roll it back to the 8 and watch their line step up.' },
-        { num: 8, name: 'Midfielder', x: 20, y: 32, role: 'ball', tip: 'Aim early and set it back again first time, to the 6.' },
-        { num: 6, name: 'Pivot', x: 29, y: 38, role: 'ball', tip: 'They have come out. Aim early and hit it first time between the centre-halves.' },
-        { num: 9, name: 'Striker', x: 24, y: 18.5, role: 'ball', tip: 'Come back out with their line to stay onside, then spin in behind as the 6 plays it.' }
-      ],
-      order: [0, 1, 2, 3],
-      def: [
-        { t: 'zone', x: 23, y: 28, spd: 5, eng: 4 },
-        { t: 'zone', x: 33, y: 29, spd: 5, eng: 4 },
-        { t: 'zone', x: 14, y: 27, spd: 5, eng: 4 },
-        { t: 'mark', a: 3, x: 24.3, y: 16.2, spd: 5.3 },
-        { t: 'line', x: 9, y: 17, spd: 5.2, eng: 6 }, { t: 'line', x: 20, y: 17, spd: 5.2, eng: 6 },
-        { t: 'line', x: 30, y: 17, spd: 5.2, eng: 6 }, { t: 'line', x: 41, y: 17, spd: 5.2, eng: 6 }
-      ],
-      lines: { 0: { floor: 14, step: 6 } }
-    },
-    {
-      name: 'Inside the full-back', time: 8,
-      brief: 'Four players. One gap, between full-back and centre-half. The 7 darts into it as the 10 slides it through.',
-      att: [
-        { num: 6, name: 'Pivot', x: 30, y: 43, role: 'ball', tip: 'Roll it across to the 8 on your left.' },
-        { num: 8, name: 'Midfielder', x: 18, y: 35, role: 'ball', tip: 'Take a touch, then play it into the feet of the 10.' },
-        { num: 10, name: 'Number ten', x: 27, y: 22, role: 'ball', tip: 'Come short off your marker. Aim early and slide it first time inside the full-back.' },
-        { num: 7, name: 'Winger', x: 42, y: 18, role: 'ball', tip: 'Stay level with their line. Dart inside the full-back as the 10 plays it. Finish first time.' }
-      ],
-      order: [0, 1, 2, 3],
-      def: [
-        { t: 'zone', x: 25, y: 34, spd: 5, eng: 4 },
-        { t: 'zone', x: 33, y: 28, spd: 5, eng: 4 },
-        { t: 'mark', a: 2, x: 26.8, y: 19.6, spd: 5.3 },
-        { t: 'line', x: 11, y: 13, spd: 5.2, eng: 3.5 }, { t: 'line', x: 19, y: 13, spd: 5.2, eng: 3.5 },
-        { t: 'line', x: 27, y: 13, spd: 5.2, eng: 3.5 }, { t: 'line', x: 36, y: 13, spd: 5.2, eng: 3.5 }
-      ],
-      lines: { 0: { floor: 10 } }
-    },
-    {
-      name: 'Crossover runs', time: 12,
-      brief: 'Five players. Both forwards are marked tight in the box. They swap posts as the cross comes in.',
-      att: [
-        { num: 9, name: 'Decoy', x: 21.5, y: 9.8, role: 'decoy', tip: 'No ball for you. Run across to the far post so your marker leaves the near one. Then DONE.' },
-        { num: 6, name: 'Pivot', x: 27, y: 43, role: 'ball', tip: 'Roll it across to the 8 on your left.' },
-        { num: 8, name: 'Midfielder', x: 17, y: 36, role: 'ball', tip: 'Aim early and send it first time down the left touchline for the 11.' },
-        { num: 11, name: 'Winger', x: 5, y: 27, role: 'ball', tip: 'Take it in your stride, then pull it back to the near post before the covering man closes.' },
-        { num: 10, name: 'Forward', x: 29, y: 12.5, role: 'ball', tip: 'Cross behind the 9 to the near post as the ball comes in. Finish first time.' }
-      ],
-      order: [0, 1, 2, 3, 4],
-      def: [
-        { t: 'zone', x: 22, y: 33, spd: 5, eng: 4 },
-        { t: 'zone', x: 31, y: 30, spd: 5, eng: 4 },
-        { t: 'zone', x: 15, y: 24, spd: 5, eng: 3.5 },
-        { t: 'mark', a: 3, x: 7, y: 23.4, spd: 5.8 },
-        { t: 'mark', a: 0, x: 21.8, y: 7.5, spd: 5.4 },
-        { t: 'mark', a: 4, x: 28.6, y: 10.2, spd: 5.7, react: 10, tight: 0.6 },
-        { t: 'zone', x: 36, y: 14, spd: 5, eng: 4 },
-        { t: 'zone', x: 11.3, y: 10.7, spd: 5.1, eng: 5 }
+        { t: 'line', x: 41.7, y: 31.5, spd: 5.7 },
+        { t: 'line', x: 30.2, y: 31.5, spd: 5.7 },
+        { t: 'line', x: 19.7, y: 31.5, spd: 5.7 },
+        { t: 'line', x: 8.2, y: 31.5, spd: 5.7 },
+        { t: 'mark', a: 2, x: 25, y: 38.4, spd: 5.7 },
+        { t: 'zone', x: 28.1, y: 43.2, spd: 5.7, eng: 5 },
+        { t: 'press', x: 37.2, y: 37.9, spd: 5.7 }
       ]
     }
   );

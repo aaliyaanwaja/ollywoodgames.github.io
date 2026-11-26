@@ -78,8 +78,9 @@ async def play_level(page, li):
     return st
 
 async def main():
-    levels = json.loads(node("const p=require('path');global.window=global;require(p.join('%s','tools','load.js'));console.log(JSON.stringify(global.OMT_LEVELS.map(l=>l.name)))" % ROOT).strip().split('\n')[-1])
-    seeded = {'done': {levels[0]: {'stars': 1, 'time': 12.34, 'retries': 9}}, 'sound': False, 'haptics': True, 'seenHow': True, 'cover': True, 'marker': 'from-native'}
+    # saves are keyed by each level's permanent id (campaign v2); ids: 1 marks a save already in that form
+    levels = json.loads(node("const p=require('path');global.window=global;require(p.join('%s','tools','load.js'));console.log(JSON.stringify(global.OMT_LEVELS.map(l=>l.id||l.name)))" % ROOT).strip().split('\n')[-1])
+    seeded = {'done': {levels[0]: {'stars': 1, 'time': 12.34, 'retries': 9}}, 'ids': 1, 'sound': False, 'haptics': True, 'seenHow': True, 'cover': True, 'marker': 'from-native'}
     stale = {'done': {}, 'sound': True, 'haptics': True, 'marker': 'from-localStorage'}
     async with async_playwright() as p:
         browser = await p.chromium.launch()

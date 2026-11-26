@@ -62,16 +62,25 @@
     return rows.join('\n') || 'Nothing played yet.';
   }
   const persist = () => { const v = JSON.stringify(save); try { localStorage.setItem(KEY, v); } catch (e) {} toNative({ t: 'save', v }); };
-  const lid = i => LEVELS[i].name;
+  const lid = i => LEVELS[i].id || LEVELS[i].name;
+  /* Campaign v2 (docs/foundation/21-campaign-v2.md): progress is keyed by each level's permanent id, never its name. A
+     save from before (keyed by name) is moved over once: a level that carried over keeps its record under its new id
+     (`oldName` on the level; stars regraded below from the stored time), the rest is dropped, and save.reach keeps the
+     fixtures the player had already reached open. */
+  if (!save.ids && LEVELS.every(lv => lv.id)) {
+    const old = save.done, n = Object.keys(old).length; save.done = {}; save.ids = 1;
+    LEVELS.forEach((lv, i) => { const r = lv.oldName && old[lv.oldName]; if (r) save.done[lid(i)] = r; });
+    if (n) { save.reach = Math.min(LEVELS.length - 1, n); persist(); }
+  }
   const rec = i => save.done[lid(i)];
-  const unlocked = i => save.all || CFG.unlock || i === 0 || !!rec(i - 1);
+  const unlocked = i => save.all || CFG.unlock || i === 0 || !!rec(i - 1) || i <= (save.reach || 0);
   const nextLevel = () => { for (let i = 0; i < LEVELS.length; i++) if (!rec(i)) return i; return -1; };
   /* Stars grade the finished move, never the number of takes: one for scoring, a second for beating par (the bot's time
      x 1.5), a third for the gaffer's time (x 1.2). The bot times live in js/levels/pars.js. */
   const parOf = (i, k) => { const b = LEVELS[i] && LEVELS[i].bot; return b ? Math.ceil(b * k * 10) / 10 : 0; };
   const starsFor = (i, t) => { const g = parOf(i, 1.2), p = parOf(i, 1.5); return !p ? 1 : t <= g ? 3 : t <= p ? 2 : 1; };
   // saves from before this rule were graded on retries: regrade them from the stored times
-  LEVELS.forEach((_, i) => { const r = save.done[LEVELS[i].name]; if (r && r.time) r.stars = Math.min(starsFor(i, r.time), r.slow ? 2 : 3); });
+  LEVELS.forEach((_, i) => { const r = save.done[lid(i)]; if (r && r.time) r.stars = Math.min(starsFor(i, r.time), r.slow ? 2 : 3); });
   const totalStars = () => LEVELS.reduce((a, _, i) => a + (rec(i) ? rec(i).stars : 0), 0);
   SFX.set(save.sound, save.haptics);
 
@@ -287,7 +296,7 @@
     const n = totalStars();
     showOv('dlg', '<div class="lbl">Reset progress</div><h2>Tear it all up?</h2><p>This removes ' + (n ? (n === 1 ? 'your one star' : 'all ' + n + ' of your stars') : 'your progress') + ' and locks every fixture again. It cannot be undone.</p>' +
       '<div class="btns"><button class="btn" id="n">Keep it</button><button class="btn warn" id="y">Reset</button></div>',
-      { n: showOptions, y: () => { save.done = {}; save.all = false; save.seenDecoy = false; persist(); showHome(); homeNote('Progress reset.'); } });
+      { n: showOptions, y: () => { save.done = {}; save.reach = 0; save.all = false; save.seenDecoy = false; persist(); showHome(); homeNote('Progress reset.'); } });
   }
 
   /* ---------- level flow ---------- */
