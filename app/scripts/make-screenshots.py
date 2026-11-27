@@ -141,7 +141,8 @@ class Game:
 
     async def capture(self, path):
         await self.page.screenshot(path=path, animations='disabled')
-        bad = [e for e in self.errors if 'ERR_FILE_NOT_FOUND' not in e]
+        # a missing local file, or the Daily Move fetch from the live site when the machine is offline, is not a game error
+        bad = [e for e in self.errors if 'ERR_FILE_NOT_FOUND' not in e and not e.startswith('Failed to load resource: net::ERR_')]
         if bad: raise RuntimeError('console errors while capturing: %s' % bad[:3])
 
     async def close(self):

@@ -1,7 +1,8 @@
 {
+  "id": "./",
   "name": "One-Man Team",
   "short_name": "One-Man Team",
-  "description": "Build a football move one player at a time, then watch the whole team play it.",
+  "description": "A free football game in your browser where you play every player in one attacking move, one at a time.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -10,8 +11,9 @@
   "theme_color": "#F2EAD8",
   "categories": ["games", "sports"],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

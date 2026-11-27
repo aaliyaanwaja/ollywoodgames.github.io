@@ -575,20 +575,22 @@ reads the Android manifest, the iOS Info.plist, the entitlements and the privacy
 ## Icons, splash and store graphics
 
 All drawn by `scripts/make-art.py` (`npm run art`; needs Python with Playwright and Pillow). It follows
-`docs/ART_DIRECTION.md` and the briefs in `docs/marketing/store-assets-plan.md`: one tabletop figure with the
-mustard ring, squad number 1, on felt in the palette greens, with one chalk ghost of the same figure behind it joined
-by a dashed run. The numeral is the Barlow Condensed 700 glyph stored as an outline, so the icon needs no font.
+`docs/ART_DIRECTION.md` and the briefs in `docs/marketing/store-assets-plan.md`. The icon is the Ghost trail identity
+(`docs/brand/2026-11-27-ghost-trail-applied.md`): the same No. 1 three times on felt, two dashed chalk ghosts on a
+dotted run and the live figure in its mustard ring. It is drawn by `../tools/brand.py` (shared with the web build), with
+all lettering outlined, so no font is needed. That module needs `uharfbuzz` and `fonttools`.
 
 | File | Use |
 | --- | --- |
 | `assets/icon.png` (1024, no alpha) | iOS app icon; launcher icon on old Android versions |
 | `assets/adaptive-foreground.png`, `adaptive-background.png` | Adaptive icon layers; the art stays inside the safe zone for any mask shape |
 | `assets/adaptive-monochrome.png` | Themed icon (Android 13 and later) |
-| `assets/splash-icon.png` | Felt badge shown on the cream splash |
+| `assets/splash-icon.png` | The icon as a printed tile (ink edge, hard ink shadow) on the cream splash |
 | `store/play-icon-512.png` | Play Console icon (512, 32-bit PNG) |
+| `store/app-store-icon-1024.png` | App Store icon (1024, 24-bit PNG, no alpha); the same image as `assets/icon.png` |
 | `store/feature-graphic-1024x500.png` | Play Console feature graphic (24-bit PNG) |
 | `store/preview-*.png` | Check sheets: icon at 48 to 192 px on white and dark, adaptive masks, splash on a phone, feature graphic with the outer 15 per cent dimmed. Not for upload. |
-| `../one-man-team/icons/*` | The web manifest's icons, same artwork, same file names as before |
+| `../one-man-team/icons/*` | The web manifest's icons (same file names as before), plus favicons (a small-size redraw), the apple-touch icon. Lockups, wordmarks and the share card come from `../tools/make-brand.py` |
 | `store/screenshots/android/*.png` | Eight Google Play phone screenshots, 1080 by 1920 |
 | `store/screenshots/ios/*.png` | Ten App Store screenshots, 1320 by 2868 (6.9-inch iPhone; Apple scales the smaller sizes from it) |
 | `store/screenshots/index.json`, `preview-*.png` | Captions, alt text and sizes; contact sheets. Not for upload. |

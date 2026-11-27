@@ -156,7 +156,11 @@
     return (min ? '<span class="min">' + min + '</span>' : '') + (sc ? '<span class="sc">' + fmtScore(scored ? [sc[0] + 1, sc[1]] : sc) + '</span>' : '');
   }
   const shortTip = a => String(a.short || a.tip || '');   // fitTip() trims it to whole sentences that fit two lines; the full text is on the team sheet and the pause card
-  const titleHtml = () => GAME_NAME.split(' ').map(w => '<span class="w">' + esc(w) + '</span>').join(' ');
+  /* The title as the Ghost trail wordmark (js/brand.js, outlined lettering), cover stacked, masthead on one line. A renamed
+     game (GAME_NAME no longer matching the drawn wordmark) falls back to live text until brand.js is regenerated. */
+  const BRAND = window.OMT_BRAND && window.OMT_BRAND.name === GAME_NAME ? window.OMT_BRAND : null;
+  const titleHtml = () => BRAND ? BRAND.stack : GAME_NAME.split(' ').map(w => '<span class="w">' + esc(w) + '</span>').join(' ');
+  const mastHtml = () => BRAND ? BRAND.line : esc(GAME_NAME);
   const ord = n => ['1st', '2nd', '3rd'][n] || (n + 1) + 'th';
 
   /* ---------- game feel: one beat per moment ----------
@@ -299,7 +303,7 @@
     $('home').className = 'screen';
     $('home').innerHTML =
       '<div class="scroll" id="scroll"><header class="mast"><div class="strip"><span>Official matchday programme</span><span>' + esc(club) + '</span></div>' +
-      '<div class="mast-main"><h1 class="title" id="brand">' + esc(GAME_NAME) + '</h1><button class="ib" id="bOpt" aria-label="Options">' + IC.gear + '</button></div>' +
+      '<div class="mast-main"><h1 class="title" id="brand">' + mastHtml() + '</h1><button class="ib" id="bOpt" aria-label="Options">' + IC.gear + '</button></div>' +
       '<div class="tally"><span>' + IC.star + '<b>' + total + '</b> of ' + LEVELS.length * 3 + ' stars</span></div></header>' +
       '<div id="daily"></div><div class="path">' + body + '</div>' +
       (CFG.rate ? '<button class="btn" id="rtb" style="width:100%;margin-top:14px">Your ratings: copy and send</button>' : '') +

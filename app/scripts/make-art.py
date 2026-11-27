@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Draws every icon, the splash image and the Play feature graphic from code, so they can be regenerated.
 
+The logo is the Ghost trail identity (docs/brand/2026-11-27-ghost-trail-applied.md). Its icon and wordmark are drawn
+by tools/brand.py, shared with the web build (tools/make-brand.py); this script lays them out for each platform.
+
     npm run art          (= python3 scripts/make-art.py)
 
 Writes:
@@ -8,15 +11,19 @@ Writes:
   app/assets/adaptive-foreground.png    1024  adaptive icon foreground, transparent, art inside the safe zone
   app/assets/adaptive-background.png    1024  adaptive icon background (felt)
   app/assets/adaptive-monochrome.png    1024  themed-icon silhouette (Android 13+)
-  app/assets/splash-icon.png            1024  transparent roundel shown on the paper-coloured splash
+  app/assets/splash-icon.png            1024  transparent: the icon tile with its ink offset shadow, on the paper splash
   app/store/play-icon-512.png           512   Play Console icon (32-bit PNG)
+  app/store/app-store-icon-1024.png     1024  App Store icon (24-bit PNG, no alpha)
   app/store/feature-graphic-1024x500.png      Play Console feature graphic (24-bit PNG, no alpha)
   app/store/preview-*.png                     contact sheets for checking small sizes; not for upload
   one-man-team/icons/icon.svg, icon-192.png, icon-512.png, icon-maskable-512.png, icon-1024.png   (web manifest)
+  one-man-team/icons/favicon.svg, favicon-32.png, favicon-16.png, favicon.ico   (the small-size redraw)
+  one-man-team/icons/apple-touch-icon-180.png
 
 Everything is SVG, rasterised by headless Chromium through Playwright. Look and palette follow
 docs/ART_DIRECTION.md and the icon / feature-graphic briefs in docs/marketing/store-assets-plan.md; the figure
-geometry follows figure() in one-man-team/js/render.js. Needs: python3, playwright (chromium), Pillow."""
+geometry follows figure() in one-man-team/js/render.js. Needs: python3, playwright (chromium), Pillow, and for
+tools/brand.py uharfbuzz and fonttools."""
 import asyncio, base64, io, math, os, sys
 from playwright.async_api import async_playwright
 from PIL import Image
@@ -24,10 +31,12 @@ from PIL import Image
 APP = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 ROOT = os.path.normpath(os.path.join(APP, '..'))
 GAME = os.path.join(ROOT, 'one-man-team')
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import brand as B                                            # the Ghost trail icon and wordmark
 ASSETS, STORE, WEB = os.path.join(APP, 'assets'), os.path.join(APP, 'store'), os.path.join(GAME, 'icons')
 
-# ---- the name appears in exactly one drawn asset (the feature graphic). Change it here if the title changes. ----
-TITLE = 'ONE-MAN TEAM'
+# ---- the name appears in one drawn asset here (the feature graphic), as the Ghost trail wordmark from tools/brand.py
+# (B.LINES). Change it there if the title changes.
 
 PAPER, PAPER_SHADE, INK, INK_SOFT = '#F2EAD8', '#E6DCC3', '#14213D', '#4A5573'
 FELT, FELT_DARK, CHALK = '#2F7D4F', '#2A7046', '#FBF8F0'
@@ -172,68 +181,36 @@ def chalk_line(d, w, dash=None, opacity=0.9):
     return '<path d="%s" fill="none" stroke="%s" stroke-opacity="%s" stroke-width="%s" stroke-linecap="round" %s/>' % (d, CHALK, f(opacity), f(w), ('stroke-dasharray="%s"' % dash) if dash else '')
 
 # ------------------------------------------------------------------ icon ------------------------------------------------------------------
-# One figure with the mustard ring; one ghost of the same figure behind it, joined by a short dashed chalk run.
-# Composition in a 1024 box. `k` shrinks the group about the centre for the adaptive / maskable safe zones.
-def icon_art(k=1.0, mono=False, cx0=512, cy0=512):
-    # at full size the group sits where it looks best in a square; shrunk for a safe zone it is centred on its own bounding box
-    ox, oy = (512, 512) if k == 1.0 else (525, 545)
-    def P(x, y): return (cx0 + (x - ox) * k, cy0 + (y - oy) * k)
-    mx, my = P(616, 410); gx, gy = P(236, 806)
-    R = 208 * k; r = R * 0.74
-    HEAD = -68                                           # running up the pitch, leaning right
-    s = ''
-    # the run: leaves the ghost's ring, bends, and disappears under the live figure
-    ang = math.radians(-58)
-    sx, sy = gx + r * 1.12 * math.cos(ang), gy + r * 1.12 * math.sin(ang)
-    c1x, c1y = P(330, 640); c2x, c2y = P(400, 600)
-    d = 'M%s %s C%s %s %s %s %s %s' % (f(sx), f(sy), f(c1x), f(c1y), f(c2x), f(c2y), f(mx), f(my))
-    if mono:
-        s += '<path d="%s" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="%s" stroke-linecap="round" stroke-dasharray="%s %s"/>' % (d, f(26 * k), f(30 * k), f(50 * k))
-        s += figure(gx, gy, r, ghost=True, mono=True, num=False, heading=HEAD, body=1.1)
-        s += '<circle cx="%s" cy="%s" r="%s" fill="#fff"/>' % (f(mx), f(my), f(R * 1.44))      # punched out below
-        s += figure(mx, my, R, live=True, mono=True, heading=HEAD, body=1.1)
-        return s
-    s += chalk_line(d, 24 * k, '%s %s' % (f(30 * k), f(46 * k)), 0.95)
-    s += chalk_ghost(gx, gy, r, HEAD)
-    s += shadow(mx, my, R * 1.33, 0.36)
-    s += figure(mx, my, R, live=True, heading=HEAD, body=1.1)
-    return s
-
-def icon_felt(size=1024):
-    # two mowing bands and a fragment of chalk: the edge of the centre circle, top left
-    chalk = chalk_line('M-40 318 A 430 430 0 0 0 330 -60', 20, None, 0.5)
-    return felt(size, size, [0, 512], 256, chalk)
+# The Ghost trail icon comes from tools/brand.py; the helpers above draw the feature graphic.
 
 def svg(w, h, body, extra_defs='', scale=1.0, bg=None):
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">%s%s%s</svg>'
             % (w, h, w, h, defs(scale, extra_defs), ('<rect width="%d" height="%d" fill="%s"/>' % (w, h, bg)) if bg else '', body))
 
-def icon_full():        return svg(1024, 1024, icon_felt() + icon_art(1.0))
-def icon_maskable():    return svg(1024, 1024, icon_felt() + icon_art(0.78))          # art inside the 80 % safe circle
-def adaptive_bg():      return svg(1024, 1024, icon_felt())
-def adaptive_fg():      return svg(1024, 1024, icon_art(0.60))                        # inside the 66 dp of 108 dp safe zone
-def adaptive_mono():
-    # themed icons use only the alpha channel; build it with a luminance mask so the figure can be punched out of its ring
-    art = icon_art(0.60, mono=True)
-    mask = '<mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#000"/><g filter="url(#inv)">%s</g></mask>' % art
-    inv = '<filter id="inv" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0"/></filter>'
-    return svg(1024, 1024, '<rect width="1024" height="1024" fill="#000" mask="url(#m)"/>', inv + mask)
+def sized(src, w, h):
+    """tools/brand.py draws with a viewBox only; render() wants the pixel size on the root element."""
+    return src.replace('<svg ', '<svg width="%d" height="%d" ' % (w, h), 1)
+
+# The Ghost trail icon. Full bleed: launchers and stores apply their own mask.
+def icon_full():        return sized(B.icon(), 1024, 1024)
+def icon_small():       return sized(B.icon_small(), 1024, 1024)                       # favicons: 16-48 px redraw
+def icon_maskable():    return sized(B.icon(0.76), 1024, 1024)                          # art inside the 80 % safe circle
+def adaptive_bg():
+    # felt full bleed; the chalk arc placed inside the 72 dp that a launcher shows, so it is not masked away
+    return sized(B.svg(1024, 1024, B.felt() + '<g transform="translate(171 171) scale(.666)">%s</g>' % B.icon_chalk()), 1024, 1024)
+def adaptive_fg():      return sized(B.svg(1024, 1024, B.icon_art(0.58)), 1024, 1024)      # inside the 66 dp of 108 dp safe circle
+def adaptive_mono():    return sized(B.icon_mono(0.58), 1024, 1024)
 
 def splash():
-    # A felt roundel, like a beer mat printed for the match: ink edge, hard offset shadow, the live figure on it.
-    c, r = 512, 300
-    body = '<circle cx="%d" cy="%d" r="%d" fill="%s"/>' % (c + 16, c + 16, r, INK)
-    clip = '<clipPath id="rc"><circle cx="%d" cy="%d" r="%d"/></clipPath>' % (c, c, r)
-    inner = felt(1024, 1024, [212 + i * 200 for i in range(0, 4, 2)], 200, chalk_line('M212 512 H812', 10, None, 0.45) + '<circle cx="512" cy="512" r="150" fill="none" stroke="%s" stroke-opacity=".45" stroke-width="10"/>' % CHALK)
-    body += '<g clip-path="url(#rc)">%s%s%s</g>' % (inner, shadow(c, c, 150 * 1.33, 0.34), figure(c, c, 150, live=True, heading=-68, body=1.1))
-    body += '<circle cx="%d" cy="%d" r="%d" fill="none" stroke="%s" stroke-width="14"/>' % (c, c, r, INK)
-    return svg(1024, 1024, body, clip)
+    # The icon as a printed tile on the paper splash: rounded square, 2px ink edge and a hard ink offset shadow.
+    x, s, r = 132, 720, 158
+    body = '<rect x="%d" y="%d" width="%d" height="%d" rx="%d" fill="%s"/>' % (x + 26, x + 26, s, s, r, INK)
+    body += '<clipPath id="t"><rect x="%d" y="%d" width="%d" height="%d" rx="%d"/></clipPath>' % (x, x, s, s, r)
+    body += '<g clip-path="url(#t)"><g transform="translate(%d %d) scale(%s)">%s</g></g>' % (x, x, f(s / 1024), B.icon_body())
+    body += '<rect x="%d" y="%d" width="%d" height="%d" rx="%d" fill="none" stroke="%s" stroke-width="14"/>' % (x, x, s, s, r, INK)
+    return sized(B.svg(1024, 1024, body), 1024, 1024)
 
 # ------------------------------------------------------------ feature graphic ------------------------------------------------------------
-def font_face(name, file, weight):
-    data = base64.b64encode(open(os.path.join(GAME, 'fonts', file), 'rb').read()).decode()
-    return '@font-face{font-family:"%s";font-weight:%d;src:url("data:font/woff2;base64,%s") format("woff2");}' % (name, weight, data)
-
 def feature():
     W, H = 1024, 500
     # the pitch runs left to right: mowing bands are vertical, the goal is at the right edge
@@ -285,16 +262,14 @@ def feature():
     s += '<path d="%s" fill="%s"/>' % (stub(7, 7), INK)
     s += '<path d="%s" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="round"/>' % (stub(0, 0), PAPER, INK)
     s += '<clipPath id="tk"><path d="%s"/></clipPath><rect x="%d" y="%d" width="120" height="%d" fill="url(#dots)" clip-path="url(#tk)"/>' % (stub(0, 0), x + w - 130, y, h)
-    words = TITLE.split(' ')
-    top, rest = (words[0], ' '.join(words[1:])) if len(words) > 1 else (TITLE, '')
-    tx = x + 26
-    s += '<path d="M%d %d H%d" stroke="%s" stroke-width="4"/>' % (tx, y + 30, x + w - 34, INK)
-    s += '<text x="%d" y="%d" font-family="Anton" font-size="84" fill="%s" textLength="%d" lengthAdjust="spacingAndGlyphs">%s</text>' % (tx, y + 110, INK, w - 60 if len(top) > 6 else 0, top) if len(top) > 6 else \
-         '<text x="%d" y="%d" font-family="Anton" font-size="84" fill="%s">%s</text>' % (tx, y + 110, INK, top)
-    if rest:
-        s += '<text x="%d" y="%d" font-family="Anton" font-size="84" fill="%s">%s</text>' % (tx, y + 186, TOMATO, rest)
-    return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d"><style>%s</style>%s%s</svg>'
-            % (W, H, W, H, font_face('Anton', 'anton-latin-400-normal.woff2', 400), defs(0.55), s))
+    # the Ghost trail wordmark, stacked, outlined (tools/brand.py): ink letters, tomato offset print, dashed tomato ghost
+    tx = x + 22
+    s += '<path d="M%d %d H%d" stroke="%s" stroke-width="4"/>' % (tx + 4, y + 30, x + w - 34, INK)
+    wm, ww, wh = B.wordmark(lines=B.LINES, lh=0.9, shadow=0.042, ghost_dx=0.13, ghost_w=0.03, dash=(0.075, 0.05), uid='fg', main=INK)
+    k = min((w - 22 - 34) / ww, 140 / wh)
+    s += '<g transform="translate(%s %s) scale(%s)">%s</g>' % (f(tx), f(y + 44), '%.5f' % k, wm[wm.index('>') + 1:-len('</svg>')])
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">%s%s</svg>'
+            % (W, H, W, H, defs(0.55), s))
 
 # ------------------------------------------------------------------ output ------------------------------------------------------------------
 async def render(page, svg_src, w, h, transparent=False):
@@ -328,14 +303,23 @@ async def main():
         sp = await render(page, splash(), 1024, 1024, True); save(sp, os.path.join(ASSETS, 'splash-icon.png'), 'RGBA')
         print('store')
         save(await render(page, icon_full(), 512, 512), os.path.join(STORE, 'play-icon-512.png'), 'RGBA')
+        save(full, os.path.join(STORE, 'app-store-icon-1024.png'), 'RGB')                  # Apple rejects an icon with alpha
         feat = await render(page, feature(), 1024, 500); save(feat, os.path.join(STORE, 'feature-graphic-1024x500.png'), 'RGB')
         print('web icons')
-        open(os.path.join(WEB, 'icon.svg'), 'w').write(icon_full().replace(' width="1024" height="1024"', '', 1) + '\n')
+        open(os.path.join(WEB, 'icon.svg'), 'w').write(B.icon() + '\n')
+        open(os.path.join(WEB, 'favicon.svg'), 'w').write(B.icon_small() + '\n')
         print('  %-52s %d KB' % (os.path.relpath(os.path.join(WEB, 'icon.svg'), ROOT), os.path.getsize(os.path.join(WEB, 'icon.svg')) // 1024))
         save(full, os.path.join(WEB, 'icon-1024.png'), 'RGB')
         save(await render(page, icon_full(), 512, 512), os.path.join(WEB, 'icon-512.png'), 'RGB')
         save(await render(page, icon_full(), 192, 192), os.path.join(WEB, 'icon-192.png'), 'RGB')
         save(await render(page, icon_maskable(), 512, 512), os.path.join(WEB, 'icon-maskable-512.png'), 'RGB')
+        save(await render(page, icon_full(), 180, 180), os.path.join(WEB, 'apple-touch-icon-180.png'), 'RGB')
+        # favicons: the small-size redraw, rasterised at each size rather than scaled down from one image
+        fav = {px: await render(page, icon_small(), px, px) for px in (16, 32, 48)}
+        save(fav[32], os.path.join(WEB, 'favicon-32.png'), 'RGB'); save(fav[16], os.path.join(WEB, 'favicon-16.png'), 'RGB')
+        ico = os.path.join(WEB, 'favicon.ico')
+        fav[48].convert('RGB').save(ico, sizes=[(16, 16), (32, 32), (48, 48)], append_images=[fav[16].convert('RGB'), fav[32].convert('RGB')])
+        print('  %-52s 16, 32, 48 %d KB' % (os.path.relpath(ico, ROOT), os.path.getsize(ico) // 1024))
 
         print('previews (for checking, not for upload)')
         # 1. the icon at launcher sizes, on white and on dark, square-rounded and circular
