@@ -161,12 +161,17 @@ function hapticPlan(p, platform) {
 /* Only https pages on the studio's own site and the two stores may be opened from the game. Add hosts here when
    needed. */
 const EXTERNAL_HOSTS = ['ollywoodgames.github.io', 'play.google.com', 'apps.apple.com'];
+// Hosts shared with other sites: only the studio's own path on them may be opened.
+const EXTERNAL_PATHS = { 'aaliyaanwaja.github.io': '/ollywoodgames.github.io/' };
 function externalUrl(url) {
   if (typeof url !== 'string' || url.length > 2048) return null;
   // parsed by hand: React Native's URL class is not a full implementation
   const m = /^https:\/\/([a-z0-9.-]+)(\/[^\s"'<>\\]*)?$/i.exec(url);
-  if (!m || EXTERNAL_HOSTS.indexOf(m[1].toLowerCase()) < 0) return null;
-  return url;
+  if (!m) return null;
+  const host = m[1].toLowerCase(), path = m[2] || '/';
+  if (EXTERNAL_HOSTS.indexOf(host) >= 0) return url;
+  if (EXTERNAL_PATHS[host] && path.indexOf(EXTERNAL_PATHS[host]) === 0) return url;
+  return null;
 }
 
 /* The text the game asks to share (a result and a link to the same move on the website). Plain text only, of a
