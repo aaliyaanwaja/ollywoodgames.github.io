@@ -284,7 +284,7 @@ True for this build, which has no network access, no analytics, no advert SDK, n
   included in the player's own iCloud or computer backup of their phone, which is the player's copy, not yours.
 - Tracking: none. The privacy manifest in the build declares `NSPrivacyTracking` false and no tracking domains,
   and the app never asks for the tracking permission.
-- **Privacy Policy URL:** `https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html`. Required for every iOS app. The page
+- **Privacy Policy URL:** `https://onemanteam.app/privacy.html`. Required for every iOS app. The page
   currently says "Draft" and has no contact address; fix both before submitting.
 - **These answers stop being true the moment adverts, purchases, analytics or crash reporting are added.** Redo
   them in the same release, and update the privacy manifest in `app.json`.
@@ -303,9 +303,9 @@ True for this build, which has no network access, no analytics, no advert SDK, n
 
 | Field | Value | Status |
 | --- | --- | --- |
-| Support URL | `https://aaliyaanwaja.github.io/ollywoodgames.github.io/` | **Owner:** the page must show a way to contact you. Add an address or a form first. |
-| Marketing URL (optional) | `https://aaliyaanwaja.github.io/ollywoodgames.github.io/one-man-team/` | The playable web version. Optional; leave blank if you would rather not send store visitors to a free browser copy. |
-| Privacy Policy URL | `https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html` | **Owner:** remove the draft notice, add the contact address. |
+| Support URL | `https://onemanteam.app/` | **Owner:** the page must show a way to contact you. Add an address or a form first. |
+| Marketing URL (optional) | `https://onemanteam.app/one-man-team/` | The playable web version. Optional; leave blank if you would rather not send store visitors to a free browser copy. |
+| Privacy Policy URL | `https://onemanteam.app/privacy.html` | **Owner:** remove the draft notice, add the contact address. |
 | Copyright | `2026 Ollywood Games` | Apple adds the symbol itself. If you enrol as an individual, the seller shown on the store is your legal name; the copyright line may still name the studio. Your decision. |
 | Content rights | "No, it does not contain, show or access third-party content" | The fonts (Anton, Barlow, Barlow Condensed) are under the SIL Open Font Licence, which allows this use; their licence text is in `one-man-team/fonts/LICENSE.txt`. |
 | Sign-in required | No | |

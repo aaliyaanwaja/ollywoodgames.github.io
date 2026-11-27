@@ -366,7 +366,7 @@
         seg('oM', IC.motion, 'Reduce motion', [['phone', 'Phone'], ['on', 'On']], save.motion === 'on' ? 'on' : 'phone') + '</div>' +
       '<div class="lbl soft gh">Help</div><div class="list">' + link('oHow', IC.book, 'How to play') + link('oPrac', IC.stick, 'Practice drills') + '</div>' +
       '<div class="lbl soft gh">Your progress</div><div class="list">' + (typeof statsRow === 'function' ? statsRow() : '') +
-        link('oPriv', IC.shield, 'Privacy policy', NATIVE ? 'https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html' : '../privacy.html') +
+        link('oPriv', IC.shield, 'Privacy policy', NATIVE ? 'https://onemanteam.app/privacy.html' : '../privacy.html') +
         (save.all ? link('oLog', IC.list, 'Tester: play log') : '') + link('oReset', IC.bin, 'Reset progress', '', 'danger') + '</div>' +
       '<p class="fine">' + (typeof statsNote === 'function' ? statsNote() : 'Progress is kept on this phone only. No account, no adverts, no tracking.') + '</p>' +
       '<p class="fine colophon">' + esc(GAME_NAME) + ' · build ' + BUILD + '<br>Printed and published by ' + esc(STUDIO) + '</p></div>' +
@@ -753,7 +753,7 @@
      build is skipped. Unlimited takes; the best time counts; the stars are the usual ones against the bot's time. */
   const DAILY_ENGINE = 1;
   const SET = window.OMT_SETTINGS || {};
-  const SITE = String(SET.site || 'https://aaliyaanwaja.github.io/ollywoodgames.github.io/one-man-team/');
+  const SITE = String(SET.site || 'https://onemanteam.app/one-man-team/');
   const DAILY = window.OMT_DAILY || { epoch: '2026-11-30', days: [] };
   const dailyDays = {};   // date -> entry
   (DAILY.days || []).forEach(d => { dailyDays[d.date] = d; });

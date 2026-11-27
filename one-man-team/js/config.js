@@ -7,5 +7,5 @@
               (Settings, Pages, branch main, folder /) before either works. */
 window.OMT_SETTINGS = {
   statsUrl: '',
-  site: 'https://aaliyaanwaja.github.io/ollywoodgames.github.io/one-man-team/'
+  site: 'https://onemanteam.app/one-man-team/'
 };

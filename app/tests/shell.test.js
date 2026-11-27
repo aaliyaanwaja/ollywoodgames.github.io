@@ -62,16 +62,16 @@ t('hapticPlan on iOS: taps are the same, rhythms become timed Taptic impacts (ne
 });
 
 t('externalUrl allows the privacy policy and refuses look-alikes', () => {
-  assert.strictEqual(S.externalUrl('https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html'), 'https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html');
+  assert.strictEqual(S.externalUrl('https://onemanteam.app/privacy.html'), 'https://onemanteam.app/privacy.html');
   assert.ok(S.externalUrl('https://apps.apple.com/app/id1234567890') && S.externalUrl('https://play.google.com/store/apps/details?id=com.ollywoodgames.onemanteam'));
-  for (const bad of ['http://ollywoodgames.github.io/privacy.html', 'https://aaliyaanwaja.github.io/ollywoodgames.github.io.evil.com/', 'https://x@ollywoodgames.github.io/',
-    'https://aaliyaanwaja.github.io/ollywoodgames.github.io@evil.com/', 'javascript:alert(1)', 'intent://scan/#Intent;end', 'file:///etc/hosts', S.BASE_URL, '', null]) {
+  for (const bad of ['http://ollywoodgames.github.io/privacy.html', 'https://onemanteam.app.evil.com/', 'https://x@ollywoodgames.github.io/',
+    'https://onemanteam.app@evil.com/', 'javascript:alert(1)', 'intent://scan/#Intent;end', 'file:///etc/hosts', S.BASE_URL, '', null]) {
     assert.strictEqual(S.externalUrl(bad), null, String(bad));
   }
 });
 
 t('shareText passes a daily result and refuses anything that is not plain text of a sane length', () => {
-  const ok = 'One-Man Team \u00b7 Daily 34\nBend the run \u00b7 6.8 s \u00b7 3 takes\nGaffer\u2019s time 6.4 s. Your turn:\nhttps://aaliyaanwaja.github.io/ollywoodgames.github.io/one-man-team/?daily=34';
+  const ok = 'One-Man Team \u00b7 Daily 34\nBend the run \u00b7 6.8 s \u00b7 3 takes\nGaffer\u2019s time 6.4 s. Your turn:\nhttps://onemanteam.app/one-man-team/?daily=34';
   assert.strictEqual(S.shareText(ok), ok);
   assert.strictEqual(S.shareText('  a\u0000b\u0007  '), 'ab');
   for (const bad of ['', '   ', 'x'.repeat(601), null, undefined, 42, {}, ['a']]) assert.strictEqual(S.shareText(bad), null, String(bad));
@@ -79,7 +79,7 @@ t('shareText passes a daily result and refuses anything that is not plain text o
 
 t('isOwnUrl recognises only the page itself', () => {
   assert.ok(S.isOwnUrl(S.BASE_URL)); assert.ok(S.isOwnUrl('about:blank')); assert.ok(S.isOwnUrl(S.BASE_URL + '#x'));
-  assert.ok(!S.isOwnUrl('https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html')); assert.ok(!S.isOwnUrl(undefined));
+  assert.ok(!S.isOwnUrl('https://onemanteam.app/privacy.html')); assert.ok(!S.isOwnUrl(undefined));
 });
 
 t('a hostile save cannot break out of the inline script', () => {

@@ -160,7 +160,7 @@ function hapticPlan(p, platform) {
 
 /* Only https pages on the studio's own site and the two stores may be opened from the game. Add hosts here when
    needed. */
-const EXTERNAL_HOSTS = ['ollywoodgames.github.io', 'play.google.com', 'apps.apple.com'];
+const EXTERNAL_HOSTS = ['onemanteam.app', 'www.onemanteam.app', 'ollywoodgames.github.io', 'play.google.com', 'apps.apple.com'];
 // Hosts shared with other sites: only the studio's own path on them may be opened.
 const EXTERNAL_PATHS = { 'aaliyaanwaja.github.io': '/ollywoodgames.github.io/' };
 function externalUrl(url) {
