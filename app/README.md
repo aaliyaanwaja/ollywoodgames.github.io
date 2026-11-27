@@ -165,7 +165,7 @@ App Privacy, export compliance) are in that checklist and in `store/app-store-li
 | 2 | Expo account and EAS project | `eas login`, `eas init` | Use the account your other games build under, so the credentials sit together. |
 | 3 | Signing | Automatic | Let EAS generate the keystore; accept Play App Signing. |
 | 4 | Play Console app | Play Console, Create app | Type Game, free. Listing text is in `store/play-store-listing.md` (the description there replaces the one in `docs/marketing/play-store-listing.md`). Free cannot be changed to paid later. |
-| 5 | Privacy policy URL | Play Console, App content | `https://ollywoodgames.github.io/privacy.html`. The game's Options screen links to the same page. Check that the page is live and describes this game. |
+| 5 | Privacy policy URL | Play Console, App content | `https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html`. The game's Options screen links to the same page. Check that the page is live and describes this game. |
 | 6 | Data safety form | Play Console, App content | Answers for this build are below. |
 | 7 | Content rating | Play Console, App content | IARC questionnaire: no violence, no sexual content, no bad language, no gambling, no user-to-user communication, no location sharing, no purchases. See the expectations in the listing document. |
 | 8 | Target audience | Play Console, App content | Your call. Choosing only 13 and over is the simple route. Including under-13s brings in the Families policy. |

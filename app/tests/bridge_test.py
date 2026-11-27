@@ -132,7 +132,7 @@ async def main():
         await page.click('#oPriv'); await page.wait_for_timeout(300)
         o = await posted(page, 'open')
         allowed = node("const S=require('./src/page-script.js');process.stdout.write(String(S.externalUrl(%s)))" % json.dumps(o[0]['url'] if o else ''))
-        ok(href == 'https://ollywoodgames.github.io/privacy.html' and len(o) == 1 and o[0]['url'] == href and allowed == href, 'privacy link is handed to the shell and is on its allow-list', (href, o))
+        ok(href == 'https://aaliyaanwaja.github.io/ollywoodgames.github.io/privacy.html' and len(o) == 1 and o[0]['url'] == href and allowed == href, 'privacy link is handed to the shell and is on its allow-list', (href, o))
         ok(await page.evaluate("location.href") == prep['base'] and not external, 'the page did not navigate and made no network request', external)
         ok(not errs, 'no console errors', errs)
         await ctx.close()
