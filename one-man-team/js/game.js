@@ -156,7 +156,7 @@
     return (min ? '<span class="min">' + min + '</span>' : '') + (sc ? '<span class="sc">' + fmtScore(scored ? [sc[0] + 1, sc[1]] : sc) + '</span>' : '');
   }
   const shortTip = a => String(a.short || a.tip || '');   // fitTip() trims it to whole sentences that fit two lines; the full text is on the team sheet and the pause card
-  /* The title as the Ghost trail wordmark (js/brand.js, outlined lettering), cover stacked, masthead on one line. A renamed
+  /* The title as the D4 Two-tone wordmark (js/brand.js, outlined lettering), cover stacked, masthead on one line. A renamed
      game (GAME_NAME no longer matching the drawn wordmark) falls back to live text until brand.js is regenerated. */
   const BRAND = window.OMT_BRAND && window.OMT_BRAND.name === GAME_NAME ? window.OMT_BRAND : null;
   const titleHtml = () => BRAND ? BRAND.stack : GAME_NAME.split(' ').map(w => '<span class="w">' + esc(w) + '</span>').join(' ');

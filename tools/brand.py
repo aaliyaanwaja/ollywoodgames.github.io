@@ -1,11 +1,12 @@
-"""The One-Man Team identity, "A. Ghost trail" (chosen 27 Nov 2026, docs/brand/2026-11-27-name-and-logo-options.md).
+"""The One-Man Team identity: the "A. Ghost trail" icon (chosen 27 Nov 2026, docs/brand/2026-11-27-name-and-logo-options.md)
+and the "D4 Two-tone" wordmark (chosen 27 Nov 2026, docs/brand/2026-11-27-wordmark-drafts.md).
 
 One module draws every logo and icon, so the web build, the app and the store art always agree:
   icon(k, ...)        the app icon: the same No. 1 three times on felt, two dashed ghosts on a dotted run and the live
                       figure in its mustard ring. k shrinks the art about its centre for maskable / adaptive safe zones.
   icon_small()        the same mark redrawn for 16-48 px (favicon): one ghost, a bigger live figure.
-  wordmark(...)       ONE-MAN TEAM in Anton, outlined, over a tomato offset print and a dashed tomato "ghost" of itself
-                      shifted back along the run. Single line or stacked on two lines.
+  wordmark(...)       "D4 Two-tone" (27 Nov 2026, replacing the Ghost trail lettering): ONE-MAN TEAM in plain Anton,
+                      outlined, ONE-MAN in ink, TEAM in tomato, a mustard ball as the full stop. One line or stacked.
 
 All lettering is converted to outlines (HarfBuzz shaping with kerning, fontTools outlines) from the fonts in
 one-man-team/fonts, so the SVGs render identically anywhere, with no web font. Ported from the concept generator in
@@ -204,44 +205,57 @@ def _shape(lines, size, lh):
     return d, max(widths)
 
 
-def wordmark(lines=(WORD,), lh=0.95, shadow=0.05, ghost_dx=0.13, ghost_w=0.03, dash=(0.075, 0.05), main='currentColor',
-             uid='w', size=1000, pad_left=True, attrs='', title=None):
-    """The Ghost trail wordmark as one SVG.
+BALL_R, BALL_GAP, BALL_EDGE = 0.105, 0.07, 0.034     # the mustard ball full stop, in em
 
-    Geometry is in em (size units per em). The viewBox origin is where the text box of `.title` starts, so the main
-    lettering lands on exactly the same pixels as the live text it replaces; the dashed ghost spills `ghost_dx` em to
-    the left (into the page padding) unless pad_left, which widens the box to hold it. The box is `lh` em per line high.
-    main='currentColor' lets CSS set the ink colour."""
-    d, w = _shape(lines, size, lh)
-    gx, sh = ghost_dx * size, shadow * size
-    left = gx + ghost_w * size if pad_left else 0
-    W, H = left + w + sh, lh * size * len(lines)
-    pid = 'omt-%s' % uid
-    body = '<defs><path id="%s" d="%s"/></defs>' % (pid, d)
-    body += '<g transform="translate(%s 0)">' % f(left) if left else '<g>'
-    body += '<use href="#%s" fill="none" stroke="%s" stroke-width="%s" stroke-dasharray="%s %s" transform="translate(%s 0)"/>' % (
-        pid, TOMATO, f(ghost_w * size), f(dash[0] * size), f(dash[1] * size), f(-gx))
-    body += '<use href="#%s" fill="%s" transform="translate(%s %s)"/>' % (pid, TOMATO, f(sh), f(sh))
-    body += '<use href="#%s" fill="%s"/>' % (pid, main)
-    body += '</g>'
+
+def wordmark(lines=(WORD,), lh=0.95, main='currentColor', accent=TOMATO, uid='w', size=1000, attrs='', title=None, edge=None):
+    """The wordmark as one SVG: "D4 Two-tone" (chosen 27 Nov 2026, docs/brand/2026-11-27-wordmark-drafts.md).
+
+    ONE-MAN in `main`, TEAM in tomato, and a mustard ball as the full stop after TEAM. Plain Anton, outlined, no shadow.
+    Geometry is in em (size units per em). The viewBox origin is where the text box of `.title` starts and the box is `lh`
+    em per line high, so the lettering lands on the same pixels as the live text it replaces; the box is widened only by
+    the ball. main='currentColor' lets CSS set the ink colour; the ball's edge follows it unless `edge` is given."""
+    base0 = (lh - (ANTON.asc + ANTON.desc)) / 2 + ANTON.asc
+    body, W = '', 0
+    for i, line in enumerate(lines):
+        y = (base0 + i * lh) * size
+        if 'TEAM' in line:
+            head = line[:line.index('TEAM')]
+            x = 0
+            if head:
+                d, _ = ANTON.d(head, size, 0, y, TRACK)
+                body += '<path d="%s" fill="%s"/>' % (d, main)
+                x = ANTON.width(head, size, TRACK) + TRACK * size
+            d, w = ANTON.d('TEAM', size, x, y, TRACK)
+            body += '<path d="%s" fill="%s"/>' % (d, accent)
+            r = BALL_R * size
+            cx, cy = x + w + BALL_GAP * size + r, y - r - 0.01 * size
+            body += '<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="%s"/>' % (
+                f(cx), f(cy), f(r - BALL_EDGE * size / 2), MUSTARD, edge or main, f(BALL_EDGE * size))
+            W = max(W, cx + r)
+        else:
+            d, w = ANTON.d(line, size, 0, y, TRACK)
+            body += '<path d="%s" fill="%s"/>' % (d, main)
+            W = max(W, w)
+    H = lh * size * len(lines)
     t = '<title>%s</title>' % title if title else ''
     return svg(W, H, t + body, attrs=attrs), W, H
 
 
-def wordmark_box(lines=(WORD,), lh=0.95, shadow=0.05, ghost_dx=0.13, ghost_w=0.03, pad_left=True, size=1000):
-    d, w = _shape(lines, size, lh)
-    left = (ghost_dx + ghost_w) * size if pad_left else 0
-    return left + w + shadow * size, lh * size * len(lines), left
+def wordmark_box(lines=(WORD,), lh=0.95, size=1000):
+    """(width, height) of wordmark() with the same arguments."""
+    _, W, H = wordmark(lines, lh, size=size)
+    return W, H
 
 
 def lockup(dark=False, icon_px=260, gap=50, stacked=False):
     """Horizontal lockup: the icon tile (rounded square, ink edge) then the wordmark, on one line or stacked."""
     main = PAPER if dark else INK
     if stacked:
-        wm, ww, wh = wordmark(lines=LINES, lh=0.9, shadow=0.042, ghost_dx=0.13, ghost_w=0.024, dash=(0.07, 0.048), main=main, uid='lk')
+        wm, ww, wh = wordmark(lines=LINES, lh=0.9, main=main, uid='lk')
         scale = icon_px * 1.3 / wh
     else:
-        wm, ww, wh = wordmark(main=main, uid='lk', lh=1.0, shadow=0.04, ghost_dx=0.13, ghost_w=0.022, dash=(0.07, 0.048), size=230)
+        wm, ww, wh = wordmark(main=main, uid='lk', lh=1.0, size=230)
         scale = icon_px * 0.86 / wh
     W = icon_px + gap + ww * scale
     H = max(icon_px, wh * scale)

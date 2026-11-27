@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draws every icon, the splash image and the Play feature graphic from code, so they can be regenerated.
 
-The logo is the Ghost trail identity (docs/brand/2026-11-27-ghost-trail-applied.md). Its icon and wordmark are drawn
+The logo is the Ghost trail icon with the D4 Two-tone wordmark (docs/brand/2026-11-27-ghost-trail-applied.md). Both are drawn
 by tools/brand.py, shared with the web build (tools/make-brand.py); this script lays them out for each platform.
 
     npm run art          (= python3 scripts/make-art.py)
@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import brand as B                                            # the Ghost trail icon and wordmark
 ASSETS, STORE, WEB = os.path.join(APP, 'assets'), os.path.join(APP, 'store'), os.path.join(GAME, 'icons')
 
-# ---- the name appears in one drawn asset here (the feature graphic), as the Ghost trail wordmark from tools/brand.py
+# ---- the name appears in one drawn asset here (the feature graphic), as the wordmark from tools/brand.py
 # (B.LINES). Change it there if the title changes.
 
 PAPER, PAPER_SHADE, INK, INK_SOFT = '#F2EAD8', '#E6DCC3', '#14213D', '#4A5573'
@@ -262,10 +262,10 @@ def feature():
     s += '<path d="%s" fill="%s"/>' % (stub(7, 7), INK)
     s += '<path d="%s" fill="%s" stroke="%s" stroke-width="4" stroke-linejoin="round"/>' % (stub(0, 0), PAPER, INK)
     s += '<clipPath id="tk"><path d="%s"/></clipPath><rect x="%d" y="%d" width="120" height="%d" fill="url(#dots)" clip-path="url(#tk)"/>' % (stub(0, 0), x + w - 130, y, h)
-    # the Ghost trail wordmark, stacked, outlined (tools/brand.py): ink letters, tomato offset print, dashed tomato ghost
+    # the wordmark, stacked, outlined (tools/brand.py, D4 Two-tone): ONE-MAN in ink, TEAM in tomato, mustard ball full stop
     tx = x + 22
     s += '<path d="M%d %d H%d" stroke="%s" stroke-width="4"/>' % (tx + 4, y + 30, x + w - 34, INK)
-    wm, ww, wh = B.wordmark(lines=B.LINES, lh=0.9, shadow=0.042, ghost_dx=0.13, ghost_w=0.03, dash=(0.075, 0.05), uid='fg', main=INK)
+    wm, ww, wh = B.wordmark(lines=B.LINES, lh=0.9, uid='fg', main=INK)
     k = min((w - 22 - 34) / ww, 140 / wh)
     s += '<g transform="translate(%s %s) scale(%s)">%s</g>' % (f(tx), f(y + 44), '%.5f' % k, wm[wm.index('>') + 1:-len('</svg>')])
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">%s%s</svg>'

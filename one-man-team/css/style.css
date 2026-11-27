@@ -56,8 +56,8 @@ button:disabled { cursor: default; }
 .strip span:first-child { overflow: hidden; text-overflow: ellipsis; }
 .title { font: 400 40px/.95 var(--display); letter-spacing: .01em; text-transform: uppercase; color: var(--ink); text-shadow: 2px 2px 0 var(--tomato); }
 .title .w { white-space: nowrap; }
-/* the Ghost trail wordmark (js/brand.js): sized in em so it fills exactly the box the live text did; the dashed ghost
-   spills left into the page padding */
+/* the D4 Two-tone wordmark (js/brand.js): sized in em so the lettering fills exactly the box the live text did; only the
+   mustard ball full stop widens it */
 .title .wm { display: block; max-width: 100%; height: auto; overflow: visible; }
 .mast-main .title { min-width: 0; }
 
