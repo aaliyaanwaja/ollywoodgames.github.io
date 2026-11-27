@@ -20,18 +20,18 @@
     order: [0, 1], def: [],
     coach: [null, { r: 'Drag anywhere with your other thumb to run. A pass is coming.', w: 'Drag to run. Keep your thumb down to keep moving.', i: 'Run onto the ball.', h: 'You have it. Carry it closer, then <b>SHOOT</b> at a corner.', a: 'Away from the keeper. Let go.' }]
   }, {
-    practice: true, passOnly: true, name: 'Pass', time: 90, brief: 'Land the ball in the chalk circle. Drag further to hit it harder.',
-    mark: { x: 25, y: 18, r: 4.5 },
-    att: [{ num: 8, name: 'Playmaker', x: 25, y: 44, role: 'ball', tip: 'Stop the ball inside the chalk circle.' }, { num: 9, name: 'Striker', x: 25, y: 29, role: 'ball', tip: '' }],
+    practice: true, passOnly: true, name: 'Pass ahead', time: 90, brief: 'Passes go where your striker is going, not where he is. Stop the ball in the yellow circle.',
+    mark: { x: 25, y: 24.5, r: 4 },
+    att: [{ num: 8, name: 'Playmaker', x: 25, y: 44, role: 'ball', tip: 'Stop the ball in the yellow circle.' }, { num: 9, name: 'Striker', x: 25, y: 33, role: 'ball', tip: '' }],
     order: [0, 1], def: [],
-    coach: [{ r: 'Press <b>PASS</b>, hold, and drag towards the chalk circle.', h: 'Press <b>PASS</b>, hold, and drag towards the chalk circle.', a: 'Drag until the white ring sits inside the circle. Let go.', k: '' }]
+    coach: [{ r: 'Not to the 9: <b>into the yellow circle</b> ahead of him. Press <b>PASS</b>, hold, and drag towards it.', h: 'Not to the 9: <b>into the yellow circle</b> ahead of him. Press <b>PASS</b>, hold, and drag towards it.', a: 'Drag until the white ring sits inside the yellow circle. Drag further for more weight. Let go.', k: '' }]
   }, {
     practice: true, last: true, name: 'The rewind', time: 90, brief: 'Now the idea of the whole game. Play the pass, then become the player it is for.',
-    gk: { react: 26 }, mark: { x: 25, y: 18, r: 4.5 },
-    att: [{ num: 8, name: 'Playmaker', x: 25, y: 44, role: 'ball', tip: 'Play the same pass into the circle.' }, { num: 9, name: 'Striker', x: 25, y: 29, role: 'ball', tip: 'Run onto your own pass and score.' }],
+    gk: { react: 26 }, mark: { x: 25, y: 24.5, r: 4 },
+    att: [{ num: 8, name: 'Playmaker', x: 25, y: 44, role: 'ball', tip: 'Play the same pass into the yellow circle.' }, { num: 9, name: 'Striker', x: 25, y: 33, role: 'ball', tip: 'Run onto your own pass and score.' }],
     order: [0, 1], def: [],
     coach: [
-      { r: 'The same pass again, into the circle.', h: 'The same pass again, into the circle.', a: AIM, k: 'Played. Now watch what happens.' },
+      { r: 'The same pass again, into the yellow circle.', h: 'The same pass again, into the yellow circle.', a: AIM, k: 'Played. Now watch what happens.' },
       { r: 'Time has rewound. <b>Now you are the 9</b>, and the pass you just played is coming.', w: 'Your 8 is about to play it, exactly as you did. Get ready to run.', i: 'There it is. Run onto your own pass.', h: 'Carry it closer, then <b>SHOOT</b> at a corner.', a: 'Away from the keeper. Let go.' }
     ]
   });

@@ -798,8 +798,9 @@
     // practice target: a chalk circle to land the pass in
     if (S.level.mark) {
       const m = S.level.mark;
-      ctx.strokeStyle = 'rgba(251,248,240,.9)'; ctx.lineWidth = 0.22; ctx.setLineDash([0.9, 0.6]); disc(m.x, m.y, m.r); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(251,248,240,.10)'; disc(m.x, m.y, m.r); ctx.fill();
+      // mustard, not chalk white, so it cannot be mistaken for a pitch marking
+      ctx.fillStyle = 'rgba(242,183,5,.16)'; disc(m.x, m.y, m.r); ctx.fill();
+      ctx.strokeStyle = MUSTARD; ctx.lineWidth = 0.32; ctx.setLineDash([0.9, 0.55]); disc(m.x, m.y, m.r); ctx.stroke(); ctx.setLineDash([]);
     }
 
     // offside line, while the live player waits for his pass
@@ -884,7 +885,7 @@
 
     // who the pass is for
     let passFor = -1;
-    if (live >= 0 && S.role === 'ball' && !S.isLast && S.liveKickTick < 0 && S.status === 'play') {
+    if (live >= 0 && S.role === 'ball' && !S.isLast && S.liveKickTick < 0 && S.status === 'play' && !S.level.mark) {
       passFor = S.chain[S.chain.indexOf(live) + 1];
       const t = S.att[passFor];
       if (t) {
@@ -931,7 +932,10 @@
       const ly = Y(offY) - 24 < 6 ? Y(offY) + 6 : Y(offY) - 24;
       tag(Math.min(W, X(P.w)) - 34, ly, 'OFFSIDE', offFail ? TOMATO : MUSTARD, offFail ? PAPER : INK);
     }
-    if (passFor >= 0) {
+    if (S.level.mark && live >= 0 && S.role === 'ball' && !S.isLast && S.liveKickTick < 0 && S.status === 'play') {
+      const m = S.level.mark;               // practice: the target is the space, not the player
+      tag(X(m.x), Y(m.y - m.r - 1.6), 'PASS HERE', MUSTARD, INK);
+    } else if (passFor >= 0) {
       const t = S.att[passFor];
       if (t.num !== passLabelNum) { passLabelNum = t.num; passLabel = 'PASS TO ' + t.num; }
       tag(X(t.x), Y(t.y + R + 1.05), passLabel, PAPER, INK);

@@ -1219,7 +1219,7 @@
 
   document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#rtb')) { SFX.tap(); showRatings(); } });
   window.__omt = {
-    setAuto(f) { autoFactory = f; }, info: () => ({ state, li, round, fails, levels: LEVELS.length, tick: sim ? sim.tick : 0, prac, daily: dly ? dly.n : 0, bonus, limit: sim ? sim.limit : 0 }),
+    setAuto(f) { autoFactory = f; }, practice: n => startPractice(n), info: () => ({ state, li, round, fails, levels: LEVELS.length, tick: sim ? sim.tick : 0, prac, daily: dly ? dly.n : 0, bonus, limit: sim ? sim.limit : 0 }),
     setToday(d) { todayOverride = d; }, peek: () => sim && sim.live >= 0 ? { own: sim.ball.owner === sim.live, x: sim.att[sim.live].x, y: sim.att[sim.live].y, bx: sim.ball.x, by: sim.ball.y } : null, daily: n => startDaily(dateOfNo(n)), dailyNo, shareText: () => result ? shareText(result) : '', statsQueue: () => (save.statsQ || []).slice(), start: startLevel, unlockAll() { save.all = true; },
     home: showHome, name: GAME_NAME,
     /* Android back button (called by the app shell). Returns false when there is nothing left to go back to. */
