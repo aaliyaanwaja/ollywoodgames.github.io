@@ -1,6 +1,6 @@
 /* Offline support: cache the game shell, serve from cache first, refresh in the background. Bump VERSION on every release.
    Files are cached one by one so a level pack that is listed but not yet shipped cannot block the install. */
-const VERSION = 'omt-0.11.3';
+const VERSION = 'omt-0.11.4';
 const FILES = ['./', 'index.html', 'css/style.css', 'js/sim.js', 'js/sounds.js', 'js/audio.js', 'js/render.js', 'js/game.js',
   'js/levels/pack1.js', 'js/levels/pack2.js', 'js/levels/pack3.js', 'js/levels/pack4.js', 'js/levels/pack5.js', 'js/levels/pack6.js', 'js/levels/pack7.js', 'js/levels/pack8.js', 'js/levels/story.js', 'js/levels/pars.js', 'js/levels/practice.js', 'js/levels/daily.js', 'js/config.js', 'js/brand.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/favicon.svg', 'icons/favicon-32.png', 'icons/favicon-16.png', 'icons/favicon.ico', 'icons/apple-touch-icon-180.png',

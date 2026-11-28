@@ -98,6 +98,9 @@
 
   /* A quiet distant crowd on the home screen, off with the sound. */
   function ambience(want) {
+    // Off: the only free recording was looped clapping, which played on and on behind the home screen.
+    // Kept as a stub so callers need no change; the home screen is silent until a proper ambience is found.
+    want = false;
     ambWant = !!want; const c = ac();
     if (!want || !c) { if (amb && ctx) { amb.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.3); } return; }
     if (!amb && BUF.ambience) {
